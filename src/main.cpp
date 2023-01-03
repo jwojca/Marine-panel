@@ -75,6 +75,7 @@ void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue)
 }
 
 
+
 void setup()
 {
 	Serial.begin(9600);
@@ -97,22 +98,14 @@ void setup()
 
 void loop()
 {
-	read3State(P0, P1, true);
-  RGBLedColor(0, 255, 0, 0);
-  delay(1000);
-  RGBLedOff(0);
-  delay(1000);
+	uint8_t state = read3State(P0, P1, true);
+  if(state == 0)
+    RGBLedColor(0, 255, 0, 0);
+  else if(state == 1)
+    RGBLedColor(0, 0, 255, 0);
+  else if(state == 2)
+    RGBLedColor(0, 0, 0, 255);
 
-  RGBLedColor(0, 0, 255, 0);
-  delay(1000);
-  RGBLedOff(0);
-  delay(1000);
-
-  RGBLedColor(0, 0, 0, 255);
-  delay(1000);
-  RGBLedOff(0);
-  delay(1000);
-  
   delay(100);
 }
 
