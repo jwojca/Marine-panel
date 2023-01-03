@@ -1,6 +1,9 @@
 #ifndef MARINE_PANEL_H
 #define MARINE_PANEL_H
 
+#define PCF_ADRESS 0x20
+#define PWM_ADRESS 0x40
+
 #include <Wire.h>
 #include <Arduino.h>
 #include <PCF8574.h>
@@ -30,5 +33,44 @@ void RGBLedBlink(uint16_t red, uint16_t green, uint16_t blue, uint16_t onDuratio
 {
 
 }
+
+bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574)
+{
+  uint8_t val = pcf8574.digitalRead(pin);
+  bool state;
+  if(val == 0)
+    state = true;
+  else
+    state = false;
+
+  if (printOn)
+  {
+    Serial.print(state);
+    Serial.print("\n"); 
+  }  
+ return state;
+}
+
+uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574)
+{
+  uint8_t val1 = pcf8574.digitalRead(pin1);
+  uint8_t val2 = pcf8574.digitalRead(pin2);
+  uint8_t state;
+  if(val1 == 1 && val2 == 1)
+    state = 0;
+  else if(val2 == 0)
+    state = 1;
+  else
+    state = 2;
+
+   if (printOn)
+  {
+    Serial.print(state);
+    Serial.print("\n"); 
+  }  
+
+  return state;
+}
+
 
 #endif
