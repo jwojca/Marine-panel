@@ -1,40 +1,15 @@
- // --------------------------------------
-// i2c_scanner
-//
-// Version 1
-//    This program (or code that looks like it)
-//    can be found in many places.
-//    For example on the Arduino.cc forum.
-//    The original author is not know.
-// Version 2, Juni 2012, Using Arduino 1.0.1
-//     Adapted to be as simple as possible by Arduino.cc user Krodal
-// Version 3, Feb 26  2013
-//    V3 by louarnold
-// Version 4, March 3, 2013, Using Arduino 1.0.3
-//    by Arduino.cc user Krodal.
-//    Changes by louarnold removed.
-//    Scanning addresses changed from 0...127 to 1...119,
-//    according to the i2c scanner by Nick Gammon
-//    https://www.gammon.com.au/forum/?id=10896
-// Version 5, March 28, 2013
-//    As version 4, but address scans now to 127.
-//    A sensor seems to use address 120.
-// Version 6, November 27, 2015.
-//    Added waiting for the Leonardo serial communication.
-// 
-//
-// This sketch tests the standard 7-bit addresses
-// Devices with higher bit address might not be seen properly.
-//
 
-#define ADRESS 0x20
+#define PCF_ADRESS 0x20
+#define PWM_ADRESS 0x40
 
 #include <Wire.h>
 #include <Arduino.h>
-#include "PCF8574.h"
+#include <PCF8574.h>
 #include <stdbool.h>
+#include <Adafruit_PWMServoDriver.h>
 
-PCF8574 pcf8574(ADRESS);
+PCF8574 pcf8574(PCF_ADRESS);
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(PWM_ADRESS);
 
 
 bool read2State(uint8_t pin, bool printOn)
@@ -75,6 +50,31 @@ uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn)
   return state;
 }
 
+void RGBLedBlink(uint16_t red, uint16_t green, uint16_t blue, uint16_t onDuration, uint16_t offDuration)
+{
+
+}
+
+void RGBLedOff(uint8_t firstPin)
+{
+  pwm.setPin(firstPin, 0);
+  pwm.setPin(firstPin + 1, 0);
+  pwm.setPin(firstPin + 2, 0);
+}
+
+void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue)
+{
+  uint16_t red, green, blue;
+  red = map(aRed, 0, 255, 0, 4095);
+  green = map(aGreen, 0, 255, 0, 4095);
+  blue = map(aBlue, 0, 255, 0, 4095);
+
+  pwm.setPin(afirstPin, red);
+  pwm.setPin(afirstPin + 1, green);
+  pwm.setPin(afirstPin + 2, blue);
+}
+
+
 void setup()
 {
 	Serial.begin(9600);
@@ -89,11 +89,30 @@ void setup()
 		Serial.println("OK");
   else
 		Serial.println("KO");
+
+  //PWM
+  pwm.begin();
+  pwm.setPWMFreq(50);
 }
 
 void loop()
 {
 	read3State(P0, P1, true);
+  RGBLedColor(0, 255, 0, 0);
+  delay(1000);
+  RGBLedOff(0);
+  delay(1000);
+
+  RGBLedColor(0, 0, 255, 0);
+  delay(1000);
+  RGBLedOff(0);
+  delay(1000);
+
+  RGBLedColor(0, 0, 0, 255);
+  delay(1000);
+  RGBLedOff(0);
+  delay(1000);
+  
   delay(100);
 }
 
