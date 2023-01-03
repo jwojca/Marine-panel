@@ -1,12 +1,11 @@
 
-#define PCF_ADRESS 0x20
-#define PWM_ADRESS 0x40
-
 #include <Wire.h>
 #include <Arduino.h>
 #include <PCF8574.h>
 #include <stdbool.h>
 #include <Adafruit_PWMServoDriver.h>
+#include "../lib/Marine_panel.h"
+
 
 PCF8574 pcf8574(PCF_ADRESS);
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(PWM_ADRESS);
@@ -50,29 +49,7 @@ uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn)
   return state;
 }
 
-void RGBLedBlink(uint16_t red, uint16_t green, uint16_t blue, uint16_t onDuration, uint16_t offDuration)
-{
 
-}
-
-void RGBLedOff(uint8_t firstPin)
-{
-  pwm.setPin(firstPin, 0);
-  pwm.setPin(firstPin + 1, 0);
-  pwm.setPin(firstPin + 2, 0);
-}
-
-void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue)
-{
-  uint16_t red, green, blue;
-  red = map(aRed, 0, 255, 0, 4095);
-  green = map(aGreen, 0, 255, 0, 4095);
-  blue = map(aBlue, 0, 255, 0, 4095);
-
-  pwm.setPin(afirstPin, red);
-  pwm.setPin(afirstPin + 1, green);
-  pwm.setPin(afirstPin + 2, blue);
-}
 
 
 
@@ -100,12 +77,14 @@ void loop()
 {
 	uint8_t state = read3State(P0, P1, true);
   if(state == 0)
-    RGBLedColor(0, 255, 0, 0);
+    RGBLedColor(0, 255, 0, 0, pwm);
   else if(state == 1)
-    RGBLedColor(0, 0, 255, 0);
+    RGBLedColor(0, 0, 255, 0, pwm);
   else if(state == 2)
-    RGBLedColor(0, 0, 0, 255);
+    RGBLedColor(0, 0, 0, 255, pwm);
 
-  delay(100);
+  delay(1000);
+  RGBLedOff(0, pwm);
+  delay(1000);
 }
 
