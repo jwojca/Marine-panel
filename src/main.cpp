@@ -1,105 +1,77 @@
+ // --------------------------------------
+// i2c_scanner
+//
+// Version 1
+//    This program (or code that looks like it)
+//    can be found in many places.
+//    For example on the Arduino.cc forum.
+//    The original author is not know.
+// Version 2, Juni 2012, Using Arduino 1.0.1
+//     Adapted to be as simple as possible by Arduino.cc user Krodal
+// Version 3, Feb 26  2013
+//    V3 by louarnold
+// Version 4, March 3, 2013, Using Arduino 1.0.3
+//    by Arduino.cc user Krodal.
+//    Changes by louarnold removed.
+//    Scanning addresses changed from 0...127 to 1...119,
+//    according to the i2c scanner by Nick Gammon
+//    https://www.gammon.com.au/forum/?id=10896
+// Version 5, March 28, 2013
+//    As version 4, but address scans now to 127.
+//    A sensor seems to use address 120.
+// Version 6, November 27, 2015.
+//    Added waiting for the Leonardo serial communication.
+// 
+//
+// This sketch tests the standard 7-bit addresses
+// Devices with higher bit address might not be seen properly.
+//
+
+#define ADRESS 0x20
+
 #include <Wire.h>
-#include "SSD1306Wire.h"
+#include <Arduino.h>
+#include "PCF8574.h"
+#include <stdbool.h>
 
-// for 128x64 displays:
-SSD1306Wire display(0x3c, 8, 9);  // ADDRESS, SDA, SCL
-// By default SH1106Wire set I2C frequency to 700000, you can use set either another frequency or skip setting the frequency by providing -1 value
-// SH1106Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, 400000); //set I2C frequency to 400kHz
-// SH1106Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, -1); //skip setting the I2C bus frequency
+PCF8574 pcf8574(ADRESS);
 
 
-void setup() {
-  String text1 = "Frequency: 50 Hz";
-  String text2 = "Power: 600 kW";
-  String text3 = "Voltage: 1000 V";
-  // put your setup code here, to run once:
-  display.init();
-  display.setContrast(255);
-  display.setFont(ArialMT_Plain_16);
-  display.drawStringMaxWidth(0,0, display.getWidth(),text1);
-  display.drawStringMaxWidth(0,20, display.getWidth(),text2);
-  display.drawStringMaxWidth(0,40, display.getWidth(),text3);
-  display.display();
-  delay(10000);
-  display.clear();
-  display.setFont(ArialMT_Plain_10); 
-}
+bool read2State(uint8_t pin, bool printOn)
+{
+  uint8_t val = pcf8574.digitalRead(P0);
+  bool state;
+  if(val == 0)
+    state = true;
+  else
+    state = false;
 
-void loop() {
-  int bigRadius = 31;
-  int smallRadius = 25;
-  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2)-10, "0 MW");
-  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2), "0 RPM");
-  display.display();
-  for(uint16_t i = 1; i < 3; ++i)
+  if (printOn)
   {
-    display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, i);
-    display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, i);
-    delay(500);
-    display.display();
-  }
-  display.drawCircle(display.getWidth()/2, display.getHeight()/2, smallRadius);
-  display.drawCircle(display.getWidth()/2, display.getHeight()/2, bigRadius);
-  delay(500);
-  display.display();
-  delay(500);
-  display.clear();
-  delay(100);
+    Serial.print(state);
+    Serial.print("\n"); 
+  }  
+ return state;
 }
-
-/*#include <Wire.h>
-#include<Arduino.h>>
-
 
 void setup()
 {
-  Wire.begin();
+	Serial.begin(9600);
+	delay(1000);
 
-  Serial.begin(9600);
-  while (!Serial);             // Leonardo: wait for serial monitor
-  Serial.println("\nI2C Scanner");
+	// Set pinMode to OUTPUT
+	pcf8574.pinMode(P0, INPUT);
+
+	Serial.print("Init pcf8574...");
+	if (pcf8574.begin())
+		Serial.println("OK");
+  else
+		Serial.println("KO");
 }
-
 
 void loop()
 {
-  byte error, address;
-  int nDevices;
-
-  Serial.println("Scanning...");
-
-  nDevices = 0;
-  for(address = 1; address < 127; address++ ) 
-  {
-    // The i2c_scanner uses the return value of
-    // the Write.endTransmisstion to see if
-    // a device did acknowledge to the address.
-    Wire.beginTransmission(address);
-    error = Wire.endTransmission();
-
-    if (error == 0)
-    {
-      Serial.print("I2C device found at address 0x");
-      if (address<16) 
-        Serial.print("0");
-      Serial.print(address,HEX);
-      Serial.println("  !");
-
-      nDevices++;
-    }
-    else if (error==4) 
-    {
-      Serial.print("Unknown error at address 0x");
-      if (address<16) 
-        Serial.print("0");
-      Serial.println(address,HEX);
-    }    
-  }
-  if (nDevices == 0)
-    Serial.println("No I2C devices found\n");
-  else
-    Serial.println("done\n");
-
-  delay(5000);           // wait 5 seconds for next scan
+	read2State(P0, false);
+  delay(100);
 }
-*/
+
