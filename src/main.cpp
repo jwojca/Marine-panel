@@ -1,229 +1,140 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
+/*
+ Web client
+ 
+ This sketch connects to a test website (httpbin.org)
+ and try to do a GET request, the output is printed
+ on Serial
+ 
+ by Renzo Mischianti <www.mischianti.org>
+ 
+ https://www.mischianti.org
+ 
+ */
+ 
 #include <SPI.h>
 #include <Ethernet.h>
-// nastavení MAC adresy
-byte mac[] = {
-  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
-};
-// nastavení IP adresy - musí být přidělitelná DHCP serverem,
-// tedy ve správném rozsahu, případně přidělena routerem ručně
-IPAddress ip(192, 168, 43, 50);
-// inicializace serveru na portu 80
-EthernetServer server(80);
-
+ 
+// if you don't want to use DNS (and reduce your sketch size)
+// use the numeric IP instead of the name for the server:
+//IPAddress server(74,125,232,128);  // numeric IP for Google (no DNS)
+//char server[] = "www.google.com";    // name address for Google (using DNS)
+char server[] = "httpbin.org";    // name address for Google (using DNS)
+ 
+// Enter a MAC address for your controller below.
+// Newer Ethernet shields have a MAC address printed on a sticker on the shield
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+ 
+// Set the static IP address to use if the DHCP fails to assign
+#define MYIPADDR 192,168,1,50
+#define MYIPMASK 255,255,255,0
+#define MYDNS 192,168,1,1
+#define MYGW 192,168,1,1
+ 
+// Initialize the Ethernet client library
+// with the IP address and port of the server
+// that you want to connect to (port 80 is default for HTTP):
+EthernetClient client;
+ 
+// Variables to measure the speed
+unsigned long beginMicros, endMicros;
+unsigned long byteCount = 0;
+bool printWebData = true;  // set to false for better speed measurement
+ 
 void setup() {
-  // inicializace komunikace po sériové lince rychlostí 9600 baud
-  Serial.begin(9600);
-  // zapnutí komunikace s Ethernet Shieldem
-  Ethernet.begin(mac, ip);
-  server.begin();
-  // výpis informace o nastavené IP adrese
-  Serial.print("Server je na IP adrese: ");
-  Serial.println(Ethernet.localIP());
-}
-
-void loop() {
-  // načtení připojených klientů
-  EthernetClient klient = server.available();
-  // pokud se připojí nějaký klient, provedeme následující
-  if (klient) {
-    Serial.println("Novy klient:");
-    // http request končí prázdným řádkem
-    boolean aktualniRadkaPrazdna = true;
-    // pokud je klient připojen a k dispozici,
-    // vytiskneme mu dostupná data
-    while (klient.connected()) {
-      if (klient.available()) {
-        // načtení a vytištění informace o klientovi
-        char c = klient.read();
-        Serial.write(c);
-        // pokud se dostaneme na konec řádku a následující je prázdný,
-        // byl ukončen request a my můžeme poslat odezvu
-        if (c == '\n' && aktualniRadkaPrazdna) {
-          // nejprve pošleme standardní http odezvu
-          klient.println("HTTP/1.1 200 OK");
-          klient.println("Content-Type: text/html");
-          klient.println("Connection: close");
-          // nastavení automatické obnovy stránky po 5 vteřinách
-          klient.println("Refresh: 5");
-          klient.println();
-          klient.println("");
-          klient.println("");
-          // místo pro tištění vlastních údajů
-          klient.print("Cas od spusteni: ");
-          klient.print(millis() / 1000);
-          klient.print(" vterin.<br />");
-          // ukázka výpisu dat ze všech analogových vstupů
-          for (int analogPin = 0; analogPin < 6; analogPin++) {
-            int analogData = analogRead(analogPin);
-            klient.print("Analogovy vstup A");
-            klient.print(analogPin);
-            klient.print(": ");
-            klient.print(analogData);
-            // příkaz "<br />" funguje jako krok na další řádek
-            klient.println("<br />");
-          }
-          klient.println("");
-          break;
+    Serial.begin(9600);
+    delay(1000);
+    Serial.println("Begin Ethernet");
+ 
+    // You can use Ethernet.init(pin) to configure the CS pin
+    //Ethernet.init(10);  // Most Arduino shields
+    Ethernet.init(10);   // MKR ETH Shield
+    //Ethernet.init(0);   // Teensy 2.0
+    //Ethernet.init(20);  // Teensy++ 2.0
+    //Ethernet.init(15);  // ESP8266 with Adafruit FeatherWing Ethernet
+    //Ethernet.init(33);  // ESP32 with Adafruit FeatherWing Ethernet
+ 
+    if (Ethernet.begin(mac)) { // Dynamic IP setup
+        Serial.println("DHCP OK!");
+    }else{
+        Serial.println("Failed to configure Ethernet using DHCP");
+        // Check for Ethernet hardware present
+        if (Ethernet.hardwareStatus() == EthernetNoHardware) {
+          Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
+          
         }
-        // začátek nové řádky
-        if (c == '\n') {
-          aktualniRadkaPrazdna = true;
-          // detekce znaku na nové řádce
-        } else if (c != '\r') {
-          aktualniRadkaPrazdna = false;
+        if (Ethernet.linkStatus() == LinkOFF) {
+          Serial.println("Ethernet cable is not connected.");
         }
-      }
+ 
+          IPAddress ip(MYIPADDR);
+          IPAddress dns(MYDNS);
+          IPAddress gw(MYGW);
+          IPAddress sn(MYIPMASK);
+          Ethernet.begin(mac, ip, dns, gw, sn);
+          Serial.println("STATIC OK!");
     }
-    // pauza pro prohlížeč, aby stihl zpracovat všechny data
-    delay(1);
-    // uzavření spojení
-    klient.stop();
-    Serial.println("Klient odpojen.");
-    Serial.println("---------------------");
+    delay(5000);
+ 
+ 
+    Serial.print("Local IP : ");
+    Serial.println(Ethernet.localIP());
+    Serial.print("Subnet Mask : ");
+    Serial.println(Ethernet.subnetMask());
+    Serial.print("Gateway IP : ");
+    Serial.println(Ethernet.gatewayIP());
+    Serial.print("DNS Server : ");
+    Serial.println(Ethernet.dnsServerIP());
+ 
+   Serial.println("Ethernet Successfully Initialized");
+  // if you get a connection, report back via serial:
+  if (client.connect(server, 80)) {
+    Serial.println("Connected!");
+    // Make a HTTP request:
+    client.println("GET /get HTTP/1.1");
+    client.println("Host: httpbin.org");
+    client.println("Connection: close");
+    client.println();
+  } else {
+    // if you didn't get a connection to the server:
+    Serial.println("connection failed");
   }
-  else
-    Serial.println("Not connected");
+  beginMicros = micros();
 }
-=======
-#include <Wire.h>
-#include "SSD1306Wire.h"
-
-// for 128x64 displays:
-SSD1306Wire display(0x3c, 8, 9);  // ADDRESS, SDA, SCL
-// By default SH1106Wire set I2C frequency to 700000, you can use set either another frequency or skip setting the frequency by providing -1 value
-// SH1106Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, 400000); //set I2C frequency to 400kHz
-// SH1106Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, -1); //skip setting the I2C bus frequency
-
-
-void setup() {
-  String text1 = "Frequency: 50 Hz";
-  String text2 = "Power: 600 kW";
-  String text3 = "Voltage: 1000 V";
-  // put your setup code here, to run once:
-  display.init();
-  display.setContrast(255);
-  display.setFont(ArialMT_Plain_16);
-  display.drawStringMaxWidth(0,0, display.getWidth(),text1);
-  display.drawStringMaxWidth(0,20, display.getWidth(),text2);
-  display.drawStringMaxWidth(0,40, display.getWidth(),text3);
-  display.display();
-  delay(10000);
-  display.clear();
-  display.setFont(ArialMT_Plain_10); 
-}
-
+ 
 void loop() {
-=======
-#include <Wire.h>
-#include "SSD1306Wire.h"
-
-// for 128x64 displays:
-SSD1306Wire display(0x3c, 8, 9);  // ADDRESS, SDA, SCL
-// By default SH1106Wire set I2C frequency to 700000, you can use set either another frequency or skip setting the frequency by providing -1 value
-// SH1106Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, 400000); //set I2C frequency to 400kHz
-// SH1106Wire(0x3c, SDA, SCL, GEOMETRY_128_64, I2C_ONE, -1); //skip setting the I2C bus frequency
-
-
-void setup() {
-  String text1 = "Frequency: 50 Hz";
-  String text2 = "Power: 600 kW";
-  String text3 = "Voltage: 1000 V";
-  // put your setup code here, to run once:
-  display.init();
-  display.setContrast(255);
-  display.setFont(ArialMT_Plain_16);
-  display.drawStringMaxWidth(0,0, display.getWidth(),text1);
-  display.drawStringMaxWidth(0,20, display.getWidth(),text2);
-  display.drawStringMaxWidth(0,40, display.getWidth(),text3);
-  display.display();
-  delay(10000);
-  display.clear();
-  display.setFont(ArialMT_Plain_10); 
-}
-
-void loop() {
->>>>>>> parent of 24d3ccd (First modbus test)
-  int bigRadius = 31;
-  int smallRadius = 25;
-  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2)-10, "0 MW");
-  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2), "0 RPM");
-  display.display();
-  for(uint16_t i = 1; i < 3; ++i)
-  {
-    display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, i);
-    display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, i);
-    delay(500);
-    display.display();
-  }
-  display.drawCircle(display.getWidth()/2, display.getHeight()/2, smallRadius);
-  display.drawCircle(display.getWidth()/2, display.getHeight()/2, bigRadius);
-  delay(500);
-  display.display();
-  delay(500);
-  display.clear();
-  delay(100);
-}
-
-/*#include <Wire.h>
-#include<Arduino.h>>
-
-
-void setup()
-{
-  Wire.begin();
-
-  Serial.begin(9600);
-  while (!Serial);             // Leonardo: wait for serial monitor
-  Serial.println("\nI2C Scanner");
-}
-
-
-void loop()
-{
-  byte error, address;
-  int nDevices;
-
-  Serial.println("Scanning...");
-
-  nDevices = 0;
-  for(address = 1; address < 127; address++ ) 
-  {
-    // The i2c_scanner uses the return value of
-    // the Write.endTransmisstion to see if
-    // a device did acknowledge to the address.
-    Wire.beginTransmission(address);
-    error = Wire.endTransmission();
-
-    if (error == 0)
-    {
-      Serial.print("I2C device found at address 0x");
-      if (address<16) 
-        Serial.print("0");
-      Serial.print(address,HEX);
-      Serial.println("  !");
-
-      nDevices++;
+  // if there are incoming bytes available
+  // from the server, read them and print them:
+  int len = client.available();
+  if (len > 0) {
+    byte buffer[80];
+    if (len > 80) len = 80;
+    client.read(buffer, len);
+    if (printWebData) {
+      Serial.write(buffer, len); // show in the serial monitor (slows some boards)
     }
-    else if (error==4) 
-    {
-      Serial.print("Unknown error at address 0x");
-      if (address<16) 
-        Serial.print("0");
-      Serial.println(address,HEX);
-    }    
+    byteCount = byteCount + len;
   }
-  if (nDevices == 0)
-    Serial.println("No I2C devices found\n");
-  else
-    Serial.println("done\n");
-
-  delay(5000);           // wait 5 seconds for next scan
+ 
+  // if the server's disconnected, stop the client:
+  if (!client.connected()) {
+    endMicros = micros();
+    Serial.println();
+    Serial.println("disconnecting.");
+    client.stop();
+    Serial.print("Received ");
+    Serial.print(byteCount);
+    Serial.print(" bytes in ");
+    float seconds = (float)(endMicros - beginMicros) / 1000000.0;
+    Serial.print(seconds, 4);
+    float rate = (float)byteCount / seconds / 1000.0;
+    Serial.print(", rate = ");
+    Serial.print(rate);
+    Serial.print(" kbytes/second");
+    Serial.println();
+ 
+    // do nothing forevermore:
+    while (true) {
+      delay(1);
+    }
+  }
 }
-<<<<<<< HEAD
-*/
->>>>>>> parent of 24d3ccd (First modbus test)
-=======
-*/
->>>>>>> parent of 24d3ccd (First modbus test)
