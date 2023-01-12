@@ -12,6 +12,7 @@
  */
  
 #include <SPI.h>
+#include <ModbusEthernet.h>
 #include <Ethernet.h>
  
 // if you don't want to use DNS (and reduce your sketch size)
