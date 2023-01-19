@@ -9,6 +9,7 @@
 #include <PCF8574.h>
 #include <stdbool.h>
 #include <Adafruit_PWMServoDriver.h>
+#include <SSD1306Spi.h>
 
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm)
 {
@@ -70,6 +71,29 @@ uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574)
   }  
 
   return state;
+}
+
+void dispPemsVisualize(SSD1306Spi &display)
+{
+  int bigRadius = 31;
+  int smallRadius = 25;
+  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2)-10, "0 MW");
+  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2), "0 RPM");
+  display.display();
+  for(uint16_t i = 1; i < 3; ++i)
+  {
+    display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, i);
+    display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, i);
+    delay(500);
+    display.display();
+  }
+  display.drawCircle(display.getWidth()/2, display.getHeight()/2, smallRadius);
+  display.drawCircle(display.getWidth()/2, display.getHeight()/2, bigRadius);
+  delay(500);
+  display.display();
+  delay(500);
+  display.clear();
+  delay(100);
 }
 
 

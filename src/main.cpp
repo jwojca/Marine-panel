@@ -16,6 +16,8 @@
 #define OLED_CS2    6
 #define OLED_RESET2 5
 
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 SSD1306Spi display(OLED_RESET, OLED_DC, OLED_CS);
 SSD1306Spi display2(OLED_RESET2, OLED_DC, OLED_CS2);
@@ -46,15 +48,19 @@ void setup()
   String text3 = "Voltage: 1000 V";
   // put your setup code here, to run once:
   display.init();
+  display.flipScreenVertically();
   display.setContrast(255);
+ 
   display2.init();
+  display2.flipScreenVertically();
   display2.setContrast(255);
+
   display.setFont(ArialMT_Plain_16);
   display.drawStringMaxWidth(0,0, display.getWidth(),text1);
   display.drawStringMaxWidth(0,20, display.getWidth(),text2);
   display.drawStringMaxWidth(0,40, display.getWidth(),text3);
   display.display();
-  delay(10000);
+  delay(1000);
   display.clear();
   display.setFont(ArialMT_Plain_10); 
 }
@@ -70,24 +76,14 @@ void loop()
     RGBLedColor(0, 0, 0, 255, pwm);
   delay(10);*/
 
-  int bigRadius = 31;
-  int smallRadius = 25;
-  display2.drawString((display2.getWidth()/2)-15, (display2.getHeight()/2)-10, "0 MW");
-  display2.drawString((display2.getWidth()/2)-15, (display2.getHeight()/2), "0 RPM");
-  display2.display();
-  for(uint16_t i = 1; i < 3; ++i)
+  display.clear();
+  for(uint8_t i = 0; i < 100; ++i)
   {
-    display2.drawCircleQuads(display2.getWidth()/2, display2.getHeight()/2, smallRadius, i);
-    display2.drawCircleQuads(display2.getWidth()/2, display2.getHeight()/2, bigRadius, i);
-    delay(500);
-    display2.display();
+    display.drawProgressBar(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 60, 30, i);
+    display.display();
+    delay(20);
   }
-  display2.drawCircle(display2.getWidth()/2, display2.getHeight()/2, smallRadius);
-  display2.drawCircle(display2.getWidth()/2, display2.getHeight()/2, bigRadius);
-  delay(500);
-  display2.display();
-  delay(500);
-  display2.clear();
-  delay(100);
+  dispPemsVisualize(display2);
+
 }
 
