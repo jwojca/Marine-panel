@@ -19,7 +19,7 @@
 class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
 
 const uint16_t REG = 512;               // Modbus Hreg Offset
-IPAddress server(127, 0, 0, 1);  // Address of Modbus Slave device - need to define!!
+IPAddress server(169, 254, 198, 12);  // Address of Modbus Slave device - need to define!!
 const int32_t showDelay = 5000;   // Show result every n'th mellisecond
 
 bool usingDhcp = true;
@@ -72,9 +72,14 @@ uint32_t showLast = 0;
 
 
 void loop() {
-if (mb.isConnected(server)) {   // Check if connection to Modbus Slave is established
+  if (mb.isConnected(server)) 
+  { // Check if connection to Modbus Slave is established
+    //Serial.println("Connection OK");
     mb.readHreg(server, REG, &res);  // Initiate Read Hreg from Modbus Slave
-  } else {
+  } 
+  else 
+  {
+    Serial.println("trying to reconnect");
     mb.connect(server, PORT);           // Try to connect if not connected
   }
 
