@@ -127,15 +127,40 @@ void dispPemsVisualize2(SSD1306Spi &display)
   display.clear();
 }
 
-void drawCircleTest(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display) {
+void drawCircleTest(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display, uint8_t progress) {
   int16_t x = 0, y = radius;
 	int16_t dp = 1 - radius;
+  uint16_t totalCirclePixels = 0;
+  uint16_t pixelPerOctant = 0;
+  uint16_t progressPixels = 0;
+   uint16_t numOfActivePixels = 0;
+
+
+  //get number of total circle pixels
+  do 
+  {
+    if (dp < 0)
+      dp = dp + (x++) * 2 + 3;
+    else
+      dp = dp + (x++) * 2 - (y--) * 2 + 5;
+    ++pixelPerOctant;
+  } while (x < y);
+  totalCirclePixels = pixelPerOctant*8 + 4;
+  Serial.println(totalCirclePixels);
+
+  progressPixels = map(progress, 0, 100, 0, totalCirclePixels);
+  Serial.println(progressPixels);
+
 
   for(uint8_t i = 0; i < 6; ++i)
   {
     x = 0;
     y = radius;
     dp = 1 - radius;
+
+    if(numOfActivePixels >= progressPixels)
+        break;
+   
 
     do 
     {
@@ -174,12 +199,15 @@ void drawCircleTest(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display)
        display.setPixel(x0 + y, y0 - x);
       if(i == 5)
         display.setPixel(x0 + y, y0 + x);
+      ++numOfActivePixels;
+      if(numOfActivePixels >= progressPixels)
+        break;
 
       
 
 	  } while (x < y);
-    delay(1000);
-    display.display();
+    //delay(1000);
+    //display.display();
   }
 
 
