@@ -84,11 +84,25 @@ void loop()
     delay(20);
   }
   //dispPemsVisualize2(display2);
+  int16_t x0 = SCREEN_WIDTH/2;
+  int16_t y0 = SCREEN_HEIGHT/2;
+  int16_t r = 20;
+/*
+  display2.setPixel(x0 - r, y0);
+  delay(1000);
+  display2.display();
+  display2.setPixel(x0 - 1, y0 - r);
+  display2.setPixel(x0, y0 - r);
+  delay(1000);
+  display2.display();
+  display2.setPixel(x0 + r, y0);
+  delay(1000);
+  display2.display();*/
 
-  for(uint16_t i = 0; i < 100; ++i)
+  for(uint16_t i = 0; i < 50; ++i)
   {
-    drawCircleTest(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 19, display2, i);
-    //delay(10);
+    drawCirclePems(x0, y0, r, display2, i*2);
+    delay(20);
     display2.display();
     
   }

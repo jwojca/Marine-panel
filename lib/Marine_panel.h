@@ -127,7 +127,7 @@ void dispPemsVisualize2(SSD1306Spi &display)
   display.clear();
 }
 
-void drawCircleTest(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display, uint8_t progress) {
+void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display, uint8_t progress) {
   int16_t x = 0, y = radius;
 	int16_t dp = 1 - radius;
   uint16_t totalCirclePixels = 0;
@@ -135,10 +135,7 @@ void drawCircleTest(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display,
   uint16_t progressPixels = 0;
   uint16_t numOfActivePixels = 0;
 
- 
-
-
-  //get number of total circle pixels
+  //get number of total Pemscircle pixels
   do 
   {
     if (dp < 0)
@@ -147,17 +144,20 @@ void drawCircleTest(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display,
       dp = dp + (x++) * 2 - (y--) * 2 + 5;
     ++pixelPerOctant;
   } while (x < y);
-  totalCirclePixels = pixelPerOctant*8 + 4;
-  Serial.println(totalCirclePixels);
 
+  totalCirclePixels = pixelPerOctant*6 + 3;
   progressPixels = map(progress, 0, 100, 0, totalCirclePixels);
-  Serial.println(progressPixels);
 
+  //create array for x,y data
   int16_t array[pixelPerOctant][2];
   uint16_t arrIndex = pixelPerOctant-1;
+
+  //reset params
   x = 0;
   y = radius;
   dp = 1 - radius;
+
+  //load x,y data into array
    do 
   {
     if (dp < 0)
@@ -167,67 +167,63 @@ void drawCircleTest(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display,
     array[arrIndex][0] = x;
     array[arrIndex][1] = y;
     --arrIndex;
-    Serial.print(x);
-    Serial.print("; ");
-    Serial.println(y);
   } while (x < y);
 
-  for(uint16_t index = 0; index < pixelPerOctant; ++index)
-  {
-    Serial.print("Prvek: ");
-    Serial.print(index);
-    Serial.print(" x = ");
-    Serial.print(array[index][0]);
-    Serial.print(" y = ");
-    Serial.println(array[index][1]);
-  }
- 
 
-
+  //main for cycle for 6 octants
   for(uint8_t i = 0; i < 6; ++i)
   {
     x = 0;
     y = radius;
     dp = 1 - radius;
-    uint8_t index = 0;
-  
+    uint8_t indexIncrement = 0;
+    uint8_t indexDecrement = pixelPerOctant-1;
 
     if(numOfActivePixels >= progressPixels)
         break;
-   
+    //loop for draw individual pixels, odd number load array, even number load inverted array
     do 
     {
-      if (dp < 0)
-        dp = dp + (x++) * 2 + 3;
-      else
-        dp = dp + (x++) * 2 - (y--) * 2 + 5;
-
       if(i == 0)
-        display.setPixel(x0 - array[index][1], y0 + array[index][0]);
+        display.setPixel(x0 - array[indexIncrement][1], y0 + array[indexIncrement][0]);
       if(i == 1)
-        display.setPixel(x0 - y, y0 - x);
+        display.setPixel(x0 - array[indexDecrement][1], y0 - array[indexDecrement][0]);
       if(i == 2)
-        display.setPixel(x0 - array[index][0], y0 - array[index][1]);
+        display.setPixel(x0 - array[indexIncrement][0], y0 - array[indexIncrement][1]);
       if(i == 3)
-        display.setPixel(x0 + x, y0 - y);
+        display.setPixel(x0 + array[indexDecrement][0], y0 - array[indexDecrement][1]);
       if(i == 4)
-      display.setPixel(x0 + array[index][1], y0 - array[index][0]);
+      display.setPixel(x0 + array[indexIncrement][1], y0 - array[indexIncrement][0]);
       if(i == 5)
-        display.setPixel(x0 + y, y0 + x);
+        display.setPixel(x0 + array[indexDecrement][1], y0 + array[indexDecrement][0]);
+      
+      //draw 2 point for full circle
+      if(progress > 16)
+      {
+        display.setPixel(x0 - radius, y0);
+        display.setPixel(x0 - radius, y0 + 1);
+      }
+        
+      if(progress > 49)
+      {
+        display.setPixel(x0, y0 - radius);
+        display.setPixel(x0 - 1, y0 - radius);
+      }        
+      if(progress > 82)
+      {
+        display.setPixel(x0 + radius, y0);
+        display.setPixel(x0 + radius, y0 - 1);
+      }
+
       ++numOfActivePixels;
-      ++index;
+      ++indexIncrement;
+      --indexDecrement;
       if(numOfActivePixels >= progressPixels)
         break;
 
-    } while (x < y);
+    } while (indexDecrement > 0);
   }
 
-
-
-  /*setPixel(x0 + radius, y0);
-  setPixel(x0, y0 + radius);
-  setPixel(x0 - radius, y0);
-  setPixel(x0, y0 - radius);*/
 }
 
 
