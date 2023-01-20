@@ -83,7 +83,10 @@ void loop()
     display.display();
     delay(20);
   }
-  dispPemsVisualize(display2);
+  //dispPemsVisualize2(display2);
+  drawCircleTest(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 19, display2);
+  display2.clear();
+  
 
 }
 

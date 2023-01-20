@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <SSD1306Spi.h>
+#include <OLEDDisplay.h>
 
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm)
 {
@@ -94,6 +95,99 @@ void dispPemsVisualize(SSD1306Spi &display)
   delay(500);
   display.clear();
   delay(100);
+}
+
+void dispPemsVisualize2(SSD1306Spi &display)
+{
+  int bigRadius = 31;
+  int smallRadius = 25;
+  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2)-10, "0 MW");
+  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2), "0 RPM");
+  display.display();
+
+  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, 0x01);
+  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, 0x01);
+  delay(500);
+  display.display();
+
+  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, 0x02);
+  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, 0x02);
+  delay(500);
+  display.display();
+
+  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, 0x04);
+  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, 0x04);
+  delay(500);
+  display.display();
+
+  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, 0x08);
+  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, 0x08);
+  delay(500);
+  display.display();
+  display.clear();
+}
+
+void drawCircleTest(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display) {
+  int16_t x = 0, y = radius;
+	int16_t dp = 1 - radius;
+
+  for(uint8_t i = 0; i < 6; ++i)
+  {
+    x = 0;
+    y = radius;
+    dp = 1 - radius;
+
+    do 
+    {
+      if (dp < 0)
+        dp = dp + (x++) * 2 + 3;
+      else
+        dp = dp + (x++) * 2 - (y--) * 2 + 5;
+      
+
+      /*if(i == 0)
+        display.setPixel(x0 - y, y0 - x);
+      if(i == 1)
+        display.setPixel(x0 - x, y0 - y);
+      if(i == 2)
+        display.setPixel(x0 + x, y0 - y);
+      if(i == 3)
+       display.setPixel(x0 + y, y0 - x);
+      if(i == 4)
+        display.setPixel(x0 + y, y0 + x);
+      if(i == 5)
+        display.setPixel(x0 + x, y0 + y);     //For the 8 octants
+      if (i == 6)
+        display.setPixel(x0 - x, y0 + y);
+      if(i == 7)
+        display.setPixel(x0 - y, y0 + x);*/
+
+      if(i == 0)
+        display.setPixel(x0 - y, y0 + x);
+      if(i == 1)
+        display.setPixel(x0 - y, y0 - x);
+      if(i == 2)
+        display.setPixel(x0 - x, y0 - y);
+      if(i == 3)
+        display.setPixel(x0 + x, y0 - y);
+      if(i == 4)
+       display.setPixel(x0 + y, y0 - x);
+      if(i == 5)
+        display.setPixel(x0 + y, y0 + x);
+
+      
+
+	  } while (x < y);
+    delay(1000);
+    display.display();
+  }
+
+
+
+  /*setPixel(x0 + radius, y0);
+  setPixel(x0, y0 + radius);
+  setPixel(x0 - radius, y0);
+  setPixel(x0, y0 - radius);*/
 }
 
 
