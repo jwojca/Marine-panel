@@ -77,7 +77,7 @@ uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574)
 }
 
 
-void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display, uint8_t progress) {
+void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display, uint8_t progress, bool innerCircle = false) {
   int16_t x = 0, y = radius;
 	int16_t dp = 1 - radius;
   uint16_t totalCirclePixels = 0;
@@ -147,19 +147,67 @@ void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display,
       if(i == 5)
         display.setPixel(x0 + array[indexDecrement][1], y0 + array[indexDecrement][0]);
       
+      //to fill holes in inner circle
+      if(innerCircle)
+      {
+        if(i == 0)
+        {
+          display.setPixel(x0 - array[indexIncrement][1], y0 + array[indexIncrement][0]);
+          display.setPixel(x0 - array[indexIncrement][1] - 1, y0 + array[indexIncrement][0]);
+          display.setPixel(x0 - array[indexIncrement][1] + 1, y0 + array[indexIncrement][0]);
+        }
+        
+        if(i == 1)
+        {
+          display.setPixel(x0 - array[indexDecrement][1], y0 - array[indexDecrement][0]);
+          display.setPixel(x0 - array[indexDecrement][1] + 1, y0 - array[indexDecrement][0]);
+          display.setPixel(x0 - array[indexDecrement][1] - 1, y0 - array[indexDecrement][0]);
+        }
+
+        if(i == 2)
+        {
+          display.setPixel(x0 - array[indexIncrement][0], y0 - array[indexIncrement][1]);
+          display.setPixel(x0 - array[indexIncrement][0] + 1, y0 - array[indexIncrement][1]);
+          display.setPixel(x0 - array[indexIncrement][0] - 1, y0 - array[indexIncrement][1]);
+        }
+          
+        if(i == 3)
+        {
+          display.setPixel(x0 + array[indexDecrement][0], y0 - array[indexDecrement][1]);
+          display.setPixel(x0 + array[indexDecrement][0] + 1 , y0 - array[indexDecrement][1]);
+          display.setPixel(x0 + array[indexDecrement][0] - 1, y0 - array[indexDecrement][1]);
+
+        }
+          
+        if(i == 4)
+        {
+          display.setPixel(x0 + array[indexIncrement][1], y0 - array[indexIncrement][0]);
+          display.setPixel(x0 + array[indexIncrement][1] + 1, y0 - array[indexIncrement][0]);
+          display.setPixel(x0 + array[indexIncrement][1] - 1, y0 - array[indexIncrement][0]);
+        }
+        
+        if(i == 5)
+        {
+          display.setPixel(x0 + array[indexDecrement][1], y0 + array[indexDecrement][0]);
+          display.setPixel(x0 + array[indexDecrement][1] + 1, y0 + array[indexDecrement][0]);
+          display.setPixel(x0 + array[indexDecrement][1] - 1, y0 + array[indexDecrement][0]);
+        }
+          
+      }
+      
       //draw 2 point for full circle
-      if(progress > 16)
+      if(progress >= 16)
       {
         display.setPixel(x0 - radius, y0);
         display.setPixel(x0 - radius, y0 + 1);
       }
         
-      if(progress > 49)
+      if(progress >= 49)
       {
         display.setPixel(x0, y0 - radius);
         display.setPixel(x0 - 1, y0 - radius);
       }        
-      if(progress > 82)
+      if(progress >= 80)
       {
         display.setPixel(x0 + radius, y0);
         display.setPixel(x0 + radius, y0 - 1);
@@ -183,6 +231,7 @@ void dispPemsVisualize(SSD1306Spi &display, uint8_t progress)
   String progressString = String(progress);
   uint8_t progressStringOffset = 15;
   int8_t physQtyOffset = -4;
+  int8_t circleOffset = 5;
 
   if(progress < 10)
     progressStringOffset = 14;
@@ -197,12 +246,12 @@ void dispPemsVisualize(SSD1306Spi &display, uint8_t progress)
   display.drawString(DISP_CENTER_X0 - progressStringOffset, DISP_CENTER_Y0 + 5, progressString);
  
   
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, bigRadius, display, progress);
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, bigRadius - 1, display, progress);
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, bigRadius - 2, display, progress);
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, smallRadius, display, progress);
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, smallRadius + 1 , display, progress);
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, smallRadius + 2, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius - 1, display, progress, true);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius - 2, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 1 , display, progress, true);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 2, display, progress);
 }
 
 
