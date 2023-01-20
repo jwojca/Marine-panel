@@ -3,6 +3,8 @@
 
 #define PCF_ADRESS 0x20
 #define PWM_ADRESS 0x40
+#define DISP_CENTER_X0 64
+#define DISP_CENTER_Y0 32
 
 #include <Wire.h>
 #include <Arduino.h>
@@ -74,58 +76,6 @@ uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574)
   return state;
 }
 
-void dispPemsVisualize(SSD1306Spi &display)
-{
-  int bigRadius = 31;
-  int smallRadius = 25;
-  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2)-10, "0 MW");
-  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2), "0 RPM");
-  display.display();
-  for(uint16_t i = 1; i < 3; ++i)
-  {
-    display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, i);
-    display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, i);
-    delay(500);
-    display.display();
-  }
-  display.drawCircle(display.getWidth()/2, display.getHeight()/2, smallRadius);
-  display.drawCircle(display.getWidth()/2, display.getHeight()/2, bigRadius);
-  delay(500);
-  display.display();
-  delay(500);
-  display.clear();
-  delay(100);
-}
-
-void dispPemsVisualize2(SSD1306Spi &display)
-{
-  int bigRadius = 31;
-  int smallRadius = 25;
-  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2)-10, "0 MW");
-  display.drawString((display.getWidth()/2)-15, (display.getHeight()/2), "0 RPM");
-  display.display();
-
-  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, 0x01);
-  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, 0x01);
-  delay(500);
-  display.display();
-
-  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, 0x02);
-  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, 0x02);
-  delay(500);
-  display.display();
-
-  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, 0x04);
-  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, 0x04);
-  delay(500);
-  display.display();
-
-  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, smallRadius, 0x08);
-  display.drawCircleQuads(display.getWidth()/2, display.getHeight()/2, bigRadius, 0x08);
-  delay(500);
-  display.display();
-  display.clear();
-}
 
 void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display, uint8_t progress) {
   int16_t x = 0, y = radius;
@@ -225,6 +175,37 @@ void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display,
   }
 
 }
+
+void dispPemsVisualize(SSD1306Spi &display, uint8_t progress)
+{
+  int bigRadius = 37;
+  int smallRadius = 28;
+  String progressString = String(progress);
+  uint8_t progressStringOffset = 15;
+  int8_t physQtyOffset = -4;
+
+  if(progress < 10)
+    progressStringOffset = 14;
+  else if (progress >= 10 && progress < 100)
+    progressStringOffset = 18;
+  else
+    progressStringOffset = 22;
+
+  display.drawString(DISP_CENTER_X0 + physQtyOffset, DISP_CENTER_Y0 - 5,  " MW");
+  display.drawString(DISP_CENTER_X0 + physQtyOffset, DISP_CENTER_Y0 + 5,  " RPM");
+  display.drawString(DISP_CENTER_X0 - progressStringOffset, DISP_CENTER_Y0 - 5, progressString);
+  display.drawString(DISP_CENTER_X0 - progressStringOffset, DISP_CENTER_Y0 + 5, progressString);
+ 
+  
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, bigRadius, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, bigRadius - 1, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, bigRadius - 2, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, smallRadius, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, smallRadius + 1 , display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + 5, smallRadius + 2, display, progress);
+}
+
+
 
 
 #endif

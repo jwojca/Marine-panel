@@ -99,11 +99,21 @@ void loop()
   delay(1000);
   display2.display();*/
 
-  for(uint16_t i = 0; i < 50; ++i)
+  for(uint16_t i = 0; i < 101; ++i)
   {
-    drawCirclePems(x0, y0, r, display2, i*2);
+    /*drawCirclePems(x0, y0, r, display2, i*2);
+    drawCirclePems(x0, y0, 19, display2, i*2);
+    drawCirclePems(x0, y0, 21, display2, i*2);
+    drawCirclePems(x0, y0, 22, display2, i*2);
+
+    drawCirclePems(x0, y0, 28, display2, i*2);
+    drawCirclePems(x0, y0, 29, display2, i*2);
+    drawCirclePems(x0, y0, 30, display2, i*2);
+    drawCirclePems(x0, y0, 31, display2, i*2);*/
+    dispPemsVisualize(display2, i);
     delay(20);
     display2.display();
+    display2.clear();
     
   }
   
