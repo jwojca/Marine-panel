@@ -84,12 +84,16 @@ void loop()
     delay(20);
   }
   //dispPemsVisualize2(display2);
-  for(uint8_t i = 0; i < 100; ++i)
+
+  for(uint16_t i = 0; i < 100; ++i)
   {
     drawCircleTest(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 19, display2, i);
-    delay(100);
+    //delay(10);
     display2.display();
+    
   }
+  
+
   
   display2.clear();
   

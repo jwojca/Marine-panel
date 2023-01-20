@@ -133,7 +133,9 @@ void drawCircleTest(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display,
   uint16_t totalCirclePixels = 0;
   uint16_t pixelPerOctant = 0;
   uint16_t progressPixels = 0;
-   uint16_t numOfActivePixels = 0;
+  uint16_t numOfActivePixels = 0;
+
+ 
 
 
   //get number of total circle pixels
@@ -151,63 +153,73 @@ void drawCircleTest(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display,
   progressPixels = map(progress, 0, 100, 0, totalCirclePixels);
   Serial.println(progressPixels);
 
+  int16_t array[pixelPerOctant][2];
+  uint16_t arrIndex = pixelPerOctant-1;
+  x = 0;
+  y = radius;
+  dp = 1 - radius;
+   do 
+  {
+    if (dp < 0)
+      dp = dp + (x++) * 2 + 3;
+    else
+      dp = dp + (x++) * 2 - (y--) * 2 + 5;
+    array[arrIndex][0] = x;
+    array[arrIndex][1] = y;
+    --arrIndex;
+    Serial.print(x);
+    Serial.print("; ");
+    Serial.println(y);
+  } while (x < y);
+
+  for(uint16_t index = 0; index < pixelPerOctant; ++index)
+  {
+    Serial.print("Prvek: ");
+    Serial.print(index);
+    Serial.print(" x = ");
+    Serial.print(array[index][0]);
+    Serial.print(" y = ");
+    Serial.println(array[index][1]);
+  }
+ 
+
 
   for(uint8_t i = 0; i < 6; ++i)
   {
     x = 0;
     y = radius;
     dp = 1 - radius;
+    uint8_t index = 0;
+  
 
     if(numOfActivePixels >= progressPixels)
         break;
    
-
     do 
     {
       if (dp < 0)
         dp = dp + (x++) * 2 + 3;
       else
         dp = dp + (x++) * 2 - (y--) * 2 + 5;
-      
-
-      /*if(i == 0)
-        display.setPixel(x0 - y, y0 - x);
-      if(i == 1)
-        display.setPixel(x0 - x, y0 - y);
-      if(i == 2)
-        display.setPixel(x0 + x, y0 - y);
-      if(i == 3)
-       display.setPixel(x0 + y, y0 - x);
-      if(i == 4)
-        display.setPixel(x0 + y, y0 + x);
-      if(i == 5)
-        display.setPixel(x0 + x, y0 + y);     //For the 8 octants
-      if (i == 6)
-        display.setPixel(x0 - x, y0 + y);
-      if(i == 7)
-        display.setPixel(x0 - y, y0 + x);*/
 
       if(i == 0)
-        display.setPixel(x0 - y, y0 + x);
+        display.setPixel(x0 - array[index][1], y0 + array[index][0]);
       if(i == 1)
         display.setPixel(x0 - y, y0 - x);
       if(i == 2)
-        display.setPixel(x0 - x, y0 - y);
+        display.setPixel(x0 - array[index][0], y0 - array[index][1]);
       if(i == 3)
         display.setPixel(x0 + x, y0 - y);
       if(i == 4)
-       display.setPixel(x0 + y, y0 - x);
+      display.setPixel(x0 + array[index][1], y0 - array[index][0]);
       if(i == 5)
         display.setPixel(x0 + y, y0 + x);
       ++numOfActivePixels;
+      ++index;
       if(numOfActivePixels >= progressPixels)
         break;
 
-      
-
-	  } while (x < y);
-    //delay(1000);
-    //display.display();
+    } while (x < y);
   }
 
 
