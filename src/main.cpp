@@ -98,5 +98,11 @@ void loop()
     
   }
 
+  display.clear();
+  display.drawXbm(0, 0, abb_width, abb_height, abb_bits);
+  display.display();
+  delay(5000);
+
+
 }
 
