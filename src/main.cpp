@@ -87,7 +87,8 @@ uint32_t showLast = 0;
 void loop() {
   if (mb.isConnected(server)) 
   {  
-      mb.readCoil(server, 0, &test1);
+      if(mb.readCoil(server, 0, &test1) == 0)
+        Serial.print("Transaction 0");
       mb.readHreg(server, 0, &test2); 
       mb.readHreg(server, 1, &test3); 
       mb.readHreg(server, 100, &test4); 
