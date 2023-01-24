@@ -106,6 +106,7 @@ void setup()
   Serial.println("Client connecting to Server");
   mb.connect(server, PORT);
   delay(1000);
+  /*
   while(1)
   {
     if (mb.isConnected(server))
@@ -118,7 +119,7 @@ void setup()
       Serial.println("Connection failed, attempting to reconnect.");
       mb.connect(server, PORT);
     }
-  }
+  }*/
   mb.client();
 }
 
@@ -157,13 +158,21 @@ void loop()
 
   progress += 2; 
   if(progress > 100)
+  {
     progress = 0;
+    display2.clear();
+    //display2.fillRect(0, 0, 128, 64);
+    display2.drawXbm(0, 0, thruster_width, thruster_height, thruster_bits);
+    display2.display();
+    delay(3000);
+  }
+    
   dispPemsVisualize(display2, progress);
   display2.display();
   display2.clear();
 
   display.clear();
-  display.drawXbm(0, 0, abb_width, abb_height, abb_bits);
+  display.drawXbm(0, 0, abbWidth, abbHeight, abbImg);
   display.display();
 
   if (mb.isConnected(server)) 
