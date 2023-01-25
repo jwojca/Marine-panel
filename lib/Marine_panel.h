@@ -6,6 +6,20 @@
 #define DISP_CENTER_X0 64
 #define DISP_CENTER_Y0 32
 
+//Modbus
+#define RST 1
+#define PORT 502
+
+// Declaration for SSD1306 display connected using software SPI (default case):
+#define OLED_DC    12
+#define OLED_CS    13
+#define OLED_RESET 14
+#define OLED_CS2    6
+#define OLED_RESET2 5
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+
 
 
 
@@ -256,6 +270,13 @@ void dispPemsVisualize(SSD1306Spi &display, uint8_t progress)
   drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius, display, progress);
   drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 1 , display, progress, true);
   drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 2, display, progress);
+}
+
+void dispInit(SSD1306Spi &display)
+{
+  display.init();
+  display.flipScreenVertically();
+  display.setContrast(255);
 }
 
 
