@@ -279,6 +279,42 @@ void dispInit(SSD1306Spi &display)
   display.setContrast(255);
 }
 
+void mbTCPInit()
+{
+}
+
+void pcfInit(PCF8574 &pcf)
+{
+  // Set pinMode to OUTPUT
+	pcf.pinMode(P0, INPUT);
+  pcf.pinMode(P1, INPUT);
+
+	Serial.print("Init pcf8574...");
+	if (pcf.begin())
+		Serial.println("OK");
+  else
+		Serial.println("KO");
+}
+
+void pwmInit(Adafruit_PWMServoDriver &pwm)
+{
+  //PWM
+  pwm.begin();
+  pwm.setPWMFreq(50);
+}
+
+void W5500Reset()
+{
+  //W550 reset TODO is needed?
+  pinMode(RST, OUTPUT);
+  digitalWrite(RST, HIGH);
+  delay(100);
+  digitalWrite(RST, LOW);
+  delay(100);
+  digitalWrite(RST, HIGH);
+  delay(100);
+}
+
 
 
 
