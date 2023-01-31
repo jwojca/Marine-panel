@@ -5,7 +5,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include "../lib/Marine_panel.h"
 #include <SPI.h>
-#include "SSD1306Spi.h"
+//#include "SSD1306Spi.h"
 #include <Ethernet.h>       // Ethernet library v2 is required
 #include <ModbusAPI.h>
 #include <ModbusTCPTemplate.h>
@@ -14,9 +14,9 @@
 
 
 //peripherals
-SSD1306Spi display(DISP1_RST, DISP_DC, DISP1_CS);
-SSD1306Spi display2(DISP2_RST, DISP_DC, DISP2_CS);
 PCF8574 pcf(PCF_ADRESS);
+SSD1306Spi display(0, DISP_DC, DISP1_CS, &pcf, true);
+SSD1306Spi display2(1, DISP_DC, DISP2_CS, &pcf, true);
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(PWM_ADRESS);
 
 //modbus

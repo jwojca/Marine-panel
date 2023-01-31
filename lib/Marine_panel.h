@@ -14,9 +14,8 @@
 #define DISP_DC     1
 
 #define DISP1_CS    2
-#define DISP1_RST   3
-#define DISP2_CS    4
-#define DISP2_RST   5
+#define DISP2_CS    3
+
 
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
