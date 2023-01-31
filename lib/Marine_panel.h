@@ -7,15 +7,17 @@
 #define DISP_CENTER_Y0 32
 
 //Modbus
-#define RST 1
+#define RST 0
 #define PORT 502
 
 // Declaration for SSD1306 display connected using software SPI (default case):
-#define OLED_DC    12
-#define OLED_CS    13
-#define OLED_RESET 14
-#define OLED_CS2    6
-#define OLED_RESET2 5
+#define DISP_DC     1
+
+#define DISP1_CS    2
+#define DISP1_RST   3
+#define DISP2_CS    4
+#define DISP2_RST   5
+
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels

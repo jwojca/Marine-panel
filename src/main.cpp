@@ -14,8 +14,8 @@
 
 
 //peripherals
-SSD1306Spi display(OLED_RESET, OLED_DC, OLED_CS);
-SSD1306Spi display2(OLED_RESET2, OLED_DC, OLED_CS2);
+SSD1306Spi display(DISP1_RST, DISP_DC, DISP1_CS);
+SSD1306Spi display2(DISP2_RST, DISP_DC, DISP2_CS);
 PCF8574 pcf(PCF_ADRESS);
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(PWM_ADRESS);
 
@@ -109,7 +109,7 @@ uint32_t showLast = 0;
 void loop()
 {
 
-  if(0)
+  if(1)
   {
 	uint8_t state = read3State(P0, P1, false, pcf);
   if(state == 0)
