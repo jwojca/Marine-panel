@@ -15,8 +15,10 @@
 
 //peripherals
 PCF8574 pcf(PCF_ADRESS);
-SSD1306Spi display(0, DISP_DC, DISP1_CS, &pcf, true);
-SSD1306Spi display2(1, DISP_DC, DISP2_CS, &pcf, true);
+SSD1306Spi display(P0, DISP_DC, DISP1_CS, &pcf, true);
+SSD1306Spi display2(P1, DISP_DC, DISP2_CS, &pcf, true);
+SSD1306Spi display3(P2, DISP_DC, DISP3_CS, &pcf, true);
+
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(PWM_ADRESS);
 
 //modbus
@@ -37,13 +39,14 @@ void setup()
   pwmInit(pwm);
 
 
-  //Display
   String text1 = "Frequency: 50 Hz";
   String text2 = "Power: 600 kW";
   String text3 = "Voltage: 1000 V";
 
   dispInit(display);
   dispInit(display2);
+  dispInit(display3);
+
 
   display.setFont(ArialMT_Plain_16);
   display.drawStringMaxWidth(0,0, display.getWidth(),text1);
@@ -54,6 +57,10 @@ void setup()
   display.clear();
   display.setFont(ArialMT_Plain_10); 
 
+  display3.setFont(ArialMT_Plain_16);
+  display3.drawStringMaxWidth(0,0, display.getWidth(),text1);
+  display3.display();
+  delay(1000);
   W5500Reset(); //needed?
 
 
@@ -106,11 +113,11 @@ uint16_t progress = 0;
 
 uint32_t showLast = 0;
 
+
 void loop()
 {
 
-  if(1)
-  {
+ 
 	uint8_t state = read3State(P0, P1, false, pcf);
   if(state == 0)
     RGBLedColor(0, 255, 0, 0, pwm);
@@ -130,26 +137,57 @@ void loop()
     
   delay(30);
 
+  //RPM
+  uint8_t dispXOffset = 13;
+  uint8_t dispYOffset = 10;
   display.clear();
-
-  progress += 2; 
-  if(progress > 100)
-  {
-    progress = 0;
-    display2.clear();
-    //display2.fillRect(0, 0, 128, 64);
-    display2.drawXbm(0, 0, thruster_width, thruster_height, thruster_bits);
-    display2.display();
-    delay(3000);
-  }
-    
-  dispPemsVisualize(display2, progress);
-  display2.display();
-  display2.clear();
-
-  display.clear();
-  display.drawXbm(0, 0, abbWidth, abbHeight, abbImg);
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(dispXOffset, dispYOffset-6, "RPM");
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(dispXOffset, dispYOffset + 12, "100 port");
+  display.drawString(dispXOffset + 60, dispYOffset + 12, "stbd 100");
+  display.drawString(dispXOffset + 30, dispYOffset - 5, "port");
+  display.drawString(dispXOffset + 90, dispYOffset - 5, "%");
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(dispXOffset + 58, dispYOffset - 10, "60.0");
+  //display.drawString(dispXOffset + 83, dispYOffset - 5, "%");
+  display.drawProgressBar(dispXOffset, dispYOffset + 27, 100, 20, 70);
   display.display();
+
+  //Angle
+  display2.clear();
+  display2.drawXbm(0, 0, thrustWithcircle_width, thrustWithcircle_height, thrustWithcircle);
+  display2.setFont(ArialMT_Plain_16);
+  display2.drawString(0, 0, "150°");
+  display2.setFont(ArialMT_Plain_10);
+  display2.drawString(0, 15, "DEG actual");
+  display2.setFont(ArialMT_Plain_16);
+  display2.drawString(0, 37, "100°");
+  display2.setFont(ArialMT_Plain_10);
+  display2.drawString(0, 52, "DEG reference");
+  display2.display();
+
+  //Power
+  uint8_t disp3XOffset = 13;
+  uint8_t disp3YOffset = 10;
+  display3.clear();
+  display3.setFont(ArialMT_Plain_10);
+  display3.drawString(disp3XOffset, disp3YOffset-6, "POWER");
+  display3.setFont(ArialMT_Plain_10);
+  display3.drawString(disp3XOffset + 2, disp3YOffset + 12, "0");
+  display3.drawString(disp3XOffset + 85, disp3YOffset + 12, "1.1");
+  display3.drawString(disp3XOffset + 83, disp3YOffset - 5, "MW");
+  display3.setFont(ArialMT_Plain_16);
+  display3.drawString(disp3XOffset + 58, disp3YOffset - 10, "0.2");
+  display3.drawProgressBar(disp3XOffset, disp3YOffset + 27, 100, 20, 70);
+  display3.display();
+
+  delay(1000);
+
+  /*display2.clear();
+  display2.drawXbm(0, 0, thrustWithcircle10_width, thrustWithcircle10_height, thrustWithcircle10);
+  display2.display();
+  delay(1000);*/
 
   if(mbOn)
   {
@@ -187,7 +225,7 @@ void loop()
       Serial.println(test4);
     }
   }
-  }
+  
   
 
   //joystick test
@@ -198,11 +236,6 @@ void loop()
   Serial.println(analogData2);
   //Serial.println(analogData4);
   delay(500);
-
-  
-
-  
-
 
 }
 

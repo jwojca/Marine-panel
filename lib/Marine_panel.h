@@ -15,6 +15,7 @@
 
 #define DISP1_CS    2
 #define DISP2_CS    3
+#define DISP3_CS    4
 
 
 
@@ -287,8 +288,9 @@ void mbTCPInit()
 void pcfInit(PCF8574 &pcf)
 {
   // Set pinMode to OUTPUT
-	pcf.pinMode(P0, INPUT);
-  pcf.pinMode(P1, INPUT);
+	pcf.pinMode(P0, OUTPUT);
+  pcf.pinMode(P1, OUTPUT);
+  pcf.pinMode(P2, OUTPUT);
 
 	Serial.print("Init pcf8574...");
 	if (pcf.begin())
