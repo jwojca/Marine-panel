@@ -138,20 +138,21 @@ void loop()
   delay(30);
 
   //RPM
-  uint8_t dispXOffset = 13;
+  uint8_t dispXOffset = 3;
   uint8_t dispYOffset = 10;
   display.clear();
   display.setFont(ArialMT_Plain_10);
   display.drawString(dispXOffset, dispYOffset-6, "RPM");
   display.setFont(ArialMT_Plain_10);
   display.drawString(dispXOffset, dispYOffset + 12, "100 port");
-  display.drawString(dispXOffset + 60, dispYOffset + 12, "stbd 100");
-  display.drawString(dispXOffset + 30, dispYOffset - 5, "port");
-  display.drawString(dispXOffset + 90, dispYOffset - 5, "%");
+  display.drawString(dispXOffset + 58, dispYOffset + 12, "0");
+  display.drawString(dispXOffset + 80, dispYOffset + 12, "stbd 100");
+  display.drawString(dispXOffset + 55, dispYOffset - 5, "port");
+  display.drawString(dispXOffset + 110, dispYOffset - 5, "%");
   display.setFont(ArialMT_Plain_16);
-  display.drawString(dispXOffset + 58, dispYOffset - 10, "60.0");
+  display.drawString(dispXOffset + 78, dispYOffset - 10, "60.0");
   //display.drawString(dispXOffset + 83, dispYOffset - 5, "%");
-  display.drawProgressBar(dispXOffset, dispYOffset + 27, 100, 20, 70);
+  display.drawProgressBar(dispXOffset, dispYOffset + 27, 120, 20, 70);
   display.display();
 
   //Angle
@@ -168,18 +169,18 @@ void loop()
   display2.display();
 
   //Power
-  uint8_t disp3XOffset = 13;
+  uint8_t disp3XOffset = 3;
   uint8_t disp3YOffset = 10;
   display3.clear();
   display3.setFont(ArialMT_Plain_10);
   display3.drawString(disp3XOffset, disp3YOffset-6, "POWER");
   display3.setFont(ArialMT_Plain_10);
   display3.drawString(disp3XOffset + 2, disp3YOffset + 12, "0");
-  display3.drawString(disp3XOffset + 85, disp3YOffset + 12, "1.1");
-  display3.drawString(disp3XOffset + 83, disp3YOffset - 5, "MW");
+  display3.drawString(disp3XOffset + 105, disp3YOffset + 12, "1.1");
+  display3.drawString(disp3XOffset + 103, disp3YOffset - 5, "MW");
   display3.setFont(ArialMT_Plain_16);
-  display3.drawString(disp3XOffset + 58, disp3YOffset - 10, "0.2");
-  display3.drawProgressBar(disp3XOffset, disp3YOffset + 27, 100, 20, 70);
+  display3.drawString(disp3XOffset + 78, disp3YOffset - 10, "0.2");
+  display3.drawProgressBar(disp3XOffset, disp3YOffset + 27, 120, 20, 70);
   display3.display();
 
   delay(1000);
