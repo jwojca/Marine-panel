@@ -14,13 +14,15 @@
 
 
 //peripherals
-PCF8574 pcf(PCF_ADRESS);
-SSD1306Spi display(P0, DISP_DC, DISP1_CS, &pcf, true);
-SSD1306Spi display2(P1, DISP_DC, DISP2_CS, &pcf, true);
-SSD1306Spi display3(P2, DISP_DC, DISP3_CS, &pcf, true);
-SSD1306Spi display4(P3, DISP_DC, DISP4_CS, &pcf, true);
+//PCF8574 pcf(PCF_ADRESS); DAMAGED needs to be replaced
+PCF8574 pcf1(PCF2_ADRESS); //PCF2 Adress just for test purposes
 
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(PWM_ADRESS);
+SSD1306Spi display5(P4, DISP_DC, DISP5_CS, &pcf1, true);
+SSD1306Spi display6(P5, DISP_DC, DISP6_CS, &pcf1, true);
+SSD1306Spi display7(P6, DISP_DC, DISP7_CS, &pcf1, true);
+
+
+Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(PWM1_ADRESS);
 
 //modbus
 class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
@@ -36,32 +38,26 @@ void setup()
 	Serial.begin(9600);
 	delay(1000);
 
-	pcfInit(pcf);
-  pwmInit(pwm);
+	pcfInit(pcf1);
+  pwmInit(pwm1);
 
 
   String text1 = "Frequency: 50 Hz";
   String text2 = "Power: 600 kW";
   String text3 = "Voltage: 1000 V";
 
-  dispInit(display);
-  dispInit(display2);
-  dispInit(display3);
-  dispInit(display4);
 
+  dispInit(display5);
+  dispInit(display6);
+  dispInit(display7);
 
-  display4.setFont(ArialMT_Plain_16);
-  display4.drawStringMaxWidth(0,0, display.getWidth(),text1);
-  display4.drawStringMaxWidth(0,20, display.getWidth(),text2);
-  display4.drawStringMaxWidth(0,40, display.getWidth(),text3);
-  display4.display();
-  delay(1000);
-  display.clear();
-  display.setFont(ArialMT_Plain_10); 
+  display5.drawString(0, 0, "Display 5");
+  display5.display();
+  display6.drawString(0, 0, "Display 6");
+  display6.display();
+  display6.drawString(0, 0, "Display 6");
+  display6.display();
 
-  display3.setFont(ArialMT_Plain_16);
-  display3.drawStringMaxWidth(0,0, display.getWidth(),text1);
-  display3.display();
   delay(1000);
   W5500Reset(); //needed?
 
@@ -112,41 +108,30 @@ uint16_t test2 = 0;
 uint16_t test3 = 0;
 uint16_t test4 = 0;
 uint16_t progress = 0;
+uint8_t state = 0;
 
 uint32_t showLast = 0;
 
 
 void loop()
 {
+  
+  RGBLedColor(0, 255, 0, 0, pwm1);
+  RGBLedColor(3, 255, 0, 0, pwm1);
+  RGBLedColor(6, 255, 0, 0, pwm1);
+  delay(1000);
 
- 
-	uint8_t state = read3State(P0, P1, false, pcf);
-  if(state == 0)
-    RGBLedColor(0, 255, 0, 0, pwm);
-  else if(state == 1)
-  {
-    RGBLedColor(0, 0, 255, 0, pwm);
-    mb.writeCoil(server, 1, true);
-    mb.writeHreg(server, 2, 100);
-  }
-    
-  else if(state == 2)
-  {
-    RGBLedColor(0, 0, 0, 255, pwm);
-    mb.writeCoil(server, 1, false);
-    mb.writeHreg(server, 2, 200);
-  }
-    
-  delay(30);
-  dispRCSAzipodVisualize(display, display2, display3);
-  //dispAlarmVisualize(display, display2, display3, display4);
+  RGBLedColor(0, 0, 255, 0, pwm1);
+  RGBLedColor(3, 0, 255, 0, pwm1);
+  RGBLedColor(6, 0, 255, 0, pwm1);
+  delay(1000);
+
+  RGBLedColor(0, 0, 0, 255, pwm1);
+  RGBLedColor(3, 0, 0, 255, pwm1);
+  RGBLedColor(6, 0, 0, 255, pwm1);
+  delay(1000);
 
 
-
-  /*display2.clear();
-  display2.drawXbm(0, 0, thrustWithcircle10_width, thrustWithcircle10_height, thrustWithcircle10);
-  display2.display();
-  delay(1000);*/
 
   if(mbOn)
   {
@@ -185,16 +170,5 @@ void loop()
     }
   }
   
-  
-
-  //joystick test
-  //analogReadResolution(12);
-  int analogData  = map(analogRead(20), 0, 8191, 0, 100);
-  int analogData2  = map(analogRead(19), 0, 8191, 0, 100);
-  Serial.println(analogData);
-  Serial.println(analogData2);
-  //Serial.println(analogData4);
-  delay(500);
-
 }
 

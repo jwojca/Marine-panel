@@ -1,8 +1,9 @@
 #ifndef MARINE_PANEL_H
 #define MARINE_PANEL_H
 
-#define PCF_ADRESS 0x20
-#define PWM_ADRESS 0x40
+#define PCF1_ADRESS 0x20
+#define PCF2_ADRESS 0x21
+#define PWM1_ADRESS 0x40
 #define DISP_CENTER_X0 64
 #define DISP_CENTER_Y0 32
 
@@ -11,12 +12,16 @@
 #define PORT 502
 
 // Declaration for SSD1306 display connected using software SPI (default case):
-#define DISP_DC     1
+#define DISP_DC     44
 
-#define DISP1_CS    2
-#define DISP2_CS    3
-#define DISP3_CS    4
-#define DISP4_CS    5
+#define DISP1_CS    1
+#define DISP2_CS    2
+#define DISP3_CS    3
+#define DISP4_CS    4
+#define DISP5_CS    5
+#define DISP6_CS    6
+#define DISP7_CS    7
+#define DISP8_CS    8
 
 
 
@@ -76,6 +81,16 @@ bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574)
  return state;
 }
 
+
+/* 
+IN: 
+  pin1 is 1st pin pcf, read 1st state of button
+  pin2 is 2nd pin pcf, read 2nd state of button
+OUT
+  state = 0 -> no input
+  state = 1 -> 1st state
+  state = 2 -> 2nd state
+*/
 uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574)
 {
   uint8_t val1 = pcf8574.digitalRead(pin1);
@@ -371,6 +386,8 @@ void mbTCPInit()
 {
 }
 
+
+
 void pcfInit(PCF8574 &pcf)
 {
   // Set pinMode to OUTPUT
@@ -378,6 +395,10 @@ void pcfInit(PCF8574 &pcf)
   pcf.pinMode(P1, OUTPUT);
   pcf.pinMode(P2, OUTPUT);
   pcf.pinMode(P3, OUTPUT);
+  pcf.pinMode(P4, OUTPUT);
+  pcf.pinMode(P5, OUTPUT);
+  pcf.pinMode(P6, OUTPUT);
+  pcf.pinMode(P7, OUTPUT);
 
 	Serial.print("Init pcf8574...");
 	if (pcf.begin())
