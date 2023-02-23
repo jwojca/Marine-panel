@@ -18,6 +18,7 @@ PCF8574 pcf(PCF_ADRESS);
 SSD1306Spi display(P0, DISP_DC, DISP1_CS, &pcf, true);
 SSD1306Spi display2(P1, DISP_DC, DISP2_CS, &pcf, true);
 SSD1306Spi display3(P2, DISP_DC, DISP3_CS, &pcf, true);
+SSD1306Spi display4(P3, DISP_DC, DISP4_CS, &pcf, true);
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(PWM_ADRESS);
 
@@ -46,13 +47,14 @@ void setup()
   dispInit(display);
   dispInit(display2);
   dispInit(display3);
+  dispInit(display4);
 
 
-  display.setFont(ArialMT_Plain_16);
-  display.drawStringMaxWidth(0,0, display.getWidth(),text1);
-  display.drawStringMaxWidth(0,20, display.getWidth(),text2);
-  display.drawStringMaxWidth(0,40, display.getWidth(),text3);
-  display.display();
+  display4.setFont(ArialMT_Plain_16);
+  display4.drawStringMaxWidth(0,0, display.getWidth(),text1);
+  display4.drawStringMaxWidth(0,20, display.getWidth(),text2);
+  display4.drawStringMaxWidth(0,40, display.getWidth(),text3);
+  display4.display();
   delay(1000);
   display.clear();
   display.setFont(ArialMT_Plain_10); 
@@ -136,54 +138,10 @@ void loop()
   }
     
   delay(30);
+  dispRCSAzipodVisualize(display, display2, display3);
+  //dispAlarmVisualize(display, display2, display3, display4);
 
-  //RPM
-  uint8_t dispXOffset = 3;
-  uint8_t dispYOffset = 10;
-  display.clear();
-  display.setFont(ArialMT_Plain_10);
-  display.drawString(dispXOffset, dispYOffset-6, "RPM");
-  display.setFont(ArialMT_Plain_10);
-  display.drawString(dispXOffset, dispYOffset + 12, "100 port");
-  display.drawString(dispXOffset + 58, dispYOffset + 12, "0");
-  display.drawString(dispXOffset + 80, dispYOffset + 12, "stbd 100");
-  display.drawString(dispXOffset + 55, dispYOffset - 5, "port");
-  display.drawString(dispXOffset + 110, dispYOffset - 5, "%");
-  display.setFont(ArialMT_Plain_16);
-  display.drawString(dispXOffset + 78, dispYOffset - 10, "60.0");
-  //display.drawString(dispXOffset + 83, dispYOffset - 5, "%");
-  display.drawProgressBar(dispXOffset, dispYOffset + 27, 120, 20, 70);
-  display.display();
 
-  //Angle
-  display2.clear();
-  display2.drawXbm(0, 0, thrustWithcircle_width, thrustWithcircle_height, thrustWithcircle);
-  display2.setFont(ArialMT_Plain_16);
-  display2.drawString(0, 0, "150°");
-  display2.setFont(ArialMT_Plain_10);
-  display2.drawString(0, 15, "DEG actual");
-  display2.setFont(ArialMT_Plain_16);
-  display2.drawString(0, 37, "100°");
-  display2.setFont(ArialMT_Plain_10);
-  display2.drawString(0, 52, "DEG reference");
-  display2.display();
-
-  //Power
-  uint8_t disp3XOffset = 3;
-  uint8_t disp3YOffset = 10;
-  display3.clear();
-  display3.setFont(ArialMT_Plain_10);
-  display3.drawString(disp3XOffset, disp3YOffset-6, "POWER");
-  display3.setFont(ArialMT_Plain_10);
-  display3.drawString(disp3XOffset + 2, disp3YOffset + 12, "0");
-  display3.drawString(disp3XOffset + 105, disp3YOffset + 12, "1.1");
-  display3.drawString(disp3XOffset + 103, disp3YOffset - 5, "MW");
-  display3.setFont(ArialMT_Plain_16);
-  display3.drawString(disp3XOffset + 78, disp3YOffset - 10, "0.2");
-  display3.drawProgressBar(disp3XOffset, disp3YOffset + 27, 120, 20, 70);
-  display3.display();
-
-  delay(1000);
 
   /*display2.clear();
   display2.drawXbm(0, 0, thrustWithcircle10_width, thrustWithcircle10_height, thrustWithcircle10);
