@@ -3,6 +3,13 @@
 
 #define PCF1_ADRESS 0x20
 #define PCF2_ADRESS 0x21
+#define PCF3_ADRESS 0x22
+#define PCF4_ADRESS 0x23
+#define PCF5_ADRESS 0x24
+#define PCF6_ADRESS 0x25
+#define PCF7_ADRESS 0x26
+#define PCF8_ADRESS 0x27
+
 #define PWM1_ADRESS 0x40
 #define DISP_CENTER_X0 64
 #define DISP_CENTER_Y0 32
@@ -12,7 +19,7 @@
 #define PORT 502
 
 // Declaration for SSD1306 display connected using software SPI (default case):
-#define DISP_DC     44
+#define DISP_DC     33
 
 #define DISP1_CS    1
 #define DISP2_CS    2
@@ -21,8 +28,14 @@
 #define DISP5_CS    5
 #define DISP6_CS    6
 #define DISP7_CS    7
-#define DISP8_CS    8
-
+#define DISP8_CS    10
+#define DISP9_CS    11
+#define DISP10_CS   12
+#define DISP11_CS   13
+#define DISP12_CS   14
+#define DISP13_CS   15
+#define DISP14_CS   16
+#define DISP15_CS   45
 
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -388,7 +401,7 @@ void mbTCPInit()
 
 
 
-void pcfInit(PCF8574 &pcf)
+void pcfAllOutInit(PCF8574 &pcf)
 {
   // Set pinMode to OUTPUT
 	pcf.pinMode(P0, OUTPUT);
@@ -406,6 +419,8 @@ void pcfInit(PCF8574 &pcf)
   else
 		Serial.println("KO");
 }
+
+
 
 void pwmInit(Adafruit_PWMServoDriver &pwm)
 {

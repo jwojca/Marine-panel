@@ -5,7 +5,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include "../lib/Marine_panel.h"
 #include <SPI.h>
-//#include "SSD1306Spi.h"
+#include "SSD1306Spi.h"
 #include <Ethernet.h>       // Ethernet library v2 is required
 #include <ModbusAPI.h>
 #include <ModbusTCPTemplate.h>
@@ -16,10 +16,15 @@
 //peripherals
 //PCF8574 pcf(PCF_ADRESS); DAMAGED needs to be replaced
 PCF8574 pcf1(PCF2_ADRESS); //PCF2 Adress just for test purposes
+PCF8574 pcf2(PCF3_ADRESS); //PCF3 Adress just for test purposes
+
+
 
 SSD1306Spi display5(P4, DISP_DC, DISP5_CS, &pcf1, true);
 SSD1306Spi display6(P5, DISP_DC, DISP6_CS, &pcf1, true);
 SSD1306Spi display7(P6, DISP_DC, DISP7_CS, &pcf1, true);
+SSD1306Spi display8(P7, DISP_DC, DISP8_CS, &pcf1, true);
+SSD1306Spi display9(P0, DISP_DC, DISP9_CS, &pcf2, true);
 
 
 Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(PWM1_ADRESS);
@@ -38,7 +43,8 @@ void setup()
 	Serial.begin(9600);
 	delay(1000);
 
-	pcfInit(pcf1);
+	pcfAllOutInit(pcf1);
+  pcfAllOutInit(pcf2);
   pwmInit(pwm1);
 
 
@@ -50,13 +56,20 @@ void setup()
   dispInit(display5);
   dispInit(display6);
   dispInit(display7);
+  dispInit(display8);
+  dispInit(display9);
 
   display5.drawString(0, 0, "Display 5");
   display5.display();
   display6.drawString(0, 0, "Display 6");
   display6.display();
-  display6.drawString(0, 0, "Display 6");
-  display6.display();
+  display7.drawString(0, 0, "Display 7");
+  display7.display();
+  display8.drawString(0, 0, "Display 8");
+  display8.display();
+  display9.drawString(0, 0, "Display 9");
+  display9.display();
+
 
   delay(1000);
   W5500Reset(); //needed?
@@ -115,7 +128,7 @@ uint32_t showLast = 0;
 
 void loop()
 {
-  
+
   RGBLedColor(0, 255, 0, 0, pwm1);
   RGBLedColor(3, 255, 0, 0, pwm1);
   RGBLedColor(6, 255, 0, 0, pwm1);
