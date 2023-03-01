@@ -176,6 +176,11 @@ void loop()
   display15.drawString(0, 0, "Display 15");
   display15.display();
 
+  RGBLedTest(5, pwm1);
+  RGBLedTest(5, pwm2);
+  RGBLedTest(4, pwm3);
+
+/*
   RGBLedColor(0, 255, 0, 0, pwm1);
   RGBLedColor(3, 255, 0, 0, pwm1);
   RGBLedColor(6, 255, 0, 0, pwm1);
@@ -228,7 +233,7 @@ void loop()
   RGBLedColor(3, 0, 0, 255, pwm3);
   RGBLedColor(6, 0, 0, 255, pwm3);
   RGBLedColor(9, 0, 0, 255, pwm3);
-  delay(1000);
+  delay(1000);*/
 
   
 

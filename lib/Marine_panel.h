@@ -80,6 +80,24 @@ void RGBLedBlink(uint16_t red, uint16_t green, uint16_t blue, uint16_t onDuratio
 
 }
 
+void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm)
+{
+  uint16_t delayTime = 500;
+  
+  for(uint8_t i = 0; i < numOfLeds*3; i += 3)
+    RGBLedColor(i, 255, 0, 0, pwm);
+  delay(delayTime);
+
+  for(uint8_t i = 0; i < numOfLeds*3; i += 3)
+    RGBLedColor(i, 0, 255, 0, pwm);
+  delay(delayTime);
+
+  for(uint8_t i = 0; i < numOfLeds*3; i += 3)
+    RGBLedColor(i, 0, 0, 255, pwm);
+  delay(delayTime);
+
+}
+
 bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574)
 {
   uint8_t val = pcf8574.digitalRead(pin);
