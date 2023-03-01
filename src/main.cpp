@@ -27,7 +27,7 @@ SSD1306Spi display5(P4, DISP_DC, DISP5_CS, &pcf1, true);
 SSD1306Spi display6(P5, DISP_DC, DISP6_CS, &pcf1, true);
 SSD1306Spi display7(P6, DISP_DC, DISP7_CS, &pcf1, true);
 SSD1306Spi display8(P7, DISP_DC, DISP8_CS, &pcf1, true);
-SSD1306Spi display9(P0, DISP_DC, DISP9_CS, &pcf2, true);
+SSD1306Spi display9(P0, DISP_DC, DISP9_CS, &pcf2, true); 
 
 SSD1306Spi display10(P1, DISP_DC, DISP10_CS, &pcf2, true);
 SSD1306Spi display11(P2, DISP_DC, DISP11_CS, &pcf2, true);
@@ -39,6 +39,7 @@ SSD1306Spi display15(P6, DISP_DC, DISP15_CS, &pcf2, true);
 
 Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(PWM1_ADRESS);
 Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(PWM2_ADRESS);
+Adafruit_PWMServoDriver pwm3 = Adafruit_PWMServoDriver(PWM3_ADRESS);
 
 //modbus
 class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
@@ -58,6 +59,7 @@ void setup()
   pcfAllOutInit(pcf2);
   pwmInit(pwm1);
   pwmInit(pwm2);
+  pwmInit(pwm3);
 
 
   String text1 = "Frequency: 50 Hz";
@@ -185,6 +187,11 @@ void loop()
   RGBLedColor(6, 255, 0, 0, pwm2);
   RGBLedColor(9, 255, 0, 0, pwm2);
   RGBLedColor(12, 255, 0, 0, pwm2);
+
+  RGBLedColor(0, 255, 0, 0, pwm3);
+  RGBLedColor(3, 255, 0, 0, pwm3);
+  RGBLedColor(6, 255, 0, 0, pwm3);
+  RGBLedColor(9, 255, 0, 0, pwm3);
   delay(1000);
 
   RGBLedColor(0, 0, 255, 0, pwm1);
@@ -198,6 +205,11 @@ void loop()
   RGBLedColor(6, 0, 255, 0, pwm2);
   RGBLedColor(9, 0, 255, 0, pwm2);
   RGBLedColor(12, 0, 255, 0, pwm2);
+
+  RGBLedColor(0, 0, 255, 0, pwm3);
+  RGBLedColor(3, 0, 255, 0, pwm3);
+  RGBLedColor(6, 0, 255, 0, pwm3);
+  RGBLedColor(9, 0, 255, 0, pwm3);
   delay(1000);
 
   RGBLedColor(0, 0, 0, 255, pwm1);
@@ -211,6 +223,11 @@ void loop()
   RGBLedColor(6, 0, 0, 255, pwm2);
   RGBLedColor(9, 0, 0, 255, pwm2);
   RGBLedColor(12, 0, 0, 255, pwm2);
+
+  RGBLedColor(0, 0, 0, 255, pwm3);
+  RGBLedColor(3, 0, 0, 255, pwm3);
+  RGBLedColor(6, 0, 0, 255, pwm3);
+  RGBLedColor(9, 0, 0, 255, pwm3);
   delay(1000);
 
   
