@@ -14,9 +14,8 @@
 
 
 //peripherals
-//PCF8574 pcf(PCF_ADRESS); DAMAGED needs to be replaced
-PCF8574 pcf1(PCF2_ADRESS); //PCF2 Adress just for test purposes
-PCF8574 pcf2(PCF3_ADRESS); //PCF3 Adress just for test purposes
+PCF8574 pcf1(PCF1_ADRESS); 
+PCF8574 pcf2(PCF2_ADRESS); 
 
 
 SSD1306Spi display1(P0, DISP_DC, DISP1_CS, &pcf1, true);
@@ -54,7 +53,6 @@ void setup()
 {
 	Serial.begin(9600);
 	delay(1000);
-
 	pcfAllOutInit(pcf1);
   pcfAllOutInit(pcf2);
   pwmInit(pwm1);
@@ -179,65 +177,6 @@ void loop()
   RGBLedTest(5, pwm1);
   RGBLedTest(5, pwm2);
   RGBLedTest(4, pwm3);
-
-/*
-  RGBLedColor(0, 255, 0, 0, pwm1);
-  RGBLedColor(3, 255, 0, 0, pwm1);
-  RGBLedColor(6, 255, 0, 0, pwm1);
-  RGBLedColor(9, 255, 0, 0, pwm1);
-  RGBLedColor(12, 255, 0, 0, pwm1);
-
-  RGBLedColor(0, 255, 0, 0, pwm2);
-  RGBLedColor(3, 255, 0, 0, pwm2);
-  RGBLedColor(6, 255, 0, 0, pwm2);
-  RGBLedColor(9, 255, 0, 0, pwm2);
-  RGBLedColor(12, 255, 0, 0, pwm2);
-
-  RGBLedColor(0, 255, 0, 0, pwm3);
-  RGBLedColor(3, 255, 0, 0, pwm3);
-  RGBLedColor(6, 255, 0, 0, pwm3);
-  RGBLedColor(9, 255, 0, 0, pwm3);
-  delay(1000);
-
-  RGBLedColor(0, 0, 255, 0, pwm1);
-  RGBLedColor(3, 0, 255, 0, pwm1);
-  RGBLedColor(6, 0, 255, 0, pwm1);
-  RGBLedColor(9, 0, 255, 0, pwm1);
-  RGBLedColor(12, 0, 255, 0, pwm1);
-
-  RGBLedColor(0, 0, 255, 0, pwm2);
-  RGBLedColor(3, 0, 255, 0, pwm2);
-  RGBLedColor(6, 0, 255, 0, pwm2);
-  RGBLedColor(9, 0, 255, 0, pwm2);
-  RGBLedColor(12, 0, 255, 0, pwm2);
-
-  RGBLedColor(0, 0, 255, 0, pwm3);
-  RGBLedColor(3, 0, 255, 0, pwm3);
-  RGBLedColor(6, 0, 255, 0, pwm3);
-  RGBLedColor(9, 0, 255, 0, pwm3);
-  delay(1000);
-
-  RGBLedColor(0, 0, 0, 255, pwm1);
-  RGBLedColor(3, 0, 0, 255, pwm1);
-  RGBLedColor(6, 0, 0, 255, pwm1);
-  RGBLedColor(9, 0, 0, 255, pwm1);
-  RGBLedColor(12, 0, 0, 255, pwm1);
-
-  RGBLedColor(0, 0, 0, 255, pwm2);
-  RGBLedColor(3, 0, 0, 255, pwm2);
-  RGBLedColor(6, 0, 0, 255, pwm2);
-  RGBLedColor(9, 0, 0, 255, pwm2);
-  RGBLedColor(12, 0, 0, 255, pwm2);
-
-  RGBLedColor(0, 0, 0, 255, pwm3);
-  RGBLedColor(3, 0, 0, 255, pwm3);
-  RGBLedColor(6, 0, 0, 255, pwm3);
-  RGBLedColor(9, 0, 0, 255, pwm3);
-  delay(1000);*/
-
-  
-
-
 
   if(mbOn)
   {

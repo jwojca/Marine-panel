@@ -1,7 +1,8 @@
 #ifndef MARINE_PANEL_H
 #define MARINE_PANEL_H
 
-#define PCF1_ADRESS 0x20
+//PCF modules from different manufacturers may have different start up adresses!!! Needs to be verified by I2C scanner
+#define PCF1_ADRESS 0x38    
 #define PCF2_ADRESS 0x21
 #define PCF3_ADRESS 0x22
 #define PCF4_ADRESS 0x23
