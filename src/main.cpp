@@ -29,8 +29,16 @@ SSD1306Spi display7(P6, DISP_DC, DISP7_CS, &pcf1, true);
 SSD1306Spi display8(P7, DISP_DC, DISP8_CS, &pcf1, true);
 SSD1306Spi display9(P0, DISP_DC, DISP9_CS, &pcf2, true);
 
+SSD1306Spi display10(P1, DISP_DC, DISP10_CS, &pcf2, true);
+SSD1306Spi display11(P2, DISP_DC, DISP11_CS, &pcf2, true);
+SSD1306Spi display12(P3, DISP_DC, DISP12_CS, &pcf2, true);
+SSD1306Spi display13(P4, DISP_DC, DISP13_CS, &pcf2, true);
+SSD1306Spi display14(P5, DISP_DC, DISP14_CS, &pcf2, true);
+SSD1306Spi display15(P6, DISP_DC, DISP15_CS, &pcf2, true);
+
 
 Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(PWM1_ADRESS);
+Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(PWM2_ADRESS);
 
 //modbus
 class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
@@ -49,6 +57,7 @@ void setup()
 	pcfAllOutInit(pcf1);
   pcfAllOutInit(pcf2);
   pwmInit(pwm1);
+  pwmInit(pwm2);
 
 
   String text1 = "Frequency: 50 Hz";
@@ -65,6 +74,12 @@ void setup()
   dispInit(display7);
   dispInit(display8);
   dispInit(display9);
+  dispInit(display10);
+  dispInit(display11);
+  dispInit(display12);
+  dispInit(display13);
+  dispInit(display14);
+  dispInit(display15);
 
   
 
@@ -146,19 +161,56 @@ void loop()
   display9.drawString(0, 0, "Display 9");
   display9.display();
 
+  display10.drawString(0, 0, "Display 10");
+  display10.display();
+  display11.drawString(0, 0, "Display 11");
+  display11.display();
+  display12.drawString(0, 0, "Display 12");
+  display12.display();
+  display13.drawString(0, 0, "Display 13");
+  display13.display();
+  display14.drawString(0, 0, "Display 14");
+  display14.display();
+  display15.drawString(0, 0, "Display 15");
+  display15.display();
+
   RGBLedColor(0, 255, 0, 0, pwm1);
   RGBLedColor(3, 255, 0, 0, pwm1);
   RGBLedColor(6, 255, 0, 0, pwm1);
+  RGBLedColor(9, 255, 0, 0, pwm1);
+  RGBLedColor(12, 255, 0, 0, pwm1);
+
+  RGBLedColor(0, 255, 0, 0, pwm2);
+  RGBLedColor(3, 255, 0, 0, pwm2);
+  RGBLedColor(6, 255, 0, 0, pwm2);
+  RGBLedColor(9, 255, 0, 0, pwm2);
+  RGBLedColor(12, 255, 0, 0, pwm2);
   delay(1000);
 
   RGBLedColor(0, 0, 255, 0, pwm1);
   RGBLedColor(3, 0, 255, 0, pwm1);
   RGBLedColor(6, 0, 255, 0, pwm1);
+  RGBLedColor(9, 0, 255, 0, pwm1);
+  RGBLedColor(12, 0, 255, 0, pwm1);
+
+  RGBLedColor(0, 0, 255, 0, pwm2);
+  RGBLedColor(3, 0, 255, 0, pwm2);
+  RGBLedColor(6, 0, 255, 0, pwm2);
+  RGBLedColor(9, 0, 255, 0, pwm2);
+  RGBLedColor(12, 0, 255, 0, pwm2);
   delay(1000);
 
   RGBLedColor(0, 0, 0, 255, pwm1);
   RGBLedColor(3, 0, 0, 255, pwm1);
   RGBLedColor(6, 0, 0, 255, pwm1);
+  RGBLedColor(9, 0, 0, 255, pwm1);
+  RGBLedColor(12, 0, 0, 255, pwm1);
+
+  RGBLedColor(0, 0, 0, 255, pwm2);
+  RGBLedColor(3, 0, 0, 255, pwm2);
+  RGBLedColor(6, 0, 0, 255, pwm2);
+  RGBLedColor(9, 0, 0, 255, pwm2);
+  RGBLedColor(12, 0, 0, 255, pwm2);
   delay(1000);
 
   

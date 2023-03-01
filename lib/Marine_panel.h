@@ -11,6 +11,9 @@
 #define PCF8_ADRESS 0x27
 
 #define PWM1_ADRESS 0x40
+#define PWM2_ADRESS 0x41
+#define PWM3_ADRESS 0x42
+
 #define DISP_CENTER_X0 64
 #define DISP_CENTER_Y0 32
 
@@ -308,6 +311,7 @@ void dispInit(SSD1306Spi &display)
   display.init();
   display.flipScreenVertically();
   display.setContrast(255);
+  delay(10);
 }
 
 void dispRCSAzipodVisualize(SSD1306Spi &display, SSD1306Spi &display2, SSD1306Spi &display3)
