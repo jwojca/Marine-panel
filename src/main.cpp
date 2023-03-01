@@ -19,7 +19,10 @@ PCF8574 pcf1(PCF2_ADRESS); //PCF2 Adress just for test purposes
 PCF8574 pcf2(PCF3_ADRESS); //PCF3 Adress just for test purposes
 
 
-
+SSD1306Spi display1(P0, DISP_DC, DISP1_CS, &pcf1, true);
+SSD1306Spi display2(P1, DISP_DC, DISP2_CS, &pcf1, true);
+SSD1306Spi display3(P2, DISP_DC, DISP3_CS, &pcf1, true);
+SSD1306Spi display4(P3, DISP_DC, DISP4_CS, &pcf1, true);
 SSD1306Spi display5(P4, DISP_DC, DISP5_CS, &pcf1, true);
 SSD1306Spi display6(P5, DISP_DC, DISP6_CS, &pcf1, true);
 SSD1306Spi display7(P6, DISP_DC, DISP7_CS, &pcf1, true);
@@ -53,22 +56,17 @@ void setup()
   String text3 = "Voltage: 1000 V";
 
 
+  dispInit(display1);
+  dispInit(display2);
+  dispInit(display3);
+  dispInit(display4);
   dispInit(display5);
   dispInit(display6);
   dispInit(display7);
   dispInit(display8);
   dispInit(display9);
 
-  display5.drawString(0, 0, "Display 5");
-  display5.display();
-  display6.drawString(0, 0, "Display 6");
-  display6.display();
-  display7.drawString(0, 0, "Display 7");
-  display7.display();
-  display8.drawString(0, 0, "Display 8");
-  display8.display();
-  display9.drawString(0, 0, "Display 9");
-  display9.display();
+  
 
 
   delay(1000);
@@ -129,6 +127,25 @@ uint32_t showLast = 0;
 void loop()
 {
 
+  display1.drawString(0, 0, "Display 1");
+  display1.display();
+  display2.drawString(0, 0, "Display 2");
+  display2.display();
+  display3.drawString(0, 0, "Display 3");
+  display3.display();
+  display4.drawString(0, 0, "Display 4");
+  display4.display();
+  display5.drawString(0, 0, "Display 5");
+  display5.display();
+  display6.drawString(0, 0, "Display 6");
+  display6.display();
+  display7.drawString(0, 0, "Display 7");
+  display7.display();
+  display8.drawString(0, 0, "Display 8");
+  display8.display();
+  display9.drawString(0, 0, "Display 9");
+  display9.display();
+
   RGBLedColor(0, 255, 0, 0, pwm1);
   RGBLedColor(3, 255, 0, 0, pwm1);
   RGBLedColor(6, 255, 0, 0, pwm1);
@@ -143,6 +160,8 @@ void loop()
   RGBLedColor(3, 0, 0, 255, pwm1);
   RGBLedColor(6, 0, 0, 255, pwm1);
   delay(1000);
+
+  
 
 
 
