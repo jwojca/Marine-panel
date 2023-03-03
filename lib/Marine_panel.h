@@ -328,9 +328,9 @@ void dispPemsVisualize(SSD1306Spi &display, uint8_t progress)
 void dispInit(SSD1306Spi &display)
 {
   display.init();
-  display.flipScreenVertically();
+  //display.flipScreenVertically();
   display.setContrast(255);
-  delay(10);
+  //delay(100);
 }
 
 void dispRCSAzipodVisualize(SSD1306Spi &display, SSD1306Spi &display2, SSD1306Spi &display3)
