@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <Adafruit_PWMServoDriver.h>
 #include "../lib/Marine_panel.h"
+
 #include <Adafruit_SSD1306.h>
 #include <SPI.h> 
 #include <Ethernet.h>       // Ethernet library v2 is required
@@ -284,6 +285,8 @@ void loop()
   writeDisp(display14);
   delay(timeDel);
   writeDisp(display15);
+
+  vmsDispPressure(display10, 655, 7.7, 8.6);
   delay(timeDel);
 
   RGBLedTest(5, pwm1);
