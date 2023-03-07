@@ -58,9 +58,50 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 
-#include "../lib/Fonts/OpenSans13.h"
+//#include "../lib/Fonts/OpenSans13.h"
+#include "../lib/Marine_panel_VMS.h"
 
 #include "Images.h"
+
+
+enum  mpMode{Local, Failure, Auto};
+enum mpState{Closed, Opened};
+
+class Valve
+{
+  public:
+    int value;
+    mpState valveState = Closed;
+    mpMode valveMode = Local;
+    uint8_t rgbNumber;
+    Adafruit_PWMServoDriver pwm;
+
+    Valve(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber)
+    {
+      rgbNumber = _rgbNumber;
+      pwm = _pwm;
+    }
+    
+
+    void open();
+    void close();
+
+};
+
+void Valve::open()
+{
+  
+}
+
+void Valve::close()
+{
+
+}
+
+
+
+
+
 
 
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm)
@@ -470,45 +511,7 @@ void W5500Reset()
   delay(100);
 }
 
-void vmsReadInputs()
-{
 
-}
-
-void vmsWriteOutputs()
-{
-
-}
-
-void vmsDispPressure(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2)
-{
-  display.clearDisplay();
-  display.setFont(&DejaVu_Sans_Mono_15);
-  display.setTextColor(SSD1306_WHITE);
-
-  int16_t cursorX = 0;
-  int16_t cursorY = 17;
-
-  display.setCursor(cursorX, cursorY);
-  display.println(F("P1:      RPM"));
-  display.println(F("P2:      Bar"));
-  display.println(F("P3:      Bar"));
-
-  int16_t cursorOffsetX = 55;
-  display.setCursor(cursorX + cursorOffsetX, cursorY);
-  display.println(speed);
-
-  cursorY = display.getCursorY();
-  display.setCursor(cursorX + cursorOffsetX, cursorY);
-  display.printf("%.1f",pressure1);
-  display.println();
-
-  cursorY = display.getCursorY();
-  display.setCursor(cursorX + cursorOffsetX, cursorY);
-  display.printf("%.1f",pressure2);
-
-  display.display();
-}
 
 
 

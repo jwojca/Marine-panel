@@ -47,22 +47,14 @@ Adafruit_SSD1306 display13(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESE
 Adafruit_SSD1306 display14(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP14_CS);
 Adafruit_SSD1306 display15(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP15_CS);
 
+Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(PWM1_ADRESS);
+Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(PWM2_ADRESS);
+Adafruit_PWMServoDriver pwm3 = Adafruit_PWMServoDriver(PWM3_ADRESS);
 
-/*Adafruit_SSD1306 display1(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
-Adafruit_SSD1306 display2(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS+1);
-Adafruit_SSD1306 display3(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS+2);
-Adafruit_SSD1306 display4(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS+3);
-Adafruit_SSD1306 display5(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS+4);
-Adafruit_SSD1306 display6(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS+5);
-Adafruit_SSD1306 display7(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS+6);
-Adafruit_SSD1306 display8(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS2);
-Adafruit_SSD1306 display9(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS2+1);
-Adafruit_SSD1306 display10(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS2+2);
-Adafruit_SSD1306 display11(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS2+3);
-Adafruit_SSD1306 display12(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS2+4);
-Adafruit_SSD1306 display13(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS2+5);
-Adafruit_SSD1306 display14(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS2+6);
-Adafruit_SSD1306 display15(SCREEN_WIDTH, SCREEN_HEIGHT, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS2+7);*/
+//Global variables 
+float gVmsPump1Pressure = 7.8, gVmsPump2Pressure = 7.4, gVmsPressureAct = 7.4, gVmsPressureRef = 7.0;
+uint16_t gVmsPump1Speed = 566;
+Valve gValve1(pwm2, 7);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
@@ -116,9 +108,7 @@ static const unsigned char PROGMEM logo_bmp[] =
 
 
 
-Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(PWM1_ADRESS);
-Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(PWM2_ADRESS);
-Adafruit_PWMServoDriver pwm3 = Adafruit_PWMServoDriver(PWM3_ADRESS);
+
 
 //modbus
 class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
@@ -249,13 +239,21 @@ uint16_t test3 = 0;
 uint16_t test4 = 0;
 uint16_t progress = 0;
 uint8_t state = 0;
-
 uint32_t showLast = 0;
 
 
 void loop()
 {
-   uint16_t timeDel = 0; 
+
+  if(gValve1.valveState == Opened)
+  {
+    RGBLedColor(3, 0, 255, 0, pwm2);
+  }
+  //  gValve1.open();
+  else
+    RGBLedColor(3, 0, 0, 0, pwm2);
+
+  uint16_t timeDel = 0; 
   writeDisp(display1);
   delay(timeDel);
   writeDisp(display2);
@@ -286,17 +284,22 @@ void loop()
   delay(timeDel);
   writeDisp(display15);
 
-  vmsDispPressure(display10, 655, 7.7, 8.6);
+  vmsDispPump(display10, gVmsPump1Speed, gVmsPump1Pressure, gVmsPump2Pressure);
+  vmsDispPressure(display11, gVmsPressureRef, gVmsPressureAct);
   delay(timeDel);
 
-  RGBLedTest(5, pwm1);
+  /*RGBLedTest(5, pwm1);
   RGBLedTest(5, pwm2);
-  RGBLedTest(4, pwm3);
+  RGBLedTest(4, pwm3);*/
 
   int analogData  = map(analogRead(20), 0, 8191, 0, 100);
   int analogData2  = map(analogRead(19), 0, 8191, 0, 100);
   Serial.println(analogData);
   Serial.println(analogData2);
+  if(analogData2 > 80)
+    gValve1.valveState = Opened;
+  else
+    gValve1.valveState = Closed;
   //Serial.println(analogData4);
   delay(500);
 
