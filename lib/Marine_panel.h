@@ -41,6 +41,22 @@
 #define DISP14_CS   16
 #define DISP15_CS   45
 
+#define RGB1 1
+#define RGB2 2
+#define RGB3 3
+#define RGB4 4
+#define RGB5 5
+#define RGB6 6
+#define RGB7 7
+#define RGB8 8
+#define RGB9 9
+#define RGB10 10
+#define RGB11 11
+#define RGB12 12
+#define RGB13 13
+#define RGB14 14
+
+
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -67,6 +83,19 @@
 enum  mpMode{Local, Failure, Auto};
 enum mpState{Closed, Opened};
 
+void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm)
+{
+  uint16_t red, green, blue;
+  red = map(aRed, 0, 255, 0, 4095);
+  green = map(aGreen, 0, 255, 0, 4095);
+  blue = map(aBlue, 0, 255, 0, 4095);
+
+  pwm.setPin(afirstPin, red);
+  pwm.setPin(afirstPin + 1, green);
+  pwm.setPin(afirstPin + 2, blue);
+}
+
+
 class Valve
 {
   public:
@@ -82,7 +111,6 @@ class Valve
       pwm = _pwm;
     }
     
-
     void open();
     void close();
 
@@ -90,12 +118,16 @@ class Valve
 
 void Valve::open()
 {
-  
+  //calculate first pin of pwm channel based on RGB number
+  uint8_t firstPin = (rgbNumber % 6) * 3;
+  RGBLedColor(firstPin, 0, 255, 0, pwm);
 }
 
 void Valve::close()
 {
-
+  //calculate first pin of pwm channel based on RGB number
+  uint8_t firstPin = (rgbNumber % 6) * 3;
+  RGBLedColor(firstPin, 0, 0, 0, pwm);
 }
 
 
@@ -111,17 +143,6 @@ void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm)
   pwm.setPin(firstPin + 2, 0);
 }
 
-void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm)
-{
-  uint16_t red, green, blue;
-  red = map(aRed, 0, 255, 0, 4095);
-  green = map(aGreen, 0, 255, 0, 4095);
-  blue = map(aBlue, 0, 255, 0, 4095);
-
-  pwm.setPin(afirstPin, red);
-  pwm.setPin(afirstPin + 1, green);
-  pwm.setPin(afirstPin + 2, blue);
-}
 
 void RGBLedBlink(uint16_t red, uint16_t green, uint16_t blue, uint16_t onDuration, uint16_t offDuration)
 {

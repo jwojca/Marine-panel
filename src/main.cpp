@@ -54,7 +54,7 @@ Adafruit_PWMServoDriver pwm3 = Adafruit_PWMServoDriver(PWM3_ADRESS);
 //Global variables 
 float gVmsPump1Pressure = 7.8, gVmsPump2Pressure = 7.4, gVmsPressureAct = 7.4, gVmsPressureRef = 7.0;
 uint16_t gVmsPump1Speed = 566;
-Valve gValve1(pwm2, 7);
+Valve gValve1(pwm2, RGB7), gValve2(pwm2, RGB10);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
@@ -247,11 +247,16 @@ void loop()
 
   if(gValve1.valveState == Opened)
   {
-    RGBLedColor(3, 0, 255, 0, pwm2);
+    gValve1.open();
+    gValve2.open();
   }
-  //  gValve1.open();
+    
+  //  
   else
-    RGBLedColor(3, 0, 0, 0, pwm2);
+  {
+    gValve1.close();
+    gValve2.close();
+  }
 
   uint16_t timeDel = 0; 
   writeDisp(display1);
@@ -294,8 +299,8 @@ void loop()
 
   int analogData  = map(analogRead(20), 0, 8191, 0, 100);
   int analogData2  = map(analogRead(19), 0, 8191, 0, 100);
-  Serial.println(analogData);
-  Serial.println(analogData2);
+  //Serial.println(analogData);
+  //Serial.println(analogData2);
   if(analogData2 > 80)
     gValve1.valveState = Opened;
   else
