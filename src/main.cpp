@@ -18,8 +18,7 @@
 PCF8574 pcf1(PCF1_ADRESS); 
 PCF8574 pcf2(PCF2_ADRESS); 
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+
 
 // Declaration for SSD1306 display connected using software SPI (default case):
 /*#define OLED_MOSI   19
@@ -29,8 +28,6 @@ PCF8574 pcf2(PCF2_ADRESS);
 #define OLED_CS2    0 //++
 #define OLED_RESET 17 //--*/
 
-
-#define DISP_RESET  44
 Adafruit_SSD1306 display1(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP1_CS);
 Adafruit_SSD1306 display2(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP2_CS);
 Adafruit_SSD1306 display3(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP3_CS);
@@ -52,9 +49,15 @@ Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(PWM2_ADRESS);
 Adafruit_PWMServoDriver pwm3 = Adafruit_PWMServoDriver(PWM3_ADRESS);
 
 //Global variables 
-float gVmsPump1Pressure = 7.8, gVmsPump2Pressure = 7.4, gVmsPressureAct = 7.4, gVmsPressureRef = 7.0;
+float gVmsPump1Pressure = 7.8, gVmsPump2Pressure = 12.0, gVmsPressureRef = 7.0, gVmsMaxPressure = 15.0;
+float gVmsTankWater = 5000.0, gVmsInflow = 0.0, gVmsOutflow = 0.0;
+float gVmsPump2MaxInflow = 1600.0; //l/s
+float gVmsTankMaxVol = 10000.0; //l
+float gVmsPressureAct = 0.0; //Bar
+
 uint16_t gVmsPump1Speed = 566;
 Valve gValve1(pwm2, RGB7), gValve2(pwm2, RGB10);
+Pump gPump1(pwm2, RGB8), gPump2(pwm2, RGB9);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
@@ -85,26 +88,7 @@ static const unsigned char PROGMEM logo_bmp[] =
     display.display();
   }
 
-  void dispInit(Adafruit_SSD1306 &display, bool reset)
-  {
-    if(reset)
-    {
-      if(!display.begin(SSD1306_SWITCHCAPVCC, 0, true)) 
-      {
-        Serial.println(F("SSD1306 allocation failed"));
-        for(;;); // Don't proceed, loop forever
-      }
-    }
-    else
-    {
-      if(!display.begin(SSD1306_SWITCHCAPVCC, 0, false)) 
-      {
-        Serial.println(F("SSD1306 allocation failed"));
-        for(;;); // Don't proceed, loop forever
-      }
-    }
-    
-  }
+ 
 
 
 
@@ -128,11 +112,6 @@ void setup()
   pwmInit(pwm1);
   pwmInit(pwm2);
   pwmInit(pwm3);
-
-
-  String text1 = "Frequency: 50 Hz";
-  String text2 = "Power: 600 kW";
-  String text3 = "Voltage: 1000 V";
 
   delay(1000);
   
@@ -230,6 +209,11 @@ void setup()
 
   //joystick test
 
+  gPump1.pressure = 12.0;
+  gPump1.maxInflow = 1600;
+  gPump2.pressure = 12.0;
+  gPump2.maxInflow = 1600;
+
 }
   
 
@@ -241,7 +225,8 @@ uint16_t progress = 0;
 uint8_t state = 0;
 uint32_t showLast = 0;
 
-
+int task = 50; 
+bool V1 = true;
 void loop()
 {
 
@@ -258,40 +243,26 @@ void loop()
     gValve2.close();
   }
 
-  uint16_t timeDel = 0; 
-  writeDisp(display1);
-  delay(timeDel);
-  writeDisp(display2);
-  delay(timeDel);
-  writeDisp(display3);
-  delay(timeDel);
-  writeDisp(display4);
-  delay(timeDel);
-  writeDisp(display5);
-  delay(timeDel);
-  writeDisp(display6);
-  delay(timeDel);
-  writeDisp(display7);
-  delay(timeDel);
-  writeDisp(display8);
-  delay(timeDel);
-  writeDisp(display9);
-  delay(timeDel);
-  writeDisp(display10);
-  delay(timeDel);
-  writeDisp(display11);
-  delay(timeDel);
-  writeDisp(display12);
-  delay(timeDel);
-  writeDisp(display13);
-  delay(timeDel);
-  writeDisp(display14);
-  delay(timeDel);
-  writeDisp(display15);
+  //Pressure oscilation
+  float pNoise1 = (float)random(-5, 5)/100;
+  float pNoise2 = (float)random(-3, 3)/100;
+  gPump1.pressure += pNoise1;
+  gPump2.pressure += pNoise2;
+  float dp = (gPump2.pressure - gVmsPressureAct) * 0.1;
+  float dt = (float)task/1000;
+  gVmsInflow = dt * gValve1.valveState * gPump2.maxInflow * dp;
 
-  vmsDispPump(display10, gVmsPump1Speed, gVmsPump1Pressure, gVmsPump2Pressure);
+  gVmsTankWater = constrain(gVmsTankWater + gVmsInflow - gVmsOutflow, 0, gVmsTankMaxVol);
+  //Serial.println(gVmsTankWater);
+
+  //pressure equation
+  //gVmsPressureAct = exp((gVmsTankWater/1000) - 7);
+  gVmsPressureAct = (gVmsMaxPressure * 1000)/(gVmsTankMaxVol - gVmsTankWater);
+
+
+  vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
   vmsDispPressure(display11, gVmsPressureRef, gVmsPressureAct);
-  delay(timeDel);
+  delay(task);
 
   /*RGBLedTest(5, pwm1);
   RGBLedTest(5, pwm2);
@@ -305,6 +276,9 @@ void loop()
     gValve1.valveState = Opened;
   else
     gValve1.valveState = Closed;
+
+  if(analogData2 < 20)
+    gVmsTankWater -= 4000;
   //Serial.println(analogData4);
   delay(500);
 

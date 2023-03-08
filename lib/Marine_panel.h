@@ -24,6 +24,7 @@
 
 // Declaration for SSD1306 display connected using software SPI (default case):
 #define DISP_DC     33
+#define DISP_RESET  44
 
 #define DISP1_CS    1
 #define DISP2_CS    2
@@ -79,9 +80,9 @@
 
 #include "Images.h"
 
+enum  mpMode{Local, Auto};
+enum mpState{Closed, Opened, Failure, Stopped, Running}; //states for valves and pumps
 
-enum  mpMode{Local, Failure, Auto};
-enum mpState{Closed, Opened};
 
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm)
 {
@@ -95,11 +96,30 @@ void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue,
   pwm.setPin(afirstPin + 2, blue);
 }
 
+ void dispInit(Adafruit_SSD1306 &display, bool reset)
+  {
+    if(reset)
+    {
+      if(!display.begin(SSD1306_SWITCHCAPVCC, 0, true)) 
+      {
+        Serial.println(F("SSD1306 allocation failed"));
+        for(;;); // Don't proceed, loop forever
+      }
+    }
+    else
+    {
+      if(!display.begin(SSD1306_SWITCHCAPVCC, 0, false)) 
+      {
+        Serial.println(F("SSD1306 allocation failed"));
+        for(;;); // Don't proceed, loop forever
+      }
+    }
+    
+  }
 
 class Valve
 {
   public:
-    int value;
     mpState valveState = Closed;
     mpMode valveMode = Local;
     uint8_t rgbNumber;
@@ -127,10 +147,44 @@ void Valve::close()
 {
   //calculate first pin of pwm channel based on RGB number
   uint8_t firstPin = (rgbNumber % 6) * 3;
-  RGBLedColor(firstPin, 0, 0, 0, pwm);
+  RGBLedColor(firstPin, 255, 0, 0, pwm);
 }
 
+class Pump
+{
+  public:
+    float pressure;
+    float speed;
+    int maxInflow;
+    mpState pumpState = Stopped;
+    mpMode pumpMode = Local;
+    uint8_t rgbNumber;
+    Adafruit_PWMServoDriver pwm;
 
+    Pump(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber)
+    {
+      rgbNumber = _rgbNumber;
+      pwm = _pwm;
+    }
+    
+    void start();
+    void stop();
+
+};
+
+void Pump::start()
+{
+  //calculate first pin of pwm channel based on RGB number
+  uint8_t firstPin = (rgbNumber % 6) * 3;
+  RGBLedColor(firstPin, 0, 255, 0, pwm);
+}
+
+void Pump::stop()
+{
+  //calculate first pin of pwm channel based on RGB number
+  uint8_t firstPin = (rgbNumber % 6) * 3;
+  RGBLedColor(firstPin, 255, 0, 0, pwm);
+}
 
 
 

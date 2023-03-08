@@ -11,6 +11,9 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 #include "../lib/Fonts/OpenSans13.h"
+#include "Marine_panel.h"
+
+
 
 void vmsReadInputs()
 {
@@ -41,11 +44,19 @@ void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, flo
   display.println(speed);
 
   cursorY = display.getCursorY();
+  if(pressure1 >= 10.0)
+    cursorOffsetX = 45;
+  else  
+    cursorOffsetX = 55;
   display.setCursor(cursorX + cursorOffsetX, cursorY);
   display.printf("%.1f",pressure1);
   display.println();
 
   cursorY = display.getCursorY();
+  if(pressure2 >= 10.0)
+    cursorOffsetX = 45;
+  else  
+    cursorOffsetX = 55;
   display.setCursor(cursorX + cursorOffsetX, cursorY);
   display.printf("%.1f",pressure2);
 
