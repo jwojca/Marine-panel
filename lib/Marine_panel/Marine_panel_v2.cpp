@@ -59,6 +59,25 @@ void pcfAllOutInit(PCF8574 &pcf)
 		Serial.println("KO");
 }
 
+void pcfAllInInit(PCF8574 &pcf)
+{
+  // Set pinMode to OUTPUT
+  pcf.pinMode(P0, INPUT);
+  pcf.pinMode(P1, INPUT);
+  pcf.pinMode(P2, INPUT);
+  pcf.pinMode(P3, INPUT);
+  pcf.pinMode(P4, INPUT);
+  pcf.pinMode(P5, INPUT);
+  pcf.pinMode(P6, INPUT);
+  pcf.pinMode(P7, INPUT);
+
+	Serial.print("Init pcf8574...");
+	if (pcf.begin())
+		Serial.println("OK");
+  else
+		Serial.println("KO");
+}
+
 bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574)
 {
   uint8_t val = pcf8574.digitalRead(pin);
@@ -76,10 +95,10 @@ bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574)
  return state;
 }
 
-uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574)
+uint8_t read3State(uint8_t firstPin, bool printOn, PCF8574 pcf8574)
 {
-  uint8_t val1 = pcf8574.digitalRead(pin1);
-  uint8_t val2 = pcf8574.digitalRead(pin2);
+  uint8_t val1 = pcf8574.digitalRead(firstPin);
+  uint8_t val2 = pcf8574.digitalRead(firstPin + 1);
   uint8_t state;
   if(val1 == 1 && val2 == 1)
     state = 0;
@@ -154,7 +173,32 @@ void Valve::close()
 {
   //calculate first pin of pwm channel based on RGB number
   uint8_t firstPin = (rgbNumber % 6) * 3;
+  RGBLedColor(firstPin, 0, 0, 0, pwm);
+}
+
+void Valve::fail()
+{
+  //calculate first pin of pwm channel based on RGB number
+  uint8_t firstPin = (rgbNumber % 6) * 3;
   RGBLedColor(firstPin, 255, 0, 0, pwm);
+}
+
+void Valve::readMode()
+{
+  uint8_t state = read3State(pcf1Pin, false, *pcf1);
+  if(state == 0)
+    this->valveMode = Local;
+
+  if(state == 2)
+    this->valveMode = Auto;
+}
+
+void Valve::readState()
+{
+  uint8_t state = read3State(pcf1Pin, false, *pcf1);
+  if(state == 1)
+    this->valveState = Failure;
+
 }
 
 void Pump::start()
@@ -182,8 +226,8 @@ void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, flo
 
   display.setCursor(cursorX, cursorY);
   display.println(F("P1:      RPM"));
+  display.println(F("P1:      Bar"));
   display.println(F("P2:      Bar"));
-  display.println(F("P3:      Bar"));
 
   int16_t cursorOffsetX = 55;
   display.setCursor(cursorX + cursorOffsetX, cursorY);

@@ -17,7 +17,8 @@
 //peripherals
 PCF8574 pcf1(PCF1_ADRESS); 
 PCF8574 pcf2(PCF2_ADRESS); 
-
+PCF8574 pcf3(PCF3_ADRESS); 
+PCF8574 pcf4(PCF4_ADRESS); 
 
 
 // Declaration for SSD1306 display connected using software SPI (default case):
@@ -58,7 +59,7 @@ float gVmsPressureAct = 0.0; //Bar*/
 vmsSimVarsStruct gVmsSimVars;
 
 uint16_t gVmsPump1Speed = 566;
-Valve gValve1(pwm2, RGB7), gValve2(pwm2, RGB10);
+Valve gValve1(pwm2, RGB7, P0, P0, &pcf3, &pcf4), gValve2(pwm2, RGB10, P2, P1, &pcf3, &pcf4);
 Pump gPump1(pwm2, RGB8), gPump2(pwm2, RGB9);
 
 #define LOGO_HEIGHT   16
@@ -95,8 +96,10 @@ void setup()
 {
 	Serial.begin(9600);
 	delay(1000);
-	pcfAllOutInit(pcf1);
-  pcfAllOutInit(pcf2);
+
+  pcfAllInInit(pcf3);
+  pcfAllInInit(pcf4);
+	
   pwmInit(pwm1);
   pwmInit(pwm2);
   pwmInit(pwm3);
@@ -199,6 +202,7 @@ void setup()
 
   gPump1.pressure = 12.0;
   gPump1.maxInflow = 1600;
+  gPump1.speed = 800;
   gPump2.pressure = 12.0;
   gPump2.maxInflow = 1600;
 
@@ -214,7 +218,7 @@ uint8_t state = 0;
 uint32_t showLast = 0;
 
 int task = 50; 
-bool V1 = true;
+
 void loop()
 {
 
@@ -223,14 +227,34 @@ void loop()
     gValve1.open();
     gValve2.open();
   }
-    
-  //  
-  else
+  
+  if(gValve1.valveState == Closed)
   {
     gValve1.close();
     gValve2.close();
   }
 
+  if(gValve1.valveState == 2)
+  {
+    gValve1.fail();
+    gValve2.fail();
+    Serial.println("Failure");
+  }
+
+  gValve1.readMode();
+  gValve1.readState();
+
+
+  Serial.print("State: ");
+  Serial.println(gValve1.valveState);
+  Serial.print("Mode: ");
+  Serial.println(gValve1.valveMode);
+  /*
+  1. READ
+  2. SIMULATE
+  3. WRITE
+  4. VISUALIZE
+  */
   
   vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
 
@@ -246,10 +270,7 @@ void loop()
   int analogData2  = map(analogRead(19), 0, 8191, 0, 100);
   //Serial.println(analogData);
   //Serial.println(analogData2);
-  if(analogData2 > 80)
-    gValve1.valveState = Opened;
-  else
-    gValve1.valveState = Closed;
+  
 
   if(analogData2 < 20)
     gVmsSimVars.TankWater -= 4000;

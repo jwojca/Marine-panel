@@ -73,6 +73,8 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 
+//#include <SSD1306Spi.h>
+
 #include "../Marine_panel/Fonts/OpenSans13.h"
 //#include "../lib/Marine_panel_VMS.h"
 
@@ -84,8 +86,8 @@ enum mpState{Closed, Opened, Failure, Stopped, Running}; //states for valves and
 struct vmsSimVarsStruct
 {
     float PressureRef = 7.0, MaxPressure = 15.0, PressureAct = 0.0; //Bar
-    float TankWater = 5000.0, Inflow = 0.0, Outflow = 0.0;
-    float TankMaxVol = 10000.0; //l
+    float TankWater = 5000.0, TankMaxVol = 10000.0;                 //l
+    float Inflow = 0.0, Outflow = 0.0;                              //l/s
 };
 
 class Valve
@@ -96,14 +98,26 @@ class Valve
     uint8_t rgbNumber;
     Adafruit_PWMServoDriver pwm;
 
-    Valve(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber)
+    PCF8574 *pcf1;
+    PCF8574 *pcf2;
+    uint8_t pcf1Pin;
+    uint8_t pcf2Pin;
+
+    Valve(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
       pwm = _pwm;
+      pcf1 = _pcf1;
+      pcf2 = _pcf2;
+      pcf1Pin = _pcf1Pin;
+      pcf2Pin = _pcf2Pin;
     }
     
     void open();
     void close();
+    void fail();
+    void readMode();
+    void readState();
 
 };
 
@@ -135,8 +149,9 @@ void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
 void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm);
 
 void pcfAllOutInit(PCF8574 &pcf);
+void pcfAllInInit(PCF8574 &pcf);
 bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574);
-uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574);
+uint8_t read3State(uint8_t firstPin, bool printOn, PCF8574 pcf8574);
 
 void pwmInit(Adafruit_PWMServoDriver &pwm);
 
