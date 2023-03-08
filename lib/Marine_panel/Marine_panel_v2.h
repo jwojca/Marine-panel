@@ -1,5 +1,5 @@
-#ifndef MARINE_PANEL_H
-#define MARINE_PANEL_H
+#ifndef MARINE_PANEL_V2_H
+#define MARINE_PANEL_V2_H
 
 //PCF modules from different manufacturers may have different start up adresses!!! Needs to be verified by I2C scanner
 #define PCF1_ADRESS 0x38    
@@ -70,52 +70,34 @@
 #include <PCF8574.h>
 #include <stdbool.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <SSD1306Spi.h>
-#include <OLEDDisplay.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 
-//#include "../lib/Fonts/OpenSans13.h"
-#include "../lib/Marine_panel_VMS.h"
+#include "../Marine_panel/Fonts/OpenSans13.h"
+//#include "../lib/Marine_panel_VMS.h"
 
-#include "Images.h"
+#include "../Marine_panel/Images/Images.h"
 
-enum  mpMode{Local, Auto};
+enum mpMode{Local, Auto};
 enum mpState{Closed, Opened, Failure, Stopped, Running}; //states for valves and pumps
 
 
-void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm)
-{
-  uint16_t red, green, blue;
-  red = map(aRed, 0, 255, 0, 4095);
-  green = map(aGreen, 0, 255, 0, 4095);
-  blue = map(aBlue, 0, 255, 0, 4095);
+void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
+void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
+void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm);
 
-  pwm.setPin(afirstPin, red);
-  pwm.setPin(afirstPin + 1, green);
-  pwm.setPin(afirstPin + 2, blue);
-}
+void pcfAllOutInit(PCF8574 &pcf);
+bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574);
+uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574);
 
- void dispInit(Adafruit_SSD1306 &display, bool reset)
-  {
-    if(reset)
-    {
-      if(!display.begin(SSD1306_SWITCHCAPVCC, 0, true)) 
-      {
-        Serial.println(F("SSD1306 allocation failed"));
-        for(;;); // Don't proceed, loop forever
-      }
-    }
-    else
-    {
-      if(!display.begin(SSD1306_SWITCHCAPVCC, 0, false)) 
-      {
-        Serial.println(F("SSD1306 allocation failed"));
-        for(;;); // Don't proceed, loop forever
-      }
-    }
-    
-  }
+void pwmInit(Adafruit_PWMServoDriver &pwm);
+
+void dispInit(Adafruit_SSD1306 &display, bool reset);
+
+void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
+void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2);
+
+void W5500Reset();
 
 class Valve
 {
@@ -135,20 +117,6 @@ class Valve
     void close();
 
 };
-
-void Valve::open()
-{
-  //calculate first pin of pwm channel based on RGB number
-  uint8_t firstPin = (rgbNumber % 6) * 3;
-  RGBLedColor(firstPin, 0, 255, 0, pwm);
-}
-
-void Valve::close()
-{
-  //calculate first pin of pwm channel based on RGB number
-  uint8_t firstPin = (rgbNumber % 6) * 3;
-  RGBLedColor(firstPin, 255, 0, 0, pwm);
-}
 
 class Pump
 {
@@ -172,101 +140,17 @@ class Pump
 
 };
 
-void Pump::start()
-{
-  //calculate first pin of pwm channel based on RGB number
-  uint8_t firstPin = (rgbNumber % 6) * 3;
-  RGBLedColor(firstPin, 0, 255, 0, pwm);
-}
-
-void Pump::stop()
-{
-  //calculate first pin of pwm channel based on RGB number
-  uint8_t firstPin = (rgbNumber % 6) * 3;
-  RGBLedColor(firstPin, 255, 0, 0, pwm);
-}
 
 
 
 
 
-void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm)
-{
-  pwm.setPin(firstPin, 0);
-  pwm.setPin(firstPin + 1, 0);
-  pwm.setPin(firstPin + 2, 0);
-}
 
+/* MAIN COMMENT
 
 void RGBLedBlink(uint16_t red, uint16_t green, uint16_t blue, uint16_t onDuration, uint16_t offDuration)
 {
 
-}
-
-void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm)
-{
-  uint16_t delayTime = 500;
-  
-  for(uint8_t i = 0; i < numOfLeds*3; i += 3)
-    RGBLedColor(i, 255, 0, 0, pwm);
-  delay(delayTime);
-
-  for(uint8_t i = 0; i < numOfLeds*3; i += 3)
-    RGBLedColor(i, 0, 255, 0, pwm);
-  delay(delayTime);
-
-  for(uint8_t i = 0; i < numOfLeds*3; i += 3)
-    RGBLedColor(i, 0, 0, 255, pwm);
-  delay(delayTime);
-
-}
-
-bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574)
-{
-  uint8_t val = pcf8574.digitalRead(pin);
-  bool state;
-  if(val == 0)
-    state = true;
-  else
-    state = false;
-
-  if (printOn)
-  {
-    Serial.print(state);
-    Serial.print("\n"); 
-  }  
- return state;
-}
-
-
-/* 
-IN: 
-  pin1 is 1st pin pcf, read 1st state of button
-  pin2 is 2nd pin pcf, read 2nd state of button
-OUT
-  state = 0 -> no input
-  state = 1 -> 1st state
-  state = 2 -> 2nd state
-*/
-uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574)
-{
-  uint8_t val1 = pcf8574.digitalRead(pin1);
-  uint8_t val2 = pcf8574.digitalRead(pin2);
-  uint8_t state;
-  if(val1 == 1 && val2 == 1)
-    state = 0;
-  else if(val2 == 0)
-    state = 1;
-  else
-    state = 2;
-
-   if (printOn)
-  {
-    Serial.print(state);
-    Serial.print("\n"); 
-  }  
-
-  return state;
 }
 
 
@@ -447,13 +331,7 @@ void dispPemsVisualize(SSD1306Spi &display, uint8_t progress)
   drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 2, display, progress);
 }
 
-void dispInit(SSD1306Spi &display)
-{
-  display.init();
-  //display.flipScreenVertically();
-  display.setContrast(255);
-  //delay(100);
-}
+
 
 void dispRCSAzipodVisualize(SSD1306Spi &display, SSD1306Spi &display2, SSD1306Spi &display3)
 {
@@ -544,48 +422,7 @@ void mbTCPInit()
 {
 }
 
-
-
-void pcfAllOutInit(PCF8574 &pcf)
-{
-  // Set pinMode to OUTPUT
-	pcf.pinMode(P0, OUTPUT);
-  pcf.pinMode(P1, OUTPUT);
-  pcf.pinMode(P2, OUTPUT);
-  pcf.pinMode(P3, OUTPUT);
-  pcf.pinMode(P4, OUTPUT);
-  pcf.pinMode(P5, OUTPUT);
-  pcf.pinMode(P6, OUTPUT);
-  pcf.pinMode(P7, OUTPUT);
-
-	Serial.print("Init pcf8574...");
-	if (pcf.begin())
-		Serial.println("OK");
-  else
-		Serial.println("KO");
-}
-
-
-
-void pwmInit(Adafruit_PWMServoDriver &pwm)
-{
-  //PWM
-  pwm.begin();
-  pwm.setPWMFreq(50);
-}
-
-void W5500Reset()
-{
-  //W550 reset TODO is needed?
-  pinMode(RST, OUTPUT);
-  digitalWrite(RST, HIGH);
-  delay(100);
-  digitalWrite(RST, LOW);
-  delay(100);
-  digitalWrite(RST, HIGH);
-  delay(100);
-}
-
+*/
 
 
 

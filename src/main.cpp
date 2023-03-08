@@ -3,9 +3,9 @@
 #include <PCF8574.h>
 #include <stdbool.h>
 #include <Adafruit_PWMServoDriver.h>
-#include "../lib/Marine_panel.h"
+#include "../lib/Marine_panel/Marine_panel_v2.h"
 
-#include <Adafruit_SSD1306.h>
+
 #include <SPI.h> 
 #include <Ethernet.h>       // Ethernet library v2 is required
 #include <ModbusAPI.h>
