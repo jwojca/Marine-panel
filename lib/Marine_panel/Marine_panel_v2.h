@@ -81,23 +81,12 @@
 enum mpMode{Local, Auto};
 enum mpState{Closed, Opened, Failure, Stopped, Running}; //states for valves and pumps
 
-
-void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
-void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
-void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm);
-
-void pcfAllOutInit(PCF8574 &pcf);
-bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574);
-uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574);
-
-void pwmInit(Adafruit_PWMServoDriver &pwm);
-
-void dispInit(Adafruit_SSD1306 &display, bool reset);
-
-void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
-void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2);
-
-void W5500Reset();
+struct vmsSimVarsStruct
+{
+    float PressureRef = 7.0, MaxPressure = 15.0, PressureAct = 0.0; //Bar
+    float TankWater = 5000.0, Inflow = 0.0, Outflow = 0.0;
+    float TankMaxVol = 10000.0; //l
+};
 
 class Valve
 {
@@ -139,6 +128,27 @@ class Pump
     void stop();
 
 };
+
+
+void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
+void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
+void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm);
+
+void pcfAllOutInit(PCF8574 &pcf);
+bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574);
+uint8_t read3State(uint8_t pin1, uint8_t pin2, bool printOn, PCF8574 pcf8574);
+
+void pwmInit(Adafruit_PWMServoDriver &pwm);
+
+void dispInit(Adafruit_SSD1306 &display, bool reset);
+
+void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
+void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2);
+void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSimVarsStruct &vmsSimVars, int task);
+
+void W5500Reset();
+
+
 
 
 

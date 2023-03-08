@@ -238,3 +238,23 @@ void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2
 
   display.display();
 }
+
+void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSimVarsStruct &vmsSimVars, int task)
+{
+  //Pressure oscilation
+  float pNoise1 = (float)random(-5, 5)/100;
+  float pNoise2 = (float)random(-3, 3)/100;
+  Pump1.pressure += pNoise1;
+  Pump2.pressure += pNoise2;
+  float dp = (Pump2.pressure - vmsSimVars.PressureAct) * 0.1;
+  float dt = (float)task/1000;
+  vmsSimVars.Inflow = dt * Valve1.valveState * Pump2.maxInflow * dp; 
+
+  vmsSimVars.TankWater = constrain(vmsSimVars.TankWater + vmsSimVars.Inflow - vmsSimVars.Outflow, 0, vmsSimVars.TankMaxVol);
+  //Serial.println(gVmsTankWater);
+
+  //pressure equation
+  //gVmsPressureAct = exp((gVmsTankWater/1000) - 7);
+  //gVmsPressureAct = (gVmsMaxPressure * 1000)/(gVmsTankMaxVol - gVmsTankWater);
+  vmsSimVars.PressureAct = (vmsSimVars.MaxPressure * 1000) / (vmsSimVars.TankMaxVol - vmsSimVars.TankWater);
+}

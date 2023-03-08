@@ -49,11 +49,13 @@ Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(PWM2_ADRESS);
 Adafruit_PWMServoDriver pwm3 = Adafruit_PWMServoDriver(PWM3_ADRESS);
 
 //Global variables 
-float gVmsPump1Pressure = 7.8, gVmsPump2Pressure = 12.0, gVmsPressureRef = 7.0, gVmsMaxPressure = 15.0;
+/*float gVmsPump1Pressure = 7.8, gVmsPump2Pressure = 12.0, gVmsPressureRef = 7.0, gVmsMaxPressure = 15.0;
 float gVmsTankWater = 5000.0, gVmsInflow = 0.0, gVmsOutflow = 0.0;
 float gVmsPump2MaxInflow = 1600.0; //l/s
 float gVmsTankMaxVol = 10000.0; //l
-float gVmsPressureAct = 0.0; //Bar
+float gVmsPressureAct = 0.0; //Bar*/
+
+vmsSimVarsStruct gVmsSimVars;
 
 uint16_t gVmsPump1Speed = 566;
 Valve gValve1(pwm2, RGB7), gValve2(pwm2, RGB10);
@@ -78,20 +80,6 @@ static const unsigned char PROGMEM logo_bmp[] =
   0b01111100, 0b11110000,
   0b01110000, 0b01110000,
   0b00000000, 0b00110000 };
-
-  void writeDisp(Adafruit_SSD1306 &display)
-  {
-    display.setTextSize(1); // Draw 2X-scale text
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(10, 0);
-    display.println(F("Hello world"));
-    display.display();
-  }
-
- 
-
-
-
 
 
 //modbus
@@ -243,25 +231,11 @@ void loop()
     gValve2.close();
   }
 
-  //Pressure oscilation
-  float pNoise1 = (float)random(-5, 5)/100;
-  float pNoise2 = (float)random(-3, 3)/100;
-  gPump1.pressure += pNoise1;
-  gPump2.pressure += pNoise2;
-  float dp = (gPump2.pressure - gVmsPressureAct) * 0.1;
-  float dt = (float)task/1000;
-  gVmsInflow = dt * gValve1.valveState * gPump2.maxInflow * dp;
-
-  gVmsTankWater = constrain(gVmsTankWater + gVmsInflow - gVmsOutflow, 0, gVmsTankMaxVol);
-  //Serial.println(gVmsTankWater);
-
-  //pressure equation
-  //gVmsPressureAct = exp((gVmsTankWater/1000) - 7);
-  gVmsPressureAct = (gVmsMaxPressure * 1000)/(gVmsTankMaxVol - gVmsTankWater);
-
+  
+  vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
 
   vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
-  vmsDispPressure(display11, gVmsPressureRef, gVmsPressureAct);
+  vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
   delay(task);
 
   /*RGBLedTest(5, pwm1);
@@ -278,7 +252,7 @@ void loop()
     gValve1.valveState = Closed;
 
   if(analogData2 < 20)
-    gVmsTankWater -= 4000;
+    gVmsSimVars.TankWater -= 4000;
   //Serial.println(analogData4);
   delay(500);
 
