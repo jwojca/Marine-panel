@@ -113,11 +113,11 @@ class Valve
       pcf2Pin = _pcf2Pin;
     }
     
-    void open();
-    void close();
+    
     void fail();
     void readMode();
     void readState();
+    void writeCmd();
 
 };
 

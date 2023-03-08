@@ -222,27 +222,11 @@ int task = 50;
 void loop()
 {
 
-  if(gValve1.valveState == Opened)
-  {
-    gValve1.open();
-    gValve2.open();
-  }
   
-  if(gValve1.valveState == Closed)
-  {
-    gValve1.close();
-    gValve2.close();
-  }
-
-  if(gValve1.valveState == 2)
-  {
-    gValve1.fail();
-    gValve2.fail();
-    Serial.println("Failure");
-  }
-
   gValve1.readMode();
   gValve1.readState();
+
+  gValve1.writeCmd();
 
 
   Serial.print("State: ");
@@ -268,6 +252,8 @@ void loop()
 
   int analogData  = map(analogRead(20), 0, 8191, 0, 100);
   int analogData2  = map(analogRead(19), 0, 8191, 0, 100);
+
+ 
   //Serial.println(analogData);
   //Serial.println(analogData2);
   

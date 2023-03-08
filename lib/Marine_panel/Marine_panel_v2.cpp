@@ -162,19 +162,6 @@ void W5500Reset()
   }
 
 
-void Valve::open()
-{
-  //calculate first pin of pwm channel based on RGB number
-  uint8_t firstPin = (rgbNumber % 6) * 3;
-  RGBLedColor(firstPin, 0, 255, 0, pwm);
-}
-
-void Valve::close()
-{
-  //calculate first pin of pwm channel based on RGB number
-  uint8_t firstPin = (rgbNumber % 6) * 3;
-  RGBLedColor(firstPin, 0, 0, 0, pwm);
-}
 
 void Valve::fail()
 {
@@ -198,7 +185,33 @@ void Valve::readState()
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
   if(state == 1)
     this->valveState = Failure;
+  else
+  {
+    bool state2 = read2State(pcf2Pin, false, *pcf2);
+    if(state2)
+        this->valveState = Opened;
+    else
+        this->valveState = Closed;
+  }
 
+
+}
+
+void Valve::writeCmd()
+{
+  //calculate first pin of pwm channel based on RGB number
+  uint8_t firstPin = (rgbNumber % 6) * 3;
+  if(this->valveState == Failure)
+    RGBLedColor(firstPin, 255, 0, 0, pwm);
+  else
+  {
+    if(this->valveState == Opened)
+        RGBLedColor(firstPin, 0, 255, 0, pwm);
+    if(this->valveState == Closed)
+        RGBLedColor(firstPin, 0, 0, 0, pwm);
+  }
+  
+  
 }
 
 void Pump::start()
