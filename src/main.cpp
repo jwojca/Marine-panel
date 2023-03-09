@@ -205,10 +205,12 @@ void setup()
 
   //joystick test
 
-  gPump1.pressure = 12.0;
+  gPump1.nomPressure = 12.0;
+  gPump1.maxPressure = 13.5;
   gPump1.maxInflow = 1600;
   gPump1.speed = 800;
-  gPump2.pressure = 12.0;
+  gPump2.maxPressure = 13.5;
+  gPump2.nomPressure = 12.0;
   gPump2.maxInflow = 1600;
 
 }
@@ -228,38 +230,55 @@ void loop()
 {
 
   
-  gValve1.readMode();
-  gValve1.readState();
-  gValve1.writeCmd();
-
-  gValve2.readMode();
-  gValve2.readState();
-  gValve2.writeCmd();
-
-  gPump1.readMode();
-  gPump1.readState();
-  gPump1.writeCmd();
-
-  gPump2.readMode();
-  gPump2.readState();
-  gPump2.writeCmd();
+  
 
 
-  Serial.print("State: ");
-  Serial.println(gValve1.valveState);
-  Serial.print("Mode: ");
-  Serial.println(gValve1.valveMode);
+
   /*
   1. READ
+
+  
   2. SIMULATE
   3. WRITE
   4. VISUALIZE
+  5. SAVE PREV STATE
   */
-  
+
+  // 1. READ
+  gValve1.readMode();
+  gValve1.readState();
+  gValve2.readMode();
+  gValve2.readState();
+  gPump1.readMode();
+  gPump1.readState();
+  gPump2.readMode();
+  gPump2.readState();
+
+  // 2. SIMULATE
   vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
 
+  //3. WRITE
+  gValve1.writeCmd();
+  gValve2.writeCmd();
+  gPump1.writeCmd();
+  gPump2.writeCmd();
+
+  // 4. VISUALIZE
   vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
   vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
+ 
+  // 5. SAVE PREV STATE
+  gPump1.savePrevState();
+  gPump2.savePrevState();
+
+  //6. DEBUG
+
+
+
+
+  
+
+ 
   delay(task);
 
   /*RGBLedTest(5, pwm1);
@@ -278,6 +297,9 @@ void loop()
     gVmsSimVars.TankWater -= 4000;
   //Serial.println(analogData4);
   delay(500);
+
+  
+
 
   if(mbOn)
   {

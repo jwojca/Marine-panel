@@ -123,9 +123,12 @@ class Pump
 {
   public:
     float pressure;
+    float nomPressure;
+    float maxPressure;
     float speed;
     int maxInflow;
     mpState pumpState = Stopped;
+    mpState pumpPrevState = Stopped;
     mpMode pumpMode = Local;
     uint8_t rgbNumber;
     Adafruit_PWMServoDriver pwm;
@@ -149,6 +152,7 @@ class Pump
     void readMode();
     void readState();
     void writeCmd();
+    void savePrevState();
 
 };
 

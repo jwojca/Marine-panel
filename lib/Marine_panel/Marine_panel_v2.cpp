@@ -235,9 +235,9 @@ void Pump::readState()
     {
         bool state2 = read2State(pcf2Pin, false, *pcf2);
         if(state2)
-            this->pumpState = Opened;
+            this->pumpState = Running;
         else
-            this->pumpState = Closed;
+            this->pumpState = Stopped;
     }
     else    //Auto - read from modbus
     {
@@ -256,13 +256,17 @@ void Pump::writeCmd()
     RGBLedColor(firstPin, 255, 0, 0, pwm);
   else
   {
-    if(this->pumpState == Opened)
+    if(this->pumpState == Running)
         RGBLedColor(firstPin, 0, 255, 0, pwm);
-    if(this->pumpState == Closed)
+    if(this->pumpState == Stopped)
         RGBLedColor(firstPin, 0, 0, 0, pwm);
   }
   
-  
+}
+
+void Pump::savePrevState()
+{
+    this->pumpPrevState = this->pumpState;
 }
 
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2)
@@ -337,12 +341,24 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
 {
   //Pressure oscilation
   float pNoise1 = (float)random(-5, 5)/100;
-  float pNoise2 = (float)random(-3, 3)/100;
   Pump1.pressure += pNoise1;
-  Pump2.pressure += pNoise2;
-  float dp = (Pump2.pressure - vmsSimVars.PressureAct) * 0.1;
   float dt = (float)task/1000;
-  vmsSimVars.Inflow = dt * Valve1.valveState * Pump2.maxInflow * dp; 
+
+  if(Pump2.pumpState == Running)
+  {
+    if(Pump2.pumpPrevState == Stopped)
+        Pump2.pressure = Pump2.nomPressure;
+
+    float pNoise2 = (float)random(-3, 3)/100;
+    Pump2.pressure += pNoise2;
+    float dp = (Pump2.pressure - vmsSimVars.PressureAct) * 0.1;
+    vmsSimVars.Inflow = dt * Valve1.valveState * Pump2.maxInflow * dp; 
+  }
+  else
+  {
+    Pump2.pressure = 0;
+  }
+    
 
   vmsSimVars.TankWater = constrain(vmsSimVars.TankWater + vmsSimVars.Inflow - vmsSimVars.Outflow, 0, vmsSimVars.TankMaxVol);
   //Serial.println(gVmsTankWater);
