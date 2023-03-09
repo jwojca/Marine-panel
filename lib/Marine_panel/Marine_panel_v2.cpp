@@ -1,5 +1,11 @@
 #include "Marine_panel_v2.h"
 
+static unsigned long timeNow = 0;
+
+color Red{255, 0, 0};
+color Green{0, 255, 0};
+color Blue{0, 0, 255};
+
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm)
 {
   uint16_t red, green, blue;
@@ -38,12 +44,25 @@ void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm)
 
 }
 
+void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn, int durationOff, color aColor)
+{
+    if(millis() - timeNow > durationOn)
+    {
+        RGBLedColor(firstPin, 0, 0, 0, pwm);
+    }
+    if(millis() - timeNow > durationOn + durationOff)
+    {
+        RGBLedColor(firstPin, aColor.red, aColor.green, aColor.blue, pwm);
+        timeNow = millis();
+    }
+}
+
 
 
 void pcfAllOutInit(PCF8574 &pcf)
 {
   // Set pinMode to OUTPUT
-	pcf.pinMode(P0, OUTPUT);
+  pcf.pinMode(P0, OUTPUT);
   pcf.pinMode(P1, OUTPUT);
   pcf.pinMode(P2, OUTPUT);
   pcf.pinMode(P3, OUTPUT);
@@ -238,11 +257,13 @@ void Pump::readState()
   {
     if(this->pumpMode == Local)
     {
-        bool state2 = read2State(pcf2Pin, false, *pcf2);
-        if(state2)
-            this->pumpState = Running;
-        else
-            this->pumpState = Stopped;
+        bool run = read2State(pcf2Pin, false, *pcf2);
+        bool stop = !run;
+
+        if(run && (this->pumpPrevState == Stopped || this->pumpPrevState == Stopping))
+            this->pumpState = Starting;
+        if (stop && (this->pumpPrevState == Running || this->pumpPrevState == Starting))
+            this->pumpState = Stopping;
     }
     else    //Auto - read from modbus
     {
@@ -254,24 +275,59 @@ void Pump::readState()
 }
 
 void Pump::writeCmd()
-{
-  //calculate first pin of pwm channel based on RGB number
-  uint8_t firstPin = (rgbNumber % 6) * 3;
-  if(this->pumpState == Failure)
-    RGBLedColor(firstPin, 255, 0, 0, pwm);
-  else
-  {
-    if(this->pumpState == Running)
-        RGBLedColor(firstPin, 0, 255, 0, pwm);
-    if(this->pumpState == Stopped)
-        RGBLedColor(firstPin, 0, 0, 0, pwm);
-  }
+{   
+    int rgbBlinkDelay = 500;
+    //calculate first pin of pwm channel based on RGB number
+    uint8_t firstPin = (rgbNumber % 6) * 3;
+    if(this->pumpState == Failure)
+        RGBLedColor(firstPin, 255, 0, 0, pwm);
+    else
+    {
+        if(this->pumpState == Starting)
+            RGBLedBlink(pwm, firstPin, 500, 250, Green);
+        if(this->pumpState == Running)
+            RGBLedColor(firstPin, 0, 255, 0, pwm);
+        if(this->pumpState == Stopping)
+            RGBLedBlink(pwm, firstPin, 500, 250, Green);
+        if(this->pumpState == Stopped)
+            RGBLedColor(firstPin, 0, 0, 0, pwm);
+    }
   
 }
 
 void Pump::savePrevState()
 {
     this->pumpPrevState = this->pumpState;
+}
+
+void Pump::starting(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars)
+{
+
+    this->pressure += (this->nomPressure/loadTime) * dt;
+    this->pressure = addNoise(this->pressure, -0.15, 0.15);
+
+    float dp = (this->pressure - vmsSimVars.PressureAct) * 0.1;
+    this->actInflow = this->maxInflow * dp;  
+
+    this->speed += (this->maxSpeed/loadTime) * dt;;
+
+    if(this->pressure > this->nomPressure)
+        this->pumpState = Running;
+}
+
+void Pump::stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars)
+{
+
+    this->pressure -= (this->nomPressure/loadTime) * dt;
+    this->pressure = addNoise(this->pressure, -0.15, 0.15);
+
+    float dp = (this->pressure - vmsSimVars.PressureAct) * 0.1;
+    this->actInflow = this->maxInflow * dp;  
+
+    this->speed -= (this->maxSpeed/loadTime) * dt;
+
+    if(this->speed <= 0)
+        this->pumpState = Stopped;
 }
 
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2)
@@ -346,8 +402,11 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
 {
     float dt = (float)task/1000;
 
-
-    if(Pump1.pumpState == Running)
+    if(Pump1.pumpState == Starting)
+    {
+        Pump1.starting(3, dt, vmsSimVars);
+    }
+    else if(Pump1.pumpState == Running)
     {
         Pump1.pressure = Pump1.nomPressure;
         Pump1.pressure = addNoise(Pump1.pressure, -0.15, 0.15);
@@ -355,6 +414,8 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
         Pump1.actInflow = Pump1.maxInflow * dp;  //TODO how to handle valveState multiplication??
         Pump1.speed = 955;
     }
+    else if(Pump1.pumpState == Stopping)
+        Pump1.stopping(3, dt, vmsSimVars);
     else
     {
         Pump1.pressure = 0;
@@ -389,7 +450,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
  
     vmsSimVars.TankWater = vmsSimVars.TankWater + vmsSimVars.Inflow - vmsSimVars.Outflow;
     vmsSimVars.TankWater = constrain(vmsSimVars.TankWater, 0, vmsSimVars.TankMaxVol);
-    Serial.println(vmsSimVars.TankWater);
+    //Serial.println(vmsSimVars.TankWater);
 
     //pressure equation
     vmsSimVars.PressureAct = (vmsSimVars.MaxPressure * 1000) / (vmsSimVars.TankMaxVol - vmsSimVars.TankWater);

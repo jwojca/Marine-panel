@@ -209,11 +209,13 @@ void setup()
   gPump1.maxPressure = 13.5;
   gPump1.maxInflow = 160;
   gPump1.actInflow = 0;
-  gPump1.speed = 800;
+  gPump1.maxSpeed = 900;
+  gPump1.speed = 0;
   gPump2.maxPressure = 13.5;
   gPump2.nomPressure = 12.0;
   gPump2.maxInflow = 160;
   gPump2.actInflow = 0;
+
 
 }
   

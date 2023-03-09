@@ -80,8 +80,9 @@
 
 #include "../Marine_panel/Images/Images.h"
 
+
 enum mpMode{Local, Auto};
-enum mpState{Closed, Opened, Failure, Stopped, Running}; //states for valves and pumps
+enum mpState{Closed, Opened, Failure, Stopped, Starting, Stopping, Running}; //states for valves and pumps
 
 struct vmsSimVarsStruct
 {
@@ -89,6 +90,15 @@ struct vmsSimVarsStruct
     float TankWater = 5000.0, TankMaxVol = 10000.0;                 //l
     float Inflow = 0.0, Outflow = 0.0;                              //l/s
 };
+
+struct color
+{
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+};
+
+
 
 class Valve
 {
@@ -119,6 +129,7 @@ class Valve
     void writeCmd();
     void savePrevState();
 
+
 };
 
 class Pump
@@ -128,6 +139,7 @@ class Pump
     float nomPressure;
     float maxPressure;
     float speed;
+    float maxSpeed;
     int maxInflow;
     int actInflow;
     mpState pumpState = Stopped;
@@ -156,6 +168,8 @@ class Pump
     void readState();
     void writeCmd();
     void savePrevState();
+    void stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
+    void starting(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
 
 };
 
@@ -163,6 +177,7 @@ class Pump
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
 void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm);
+void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn, int durationOff, color aColor);
 
 void pcfAllOutInit(PCF8574 &pcf);
 void pcfAllInInit(PCF8574 &pcf);
