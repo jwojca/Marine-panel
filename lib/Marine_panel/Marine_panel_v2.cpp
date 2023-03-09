@@ -187,13 +187,20 @@ void Valve::readState()
     this->valveState = Failure;
   else
   {
-    bool state2 = read2State(pcf2Pin, false, *pcf2);
-    if(state2)
-        this->valveState = Opened;
-    else
-        this->valveState = Closed;
-  }
+    if(this->valveMode == Local)
+    {
+        bool state2 = read2State(pcf2Pin, false, *pcf2);
+        if(state2)
+            this->valveState = Opened;
+        else
+            this->valveState = Closed;
+    }
+    else    //Auto - read from modbus
+    {
 
+    }
+    
+  }
 
 }
 

@@ -122,6 +122,11 @@ void setup()
   dispInit(display14, false);
   dispInit(display15, false);
 
+  //rotate bz 180 deg
+  display5.setRotation(2);
+  display6.setRotation(2);
+  display7.setRotation(2);
+
   // Show initial display buffer contents on the screen --
   // the library initializes this with an Adafruit splash screen.
   display1.display();
@@ -225,8 +230,11 @@ void loop()
   
   gValve1.readMode();
   gValve1.readState();
-
   gValve1.writeCmd();
+
+  gValve2.readMode();
+  gValve2.readState();
+  gValve2.writeCmd();
 
 
   Serial.print("State: ");
