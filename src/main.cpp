@@ -60,7 +60,7 @@ vmsSimVarsStruct gVmsSimVars;
 
 uint16_t gVmsPump1Speed = 566;
 Valve gValve1(pwm2, RGB7, P0, P0, &pcf3, &pcf4), gValve2(pwm2, RGB10, P2, P1, &pcf3, &pcf4);
-Pump gPump1(pwm2, RGB8), gPump2(pwm2, RGB9);
+Pump gPump1(pwm2, RGB9, P4, P2, &pcf3, &pcf4), gPump2(pwm2, RGB8, P6, P3, &pcf3, &pcf4);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
@@ -235,6 +235,14 @@ void loop()
   gValve2.readMode();
   gValve2.readState();
   gValve2.writeCmd();
+
+  gPump1.readMode();
+  gPump1.readState();
+  gPump1.writeCmd();
+
+  gPump2.readMode();
+  gPump2.readState();
+  gPump2.writeCmd();
 
 
   Serial.print("State: ");

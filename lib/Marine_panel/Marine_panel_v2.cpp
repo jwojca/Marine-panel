@@ -163,13 +163,6 @@ void W5500Reset()
 
 
 
-void Valve::fail()
-{
-  //calculate first pin of pwm channel based on RGB number
-  uint8_t firstPin = (rgbNumber % 6) * 3;
-  RGBLedColor(firstPin, 255, 0, 0, pwm);
-}
-
 void Valve::readMode()
 {
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
@@ -221,18 +214,55 @@ void Valve::writeCmd()
   
 }
 
-void Pump::start()
+void Pump::readMode()
 {
-  //calculate first pin of pwm channel based on RGB number
-  uint8_t firstPin = (rgbNumber % 6) * 3;
-  RGBLedColor(firstPin, 0, 255, 0, pwm);
+  uint8_t state = read3State(pcf1Pin, false, *pcf1);
+  if(state == 0)
+    this->pumpMode = Local;
+
+  if(state == 2)
+    this->pumpMode = Auto;
 }
 
-void Pump::stop()
+void Pump::readState()
+{
+  uint8_t state = read3State(pcf1Pin, false, *pcf1);
+  if(state == 1)
+    this->pumpState = Failure;
+  else
+  {
+    if(this->pumpMode == Local)
+    {
+        bool state2 = read2State(pcf2Pin, false, *pcf2);
+        if(state2)
+            this->pumpState = Opened;
+        else
+            this->pumpState = Closed;
+    }
+    else    //Auto - read from modbus
+    {
+
+    }
+    
+  }
+
+}
+
+void Pump::writeCmd()
 {
   //calculate first pin of pwm channel based on RGB number
   uint8_t firstPin = (rgbNumber % 6) * 3;
-  RGBLedColor(firstPin, 255, 0, 0, pwm);
+  if(this->pumpState == Failure)
+    RGBLedColor(firstPin, 255, 0, 0, pwm);
+  else
+  {
+    if(this->pumpState == Opened)
+        RGBLedColor(firstPin, 0, 255, 0, pwm);
+    if(this->pumpState == Closed)
+        RGBLedColor(firstPin, 0, 0, 0, pwm);
+  }
+  
+  
 }
 
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2)

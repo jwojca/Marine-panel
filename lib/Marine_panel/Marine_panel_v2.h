@@ -113,8 +113,6 @@ class Valve
       pcf2Pin = _pcf2Pin;
     }
     
-    
-    void fail();
     void readMode();
     void readState();
     void writeCmd();
@@ -132,14 +130,25 @@ class Pump
     uint8_t rgbNumber;
     Adafruit_PWMServoDriver pwm;
 
-    Pump(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber)
+    PCF8574 *pcf1;
+    PCF8574 *pcf2;
+    uint8_t pcf1Pin;
+    uint8_t pcf2Pin;
+
+    Pump(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
       pwm = _pwm;
+      pcf1 = _pcf1;
+      pcf2 = _pcf2;
+      pcf1Pin = _pcf1Pin;
+      pcf2Pin = _pcf2Pin;
     }
     
-    void start();
-    void stop();
+    
+    void readMode();
+    void readState();
+    void writeCmd();
 
 };
 
