@@ -94,6 +94,7 @@ class Valve
 {
   public:
     mpState valveState = Closed;
+    mpState valvePrevState = Closed;
     mpMode valveMode = Local;
     uint8_t rgbNumber;
     Adafruit_PWMServoDriver pwm;
@@ -116,6 +117,7 @@ class Valve
     void readMode();
     void readState();
     void writeCmd();
+    void savePrevState();
 
 };
 
@@ -127,6 +129,7 @@ class Pump
     float maxPressure;
     float speed;
     int maxInflow;
+    int actInflow;
     mpState pumpState = Stopped;
     mpState pumpPrevState = Stopped;
     mpMode pumpMode = Local;
@@ -173,6 +176,7 @@ void dispInit(Adafruit_SSD1306 &display, bool reset);
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
 void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2);
 void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSimVarsStruct &vmsSimVars, int task);
+float addNoise(float value, float min, float max);
 
 void W5500Reset();
 

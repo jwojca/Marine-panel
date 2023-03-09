@@ -214,6 +214,11 @@ void Valve::writeCmd()
   
 }
 
+void Valve::savePrevState()
+{
+    this->valvePrevState = this->valveState;
+}
+
 void Pump::readMode()
 {
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
@@ -339,32 +344,61 @@ void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2
 
 void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSimVarsStruct &vmsSimVars, int task)
 {
-  //Pressure oscilation
-  float pNoise1 = (float)random(-5, 5)/100;
-  Pump1.pressure += pNoise1;
-  float dt = (float)task/1000;
+    float dt = (float)task/1000;
 
-  if(Pump2.pumpState == Running)
-  {
-    if(Pump2.pumpPrevState == Stopped)
+
+    if(Pump1.pumpState == Running)
+    {
+        Pump1.pressure = Pump1.nomPressure;
+        Pump1.pressure = addNoise(Pump1.pressure, -0.15, 0.15);
+        float dp = (Pump1.pressure - vmsSimVars.PressureAct) * 0.1;
+        Pump1.actInflow = Pump1.maxInflow * dp;  //TODO how to handle valveState multiplication??
+        Pump1.speed = 955;
+    }
+    else
+    {
+        Pump1.pressure = 0;
+        Pump1.actInflow = 0;
+        Pump1.speed = 0;
+    }
+
+    if(Pump2.pumpState == Running)
+    {   
         Pump2.pressure = Pump2.nomPressure;
+        Pump2.pressure = addNoise(Pump2.pressure, -0.15, 0.15);
+        float dp = (Pump2.pressure - vmsSimVars.PressureAct) * 0.1;
+        Pump2.actInflow = Pump2.maxInflow * dp;
+    }
+    else
+    {
+        Pump2.pressure = 0;
+        Pump2.actInflow = 0;
+        Pump2.speed = 0;
+    }
 
-    float pNoise2 = (float)random(-3, 3)/100;
-    Pump2.pressure += pNoise2;
-    float dp = (Pump2.pressure - vmsSimVars.PressureAct) * 0.1;
-    vmsSimVars.Inflow = dt * Valve1.valveState * Pump2.maxInflow * dp; 
-  }
-  else
-  {
-    Pump2.pressure = 0;
-  }
-    
+    vmsSimVars.Inflow = dt * Valve1.valveState * (Pump1.actInflow + Pump2.actInflow);
 
-  vmsSimVars.TankWater = constrain(vmsSimVars.TankWater + vmsSimVars.Inflow - vmsSimVars.Outflow, 0, vmsSimVars.TankMaxVol);
-  //Serial.println(gVmsTankWater);
+    //TODO define v2 outflow
+    vmsSimVars.Outflow = dt * Valve2.valveState * 100;
 
-  //pressure equation
-  //gVmsPressureAct = exp((gVmsTankWater/1000) - 7);
-  //gVmsPressureAct = (gVmsMaxPressure * 1000)/(gVmsTankMaxVol - gVmsTankWater);
-  vmsSimVars.PressureAct = (vmsSimVars.MaxPressure * 1000) / (vmsSimVars.TankMaxVol - vmsSimVars.TankWater);
+
+
+    //quick outflow of water, when V2 opens suddenly
+    if(Valve2.valveState == Opened && Valve2.valvePrevState == Closed)
+        vmsSimVars.TankWater -= vmsSimVars.PressureAct * 100;
+ 
+    vmsSimVars.TankWater = vmsSimVars.TankWater + vmsSimVars.Inflow - vmsSimVars.Outflow;
+    vmsSimVars.TankWater = constrain(vmsSimVars.TankWater, 0, vmsSimVars.TankMaxVol);
+    Serial.println(vmsSimVars.TankWater);
+
+    //pressure equation
+    vmsSimVars.PressureAct = (vmsSimVars.MaxPressure * 1000) / (vmsSimVars.TankMaxVol - vmsSimVars.TankWater);
+
+}
+
+float addNoise(float value, float min, float max)
+{
+    float randf = (float)random(0, 1000)/1000; //random 0-1 float with 10^-3 precision
+    value = value + min + (max - min)*randf;
+    return value;
 }

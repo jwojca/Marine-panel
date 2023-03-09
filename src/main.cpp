@@ -207,11 +207,13 @@ void setup()
 
   gPump1.nomPressure = 12.0;
   gPump1.maxPressure = 13.5;
-  gPump1.maxInflow = 1600;
+  gPump1.maxInflow = 160;
+  gPump1.actInflow = 0;
   gPump1.speed = 800;
   gPump2.maxPressure = 13.5;
   gPump2.nomPressure = 12.0;
-  gPump2.maxInflow = 1600;
+  gPump2.maxInflow = 160;
+  gPump2.actInflow = 0;
 
 }
   
@@ -225,6 +227,8 @@ uint8_t state = 0;
 uint32_t showLast = 0;
 
 int task = 50; 
+int dispRefreshTime = 500;
+unsigned long timeNow = 0;
 
 void loop()
 {
@@ -264,19 +268,22 @@ void loop()
   gPump2.writeCmd();
 
   // 4. VISUALIZE
-  vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
-  vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
+  if(millis() - timeNow > dispRefreshTime)
+  {
+    vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
+    vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
+    timeNow = millis();
+
+  }
+  
  
   // 5. SAVE PREV STATE
   gPump1.savePrevState();
   gPump2.savePrevState();
+  gValve1.savePrevState();
+  gValve2.savePrevState();
 
   //6. DEBUG
-
-
-
-
-  
 
  
   delay(task);
@@ -296,7 +303,7 @@ void loop()
   if(analogData2 < 20)
     gVmsSimVars.TankWater -= 4000;
   //Serial.println(analogData4);
-  delay(500);
+ 
 
   
 
