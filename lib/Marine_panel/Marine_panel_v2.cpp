@@ -1,6 +1,6 @@
 #include "Marine_panel_v2.h"
 
-static unsigned long timeNow = 0;
+
 
 color Red{255, 0, 0};
 color Green{0, 255, 0};
@@ -44,16 +44,16 @@ void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm)
 
 }
 
-void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn, int durationOff, color aColor)
+void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn, int durationOff, color aColor, unsigned long *timer)
 {
-    if(millis() - timeNow > durationOn)
+    if(millis() - *timer > durationOn)
     {
         RGBLedColor(firstPin, 0, 0, 0, pwm);
     }
-    if(millis() - timeNow > durationOn + durationOff)
+    if(millis() - *timer > durationOn + durationOff)
     {
         RGBLedColor(firstPin, aColor.red, aColor.green, aColor.blue, pwm);
-        timeNow = millis();
+        *timer = millis();
     }
 }
 
@@ -284,11 +284,11 @@ void Pump::writeCmd()
     else
     {
         if(this->pumpState == Starting)
-            RGBLedBlink(pwm, firstPin, 500, 250, Green);
+            RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->timer);
         if(this->pumpState == Running)
             RGBLedColor(firstPin, 0, 255, 0, pwm);
         if(this->pumpState == Stopping)
-            RGBLedBlink(pwm, firstPin, 500, 250, Green);
+            RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->timer);
         if(this->pumpState == Stopped)
             RGBLedColor(firstPin, 0, 0, 0, pwm);
     }
@@ -326,7 +326,10 @@ void Pump::stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars)
 
     this->speed -= (this->maxSpeed/loadTime) * dt;
 
-    if(this->speed <= 0)
+    this->speed = constrain(this->speed, 0, this->maxSpeed);
+    this->pressure = constrain(this->pressure, 0, maxPressure);
+
+    if(this->speed <= 0 || this->pressure <= 0)
         this->pumpState = Stopped;
 }
 
@@ -413,6 +416,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
         float dp = (Pump1.pressure - vmsSimVars.PressureAct) * 0.1;
         Pump1.actInflow = Pump1.maxInflow * dp;  //TODO how to handle valveState multiplication??
         Pump1.speed = 955;
+        Pump1.speed += random(-10, 10);
     }
     else if(Pump1.pumpState == Stopping)
         Pump1.stopping(3, dt, vmsSimVars);
@@ -423,13 +427,21 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
         Pump1.speed = 0;
     }
 
-    if(Pump2.pumpState == Running)
+
+
+    if(Pump2.pumpState == Starting)
+        Pump2.starting(3, dt, vmsSimVars);
+    else if(Pump2.pumpState == Running)
     {   
         Pump2.pressure = Pump2.nomPressure;
         Pump2.pressure = addNoise(Pump2.pressure, -0.15, 0.15);
         float dp = (Pump2.pressure - vmsSimVars.PressureAct) * 0.1;
         Pump2.actInflow = Pump2.maxInflow * dp;
+        Pump2.speed = 955;
+        Pump2.speed += random(-10, 10);
     }
+    else if(Pump2.pumpState == Stopping)
+        Pump2.stopping(3, dt, vmsSimVars);
     else
     {
         Pump2.pressure = 0;
@@ -463,3 +475,4 @@ float addNoise(float value, float min, float max)
     value = value + min + (max - min)*randf;
     return value;
 }
+

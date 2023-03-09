@@ -153,6 +153,8 @@ class Pump
     uint8_t pcf1Pin;
     uint8_t pcf2Pin;
 
+    unsigned long timer = 0;
+
     Pump(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
@@ -177,7 +179,7 @@ class Pump
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
 void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm);
-void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn, int durationOff, color aColor);
+void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn, int durationOff, color aColor, unsigned long timeNow);
 
 void pcfAllOutInit(PCF8574 &pcf);
 void pcfAllInInit(PCF8574 &pcf);

@@ -215,6 +215,7 @@ void setup()
   gPump2.nomPressure = 12.0;
   gPump2.maxInflow = 160;
   gPump2.actInflow = 0;
+  gPump2.maxSpeed = 900;
 
 
 }
@@ -286,6 +287,9 @@ void loop()
   gValve2.savePrevState();
 
   //6. DEBUG
+
+  //Serial.println(gPump1.timer);
+ // Serial.println(gPump2.timer);
 
  
   delay(task);
