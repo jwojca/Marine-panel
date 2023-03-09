@@ -321,8 +321,8 @@ void Pump::stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars)
     this->pressure -= (this->nomPressure/loadTime) * dt;
     this->pressure = addNoise(this->pressure, -0.15, 0.15);
 
-    float dp = (this->pressure - vmsSimVars.PressureAct) * 0.1;
-    this->actInflow = this->maxInflow * dp;  
+    //float dp = (this->pressure - vmsSimVars.PressureAct) * 0.1;
+    //this->actInflow = this->maxInflow * dp;  
 
     this->speed -= (this->maxSpeed/loadTime) * dt;
 
