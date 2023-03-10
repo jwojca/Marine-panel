@@ -82,7 +82,7 @@
 
 
 enum mpMode{Local, Auto};
-enum mpState{Closed, Opened, Failure, Stopped, Starting, Stopping, Running}; //states for valves and pumps
+enum mpState{Closed, Opened, Failure, Stopped, Starting, Stopping, StoppingF, Running}; //states for valves and pumps
 
 struct vmsSimVarsStruct
 {

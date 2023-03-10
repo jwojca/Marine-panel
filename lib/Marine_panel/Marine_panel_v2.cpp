@@ -252,7 +252,13 @@ void Pump::readState()
 {
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
   if(state == 1)
-    this->pumpState = Failure;
+  {
+    if(this->pumpPrevState == Running || this->pumpPrevState == Starting)
+        this->pumpState = StoppingF;
+    if(this->pumpPrevState == Stopped)    
+        this->pumpState = Failure;
+  }
+    
   else
   {
     if(this->pumpMode == Local)
@@ -264,6 +270,9 @@ void Pump::readState()
             this->pumpState = Starting;
         if (stop && (this->pumpPrevState == Running || this->pumpPrevState == Starting))
             this->pumpState = Stopping;
+        if (stop && (this->pumpPrevState == Failure))
+            this->pumpState = Stopped;
+    
     }
     else    //Auto - read from modbus
     {
@@ -291,6 +300,8 @@ void Pump::writeCmd()
             RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->timer);
         if(this->pumpState == Stopped)
             RGBLedColor(firstPin, 0, 0, 0, pwm);
+        if(this->pumpState == StoppingF)
+            RGBLedBlink(pwm, firstPin, 500, 250, Red, &this->timer);
     }
   
 }
@@ -418,7 +429,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
         Pump1.speed = 955;
         Pump1.speed += random(-10, 10);
     }
-    else if(Pump1.pumpState == Stopping)
+    else if(Pump1.pumpState == Stopping || Pump1.pumpState == StoppingF)
         Pump1.stopping(3, dt, vmsSimVars);
     else
     {
@@ -440,7 +451,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
         Pump2.speed = 955;
         Pump2.speed += random(-10, 10);
     }
-    else if(Pump2.pumpState == Stopping)
+    else if(Pump2.pumpState == Stopping || Pump2.pumpState == StoppingF)
         Pump2.stopping(3, dt, vmsSimVars);
     else
     {
