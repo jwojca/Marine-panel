@@ -275,6 +275,7 @@ void loop()
   {
     vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
     vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
+
     timeNow = millis();
 
   }
@@ -304,13 +305,14 @@ void loop()
  
   //Serial.println(analogData);
   //Serial.println(analogData2);
-  
 
-  if(analogData2 < 20)
-    gVmsSimVars.TankWater -= 4000;
-  //Serial.println(analogData4);
  
-
+  //PEMS
+  dispPemsVisualize(display8, progress);
+  dispPemsVisualize(display9, progress);
+  progress += 3;
+  if(progress > 100)
+    progress = 0;
   
 
 

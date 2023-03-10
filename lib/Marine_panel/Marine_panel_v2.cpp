@@ -487,3 +487,239 @@ float addNoise(float value, float min, float max)
     return value;
 }
 
+void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &display, uint8_t progress, bool innerCircle) 
+{
+  int16_t x = 0, y = radius;
+	int16_t dp = 1 - radius;
+  uint16_t totalCirclePixels = 0;
+  uint16_t pixelPerOctant = 0;
+  uint16_t progressPixels = 0;
+  uint16_t numOfActivePixels = 0;
+
+  //get number of total Pemscircle pixels
+  do 
+  {
+    if (dp < 0)
+      dp = dp + (x++) * 2 + 3;
+    else
+      dp = dp + (x++) * 2 - (y--) * 2 + 5;
+    ++pixelPerOctant;
+  } while (x < y);
+
+  totalCirclePixels = pixelPerOctant*6 + 3;
+  progressPixels = map(progress, 0, 100, 0, totalCirclePixels);
+
+  //create array for x,y data
+  int16_t array[pixelPerOctant][2];
+  uint16_t arrIndex = pixelPerOctant-1;
+
+  //reset params
+  x = 0;
+  y = radius;
+  dp = 1 - radius;
+
+  //load x,y data into array
+   do 
+  {
+    if (dp < 0)
+      dp = dp + (x++) * 2 + 3;
+    else
+      dp = dp + (x++) * 2 - (y--) * 2 + 5;
+    array[arrIndex][0] = x;
+    array[arrIndex][1] = y;
+    --arrIndex;
+  } while (x < y);
+
+
+  //main for cycle for 6 octants
+  for(uint8_t i = 0; i < 6; ++i)
+  {
+    x = 0;
+    y = radius;
+    dp = 1 - radius;
+    uint8_t indexIncrement = 0;
+    uint8_t indexDecrement = pixelPerOctant-1;
+
+    if(numOfActivePixels >= progressPixels)
+        break;
+    //loop for draw individual pixels, odd number load array, even number load inverted array
+    do 
+    {
+      if(i == 0)
+        display.drawPixel(x0 - array[indexIncrement][1], y0 + array[indexIncrement][0], SSD1306_WHITE);
+      if(i == 1)
+        display.drawPixel(x0 - array[indexDecrement][1], y0 - array[indexDecrement][0], SSD1306_WHITE);
+      if(i == 2)
+        display.drawPixel(x0 - array[indexIncrement][0], y0 - array[indexIncrement][1], SSD1306_WHITE);
+      if(i == 3)
+        display.drawPixel(x0 + array[indexDecrement][0], y0 - array[indexDecrement][1], SSD1306_WHITE);
+      if(i == 4)
+      display.drawPixel(x0 + array[indexIncrement][1], y0 - array[indexIncrement][0], SSD1306_WHITE);
+      if(i == 5)
+        display.drawPixel(x0 + array[indexDecrement][1], y0 + array[indexDecrement][0], SSD1306_WHITE);
+      
+      //to fill holes in inner circle
+      if(innerCircle)
+      {
+        if(i == 0)
+        {
+          display.drawPixel(x0 - array[indexIncrement][1], y0 + array[indexIncrement][0], SSD1306_WHITE);
+          display.drawPixel(x0 - array[indexIncrement][1] - 1, y0 + array[indexIncrement][0], SSD1306_WHITE);
+          display.drawPixel(x0 - array[indexIncrement][1] + 1, y0 + array[indexIncrement][0], SSD1306_WHITE);
+        }
+        
+        if(i == 1)
+        {
+          display.drawPixel(x0 - array[indexDecrement][1], y0 - array[indexDecrement][0], SSD1306_WHITE);
+          display.drawPixel(x0 - array[indexDecrement][1] + 1, y0 - array[indexDecrement][0], SSD1306_WHITE);
+          display.drawPixel(x0 - array[indexDecrement][1] - 1, y0 - array[indexDecrement][0], SSD1306_WHITE);
+        }
+
+        if(i == 2)
+        {
+          display.drawPixel(x0 - array[indexIncrement][0], y0 - array[indexIncrement][1], SSD1306_WHITE);
+          display.drawPixel(x0 - array[indexIncrement][0] + 1, y0 - array[indexIncrement][1], SSD1306_WHITE);
+          display.drawPixel(x0 - array[indexIncrement][0] - 1, y0 - array[indexIncrement][1], SSD1306_WHITE);
+        }
+          
+        if(i == 3)
+        {
+          display.drawPixel(x0 + array[indexDecrement][0], y0 - array[indexDecrement][1], SSD1306_WHITE);
+          display.drawPixel(x0 + array[indexDecrement][0] + 1 , y0 - array[indexDecrement][1], SSD1306_WHITE);
+          display.drawPixel(x0 + array[indexDecrement][0] - 1, y0 - array[indexDecrement][1], SSD1306_WHITE);
+
+        }
+          
+        if(i == 4)
+        {
+          display.drawPixel(x0 + array[indexIncrement][1], y0 - array[indexIncrement][0], SSD1306_WHITE);
+          display.drawPixel(x0 + array[indexIncrement][1] + 1, y0 - array[indexIncrement][0], SSD1306_WHITE);
+          display.drawPixel(x0 + array[indexIncrement][1] - 1, y0 - array[indexIncrement][0], SSD1306_WHITE);
+        }
+        
+        if(i == 5)
+        {
+          display.drawPixel(x0 + array[indexDecrement][1], y0 + array[indexDecrement][0], SSD1306_WHITE);
+          display.drawPixel(x0 + array[indexDecrement][1] + 1, y0 + array[indexDecrement][0], SSD1306_WHITE);
+          display.drawPixel(x0 + array[indexDecrement][1] - 1, y0 + array[indexDecrement][0], SSD1306_WHITE);
+        }
+          
+      }
+      
+      //draw 2 point for full circle
+      if(progress >= 16)
+      {
+        display.drawPixel(x0 - radius, y0, SSD1306_WHITE);
+        display.drawPixel(x0 - radius, y0 + 1, SSD1306_WHITE);
+      }
+        
+      if(progress >= 49)
+      {
+        display.drawPixel(x0, y0 - radius, SSD1306_WHITE);
+        display.drawPixel(x0 - 1, y0 - radius, SSD1306_WHITE);
+      }        
+      if(progress >= 80)
+      {
+        display.drawPixel(x0 + radius, y0, SSD1306_WHITE);
+        display.drawPixel(x0 + radius, y0 - 1, SSD1306_WHITE);
+      }
+
+      ++numOfActivePixels;
+      ++indexIncrement;
+      --indexDecrement;
+      if(numOfActivePixels >= progressPixels)
+        break;
+
+    } while (indexDecrement > 0);
+  }
+
+}
+
+void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress)
+{
+  int bigRadius = 37;
+  int smallRadius = 28;
+  String progressString = String(progress);
+
+  int16_t cursorX = 0;
+  int16_t cursorY = 40;
+
+  //probably not needed vars
+  uint8_t progressStringOffset = 15;
+  int8_t physQtyOffset = -4;
+  int8_t circleOffset = 5;
+
+  if(progress < 10)
+    progressStringOffset = 14;
+  else if (progress >= 10 && progress < 100)
+    progressStringOffset = 18;
+  else
+    progressStringOffset = 22;
+
+  display.clearDisplay();
+  
+  /*display.drawString(DISP_CENTER_X0 + physQtyOffset, DISP_CENTER_Y0 - 5,  " MW");
+  display.drawString(DISP_CENTER_X0 + physQtyOffset, DISP_CENTER_Y0 + 5,  " RPM");
+  display.drawString(DISP_CENTER_X0 - progressStringOffset, DISP_CENTER_Y0 - 5, progressString);
+  display.drawString(DISP_CENTER_X0 - progressStringOffset, DISP_CENTER_Y0 + 5, progressString);*/
+ 
+  
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius - 1, display, progress, true);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius - 2, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius, display, progress);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 1 , display, progress, true);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 2, display, progress);
+
+
+
+  display.setFont(&DejaVu_Sans_Mono_10);
+  display.setTextColor(SSD1306_WHITE);
+
+  display.setCursor(0, 28);
+  display.println(F("       1229   "));
+  cursorY = display.getCursorY();
+  display.setCursor(0, cursorY - 5);
+
+  display.setFont(&DejaVu_Sans_Mono_8);
+  display.setTextColor(SSD1306_WHITE);
+
+  display.println  ("          kW    ");
+  cursorY = display.getCursorY();
+  display.setCursor(0, cursorY + 3);
+
+  display.setFont(&DejaVu_Sans_Mono_10);
+  display.setTextColor(SSD1306_WHITE);
+
+  display.println(F("       1627"));
+  cursorY = display.getCursorY();
+  display.setCursor(0, cursorY - 5);
+
+  display.setFont(&DejaVu_Sans_Mono_8);
+  display.setTextColor(SSD1306_WHITE);
+
+  display.println  ("         rpm    ");
+  
+  
+  /*
+  display.setFont(&DejaVu_Sans_Mono_10);
+  display.setTextColor(SSD1306_WHITE);
+
+  display.setCursor(0, cursorY);
+  display.println(F("          MW"));
+  display.println(F("          RPM"));
+
+  int16_t cursorOffsetX = 45;
+  display.setCursor(0, cursorY);
+  cursorY = display.getCursorY();
+  display.setCursor(cursorX + cursorOffsetX, cursorY);
+  display.printf("%u", progress);
+  display.println();
+
+  cursorY = display.getCursorY();
+  display.setCursor(cursorX + cursorOffsetX, cursorY);
+  display.printf("%u", progress*2);*/
+
+  display.display();
+}
+

@@ -75,7 +75,9 @@
 
 //#include <SSD1306Spi.h>
 
-#include "../Marine_panel/Fonts/OpenSans13.h"
+#include "../Marine_panel/Fonts/DejavuSansMono15.h"
+#include "../Marine_panel/Fonts/DejavuSansMono10.h"
+#include "../Marine_panel/Fonts/DejavuSansMono8.h"
 //#include "../lib/Marine_panel_VMS.h"
 
 #include "../Marine_panel/Images/Images.h"
@@ -193,6 +195,10 @@ void dispInit(Adafruit_SSD1306 &display, bool reset);
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
 void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2);
 void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSimVarsStruct &vmsSimVars, int task);
+
+void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &display, uint8_t progress, bool innerCircle = false);
+void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
+
 float addNoise(float value, float min, float max);
 
 void W5500Reset();
@@ -207,188 +213,8 @@ void W5500Reset();
 
 /* MAIN COMMENT
 
-void RGBLedBlink(uint16_t red, uint16_t green, uint16_t blue, uint16_t onDuration, uint16_t offDuration)
-{
-
-}
 
 
-void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, SSD1306Spi &display, uint8_t progress, bool innerCircle = false) {
-  int16_t x = 0, y = radius;
-	int16_t dp = 1 - radius;
-  uint16_t totalCirclePixels = 0;
-  uint16_t pixelPerOctant = 0;
-  uint16_t progressPixels = 0;
-  uint16_t numOfActivePixels = 0;
-
-  //get number of total Pemscircle pixels
-  do 
-  {
-    if (dp < 0)
-      dp = dp + (x++) * 2 + 3;
-    else
-      dp = dp + (x++) * 2 - (y--) * 2 + 5;
-    ++pixelPerOctant;
-  } while (x < y);
-
-  totalCirclePixels = pixelPerOctant*6 + 3;
-  progressPixels = map(progress, 0, 100, 0, totalCirclePixels);
-
-  //create array for x,y data
-  int16_t array[pixelPerOctant][2];
-  uint16_t arrIndex = pixelPerOctant-1;
-
-  //reset params
-  x = 0;
-  y = radius;
-  dp = 1 - radius;
-
-  //load x,y data into array
-   do 
-  {
-    if (dp < 0)
-      dp = dp + (x++) * 2 + 3;
-    else
-      dp = dp + (x++) * 2 - (y--) * 2 + 5;
-    array[arrIndex][0] = x;
-    array[arrIndex][1] = y;
-    --arrIndex;
-  } while (x < y);
-
-
-  //main for cycle for 6 octants
-  for(uint8_t i = 0; i < 6; ++i)
-  {
-    x = 0;
-    y = radius;
-    dp = 1 - radius;
-    uint8_t indexIncrement = 0;
-    uint8_t indexDecrement = pixelPerOctant-1;
-
-    if(numOfActivePixels >= progressPixels)
-        break;
-    //loop for draw individual pixels, odd number load array, even number load inverted array
-    do 
-    {
-      if(i == 0)
-        display.setPixel(x0 - array[indexIncrement][1], y0 + array[indexIncrement][0]);
-      if(i == 1)
-        display.setPixel(x0 - array[indexDecrement][1], y0 - array[indexDecrement][0]);
-      if(i == 2)
-        display.setPixel(x0 - array[indexIncrement][0], y0 - array[indexIncrement][1]);
-      if(i == 3)
-        display.setPixel(x0 + array[indexDecrement][0], y0 - array[indexDecrement][1]);
-      if(i == 4)
-      display.setPixel(x0 + array[indexIncrement][1], y0 - array[indexIncrement][0]);
-      if(i == 5)
-        display.setPixel(x0 + array[indexDecrement][1], y0 + array[indexDecrement][0]);
-      
-      //to fill holes in inner circle
-      if(innerCircle)
-      {
-        if(i == 0)
-        {
-          display.setPixel(x0 - array[indexIncrement][1], y0 + array[indexIncrement][0]);
-          display.setPixel(x0 - array[indexIncrement][1] - 1, y0 + array[indexIncrement][0]);
-          display.setPixel(x0 - array[indexIncrement][1] + 1, y0 + array[indexIncrement][0]);
-        }
-        
-        if(i == 1)
-        {
-          display.setPixel(x0 - array[indexDecrement][1], y0 - array[indexDecrement][0]);
-          display.setPixel(x0 - array[indexDecrement][1] + 1, y0 - array[indexDecrement][0]);
-          display.setPixel(x0 - array[indexDecrement][1] - 1, y0 - array[indexDecrement][0]);
-        }
-
-        if(i == 2)
-        {
-          display.setPixel(x0 - array[indexIncrement][0], y0 - array[indexIncrement][1]);
-          display.setPixel(x0 - array[indexIncrement][0] + 1, y0 - array[indexIncrement][1]);
-          display.setPixel(x0 - array[indexIncrement][0] - 1, y0 - array[indexIncrement][1]);
-        }
-          
-        if(i == 3)
-        {
-          display.setPixel(x0 + array[indexDecrement][0], y0 - array[indexDecrement][1]);
-          display.setPixel(x0 + array[indexDecrement][0] + 1 , y0 - array[indexDecrement][1]);
-          display.setPixel(x0 + array[indexDecrement][0] - 1, y0 - array[indexDecrement][1]);
-
-        }
-          
-        if(i == 4)
-        {
-          display.setPixel(x0 + array[indexIncrement][1], y0 - array[indexIncrement][0]);
-          display.setPixel(x0 + array[indexIncrement][1] + 1, y0 - array[indexIncrement][0]);
-          display.setPixel(x0 + array[indexIncrement][1] - 1, y0 - array[indexIncrement][0]);
-        }
-        
-        if(i == 5)
-        {
-          display.setPixel(x0 + array[indexDecrement][1], y0 + array[indexDecrement][0]);
-          display.setPixel(x0 + array[indexDecrement][1] + 1, y0 + array[indexDecrement][0]);
-          display.setPixel(x0 + array[indexDecrement][1] - 1, y0 + array[indexDecrement][0]);
-        }
-          
-      }
-      
-      //draw 2 point for full circle
-      if(progress >= 16)
-      {
-        display.setPixel(x0 - radius, y0);
-        display.setPixel(x0 - radius, y0 + 1);
-      }
-        
-      if(progress >= 49)
-      {
-        display.setPixel(x0, y0 - radius);
-        display.setPixel(x0 - 1, y0 - radius);
-      }        
-      if(progress >= 80)
-      {
-        display.setPixel(x0 + radius, y0);
-        display.setPixel(x0 + radius, y0 - 1);
-      }
-
-      ++numOfActivePixels;
-      ++indexIncrement;
-      --indexDecrement;
-      if(numOfActivePixels >= progressPixels)
-        break;
-
-    } while (indexDecrement > 0);
-  }
-
-}
-
-void dispPemsVisualize(SSD1306Spi &display, uint8_t progress)
-{
-  int bigRadius = 37;
-  int smallRadius = 28;
-  String progressString = String(progress);
-  uint8_t progressStringOffset = 15;
-  int8_t physQtyOffset = -4;
-  int8_t circleOffset = 5;
-
-  if(progress < 10)
-    progressStringOffset = 14;
-  else if (progress >= 10 && progress < 100)
-    progressStringOffset = 18;
-  else
-    progressStringOffset = 22;
-
-  display.drawString(DISP_CENTER_X0 + physQtyOffset, DISP_CENTER_Y0 - 5,  " MW");
-  display.drawString(DISP_CENTER_X0 + physQtyOffset, DISP_CENTER_Y0 + 5,  " RPM");
-  display.drawString(DISP_CENTER_X0 - progressStringOffset, DISP_CENTER_Y0 - 5, progressString);
-  display.drawString(DISP_CENTER_X0 - progressStringOffset, DISP_CENTER_Y0 + 5, progressString);
- 
-  
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius, display, progress);
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius - 1, display, progress, true);
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius - 2, display, progress);
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius, display, progress);
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 1 , display, progress, true);
-  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 2, display, progress);
-}
 
 
 
