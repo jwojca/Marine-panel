@@ -57,6 +57,17 @@ void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn,
     }
 }
 
+bool TOff(uint32_t delay, unsigned long *timer)
+{
+   if(millis() - *timer > delay)
+    {
+        *timer = millis();
+        return true;
+    }
+    else 
+      return false;
+}
+
 
 
 void pcfAllOutInit(PCF8574 &pcf)
@@ -194,18 +205,49 @@ void Valve::readMode()
 
 void Valve::readState()
 {
+
+
+  
+
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
   if(state == 1)
-    this->valveState = Failure;
+  {
+    if(this->valvePrevState == Opened || this->valveState == Opening)
+    {
+      this->timer = millis();
+      this->valveState = StoppingF;
+    }
+
+    if(this->valvePrevState == Closed)    
+      this->valveState = Failure;
+  }
+    
+        
   else
   {
     if(this->valveMode == Local)
     {
-        bool state2 = read2State(pcf2Pin, false, *pcf2);
-        if(state2)
-            this->valveState = Opened;
-        else
-            this->valveState = Closed;
+        bool openCmd = read2State(pcf2Pin, false, *pcf2);
+        bool closeCmd = !openCmd;
+
+        if(openCmd && (this->valveState == Closed || this->valveState == Closing))
+        {
+          this->timer = millis(); //reset timer
+          this->valveState = Opening;
+        }
+        if(closeCmd && (this->valvePrevState == Opened || this->valveState == Opening))
+        {
+          this->timer = millis(); //reset timer
+          this->valveState = Closing;
+        }
+        if(closeCmd && (this->valvePrevState == Opened || this->valveState == Opening))
+        {
+          this->timer = millis(); //reset timer
+          this->valveState = Closing;
+        }
+            
+        if(closeCmd && (this->valvePrevState == Failure))
+          this->valveState = Closed;
     }
     else    //Auto - read from modbus
     {
@@ -213,11 +255,12 @@ void Valve::readState()
     }
     
   }
-
 }
+
 
 void Valve::writeCmd()
 {
+  uint32_t loadTime = 2000;
   //calculate first pin of pwm channel based on RGB number
   uint8_t firstPin = (rgbNumber % 6) * 3;
   if(this->valveState == Failure)
@@ -228,6 +271,22 @@ void Valve::writeCmd()
         RGBLedColor(firstPin, 0, 255, 0, pwm);
     if(this->valveState == Closed)
         RGBLedColor(firstPin, 0, 0, 0, pwm);
+    if(this->valveState == Opening)
+    {
+      this->opening(loadTime);
+      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+    }
+    if(this->valveState == Closing)
+    {
+      this->closing(loadTime);
+      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+    }
+    if(this->valveState == StoppingF)
+    {
+      this->closing(loadTime);
+      RGBLedBlink(pwm, firstPin, 500, 250, Red, &this->blinkTimer);
+    }
+      
   }
   
   
@@ -236,6 +295,18 @@ void Valve::writeCmd()
 void Valve::savePrevState()
 {
     this->valvePrevState = this->valveState;
+}
+
+void Valve::opening(uint32_t loadTime)
+{
+  if(TOff(loadTime, &this->timer))
+    this->valveState = Opened;
+}
+
+void Valve::closing(uint32_t loadTime)
+{
+  if(TOff(loadTime, &this->timer))
+    this->valveState = Closed;
 }
 
 void Pump::readMode()
@@ -460,15 +531,19 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
         Pump2.speed = 0;
     }
 
-    vmsSimVars.Inflow = dt * Valve1.valveState * (Pump1.actInflow + Pump2.actInflow);
+    //If in these states there is inflow/outflow. 
+    float v1On = float(Valve1.valveState == Opened || Valve1.valveState == Opening || Valve1.valveState == Closing);
+    float v2On = float(Valve2.valveState == Opened || Valve2.valveState == Opening || Valve2.valveState == Closing);
+
+    vmsSimVars.Inflow = dt * v1On * (Pump1.actInflow + Pump2.actInflow);
 
     //TODO define v2 outflow
-    vmsSimVars.Outflow = dt * Valve2.valveState * 100;
+    vmsSimVars.Outflow = dt * v2On * 100;
 
 
 
     //quick outflow of water, when V2 opens suddenly
-    if(Valve2.valveState == Opened && Valve2.valvePrevState == Closed)
+    if(Valve2.valveState == Opening && Valve2.valvePrevState == Closed)
         vmsSimVars.TankWater -= vmsSimVars.PressureAct * 100;
  
     vmsSimVars.TankWater = vmsSimVars.TankWater + vmsSimVars.Inflow - vmsSimVars.Outflow;

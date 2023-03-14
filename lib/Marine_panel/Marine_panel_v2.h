@@ -84,7 +84,9 @@
 
 
 enum mpMode{Local, Auto};
-enum mpState{Closed, Opened, Failure, Stopped, Starting, Stopping, StoppingF, Running}; //states for valves and pumps
+enum mpState{Closed, Opened, Failure, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running}; //states for valves and pumps 
+//TODO split states for valves, pumps, breakers, DGs
+
 
 struct vmsSimVarsStruct
 {
@@ -116,6 +118,9 @@ class Valve
     uint8_t pcf1Pin;
     uint8_t pcf2Pin;
 
+    unsigned long timer = 0;
+    unsigned long blinkTimer = 0;
+
     Valve(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
@@ -130,8 +135,8 @@ class Valve
     void readState();
     void writeCmd();
     void savePrevState();
-
-
+    void closing(uint32_t loadTime);
+    void opening(uint32_t loadTime);
 };
 
 class Pump
@@ -200,6 +205,8 @@ void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &di
 void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
 
 float addNoise(float value, float min, float max);
+
+bool TOff(uint32_t delay, unsigned long *timer);
 
 void W5500Reset();
 

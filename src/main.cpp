@@ -98,6 +98,8 @@ void setup()
 	Serial.begin(9600);
 	delay(1000);
 
+  pcfAllInInit(pcf1);
+  pcfAllInInit(pcf2);
   pcfAllInInit(pcf3);
   pcfAllInInit(pcf4);
   pcfAllInInit(pcf5);
@@ -262,6 +264,8 @@ void loop()
   gPump1.readState();
   gPump2.readMode();
   gPump2.readState();
+
+  //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE
   vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
