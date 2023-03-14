@@ -47,15 +47,15 @@
 #define RGB3 3
 #define RGB4 4
 #define RGB5 5
-#define RGB6 6
-#define RGB7 7
-#define RGB8 8
-#define RGB9 9
-#define RGB10 10
-#define RGB11 11
-#define RGB12 12
-#define RGB13 13
-#define RGB14 14
+#define RGB6 1
+#define RGB7 2
+#define RGB8 3
+#define RGB9 4
+#define RGB10 5
+#define RGB11 1
+#define RGB12 2
+#define RGB13 3
+#define RGB14 4
 
 
 
@@ -189,7 +189,7 @@ class Breaker
     mpState breakerPrevState = Closed;
     mpMode breakerMode = Local;
     uint8_t rgbNumber;
-    Adafruit_PWMServoDriver *pwm;
+    Adafruit_PWMServoDriver pwm;
 
     PCF8574 *pcf1;
     PCF8574 *pcf2;
@@ -199,7 +199,7 @@ class Breaker
     unsigned long timer = 0;
     unsigned long blinkTimer = 0;
 
-    Breaker(uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL, Adafruit_PWMServoDriver *_pwm = NULL)
+    Breaker(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
       pwm = _pwm;

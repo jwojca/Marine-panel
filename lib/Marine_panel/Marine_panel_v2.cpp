@@ -262,7 +262,7 @@ void Valve::writeCmd()
 {
   uint32_t loadTime = 2000;
   //calculate first pin of pwm channel based on RGB number
-  uint8_t firstPin = (rgbNumber % 6) * 3;
+  uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
   if(this->valveState == Failure)
     RGBLedColor(firstPin, 255, 0, 0, pwm);
   else
@@ -358,7 +358,7 @@ void Pump::writeCmd()
 {   
     int rgbBlinkDelay = 500;
     //calculate first pin of pwm channel based on RGB number
-    uint8_t firstPin = (rgbNumber % 6) * 3;
+    uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
     if(this->pumpState == Failure)
         RGBLedColor(firstPin, 255, 0, 0, pwm);
     else
@@ -486,27 +486,27 @@ void Breaker::writeCmd()
   //calculate first pin of pwm channel based on RGB number
   uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
   if(this->breakerState == Failure)
-    RGBLedColor(firstPin, 255, 0, 0, *pwm);
+    RGBLedColor(firstPin, 255, 0, 0, pwm);
   else
   {
     if(this->breakerState == Opened)
-        RGBLedColor(firstPin, 0, 255, 0, *pwm);
+        RGBLedColor(firstPin, 0, 255, 0, pwm);
     if(this->breakerState == Closed)
-        RGBLedColor(firstPin, 0, 0, 0, *pwm);
+        RGBLedColor(firstPin, 0, 0, 0, pwm);
     if(this->breakerState == Opening)
     {
       this->opening(loadTime);
-      RGBLedBlink(*pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
     }
     if(this->breakerState == Closing)
     {
       this->closing(loadTime);
-      RGBLedBlink(*pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
     }
     if(this->breakerState == StoppingF)
     {
       this->closing(loadTime);
-      RGBLedBlink(*pwm, firstPin, 500, 250, Red, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Red, &this->blinkTimer);
     }
       
   }
