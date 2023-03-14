@@ -19,6 +19,7 @@ PCF8574 pcf1(PCF1_ADRESS);
 PCF8574 pcf2(PCF2_ADRESS); 
 PCF8574 pcf3(PCF3_ADRESS); 
 PCF8574 pcf4(PCF4_ADRESS); 
+PCF8574 pcf5(PCF5_ADRESS);
 
 
 // Declaration for SSD1306 display connected using software SPI (default case):
@@ -59,8 +60,8 @@ float gVmsPressureAct = 0.0; //Bar*/
 vmsSimVarsStruct gVmsSimVars;
 
 uint16_t gVmsPump1Speed = 566;
-Valve gValve1(pwm2, RGB7, P0, P0, &pcf3, &pcf4), gValve2(pwm2, RGB10, P2, P1, &pcf3, &pcf4);
-Pump gPump1(pwm2, RGB9, P4, P2, &pcf3, &pcf4), gPump2(pwm2, RGB8, P6, P3, &pcf3, &pcf4);
+Valve gValve1(pwm2, RGB7, P0, P0, &pcf4, &pcf5), gValve2(pwm2, RGB10, P2, P1, &pcf4, &pcf5);
+Pump gPump1(pwm2, RGB9, P4, P2, &pcf4, &pcf5), gPump2(pwm2, RGB8, P6, P3, &pcf4, &pcf5);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
@@ -99,6 +100,7 @@ void setup()
 
   pcfAllInInit(pcf3);
   pcfAllInInit(pcf4);
+  pcfAllInInit(pcf5);
 	
   pwmInit(pwm1);
   pwmInit(pwm2);
