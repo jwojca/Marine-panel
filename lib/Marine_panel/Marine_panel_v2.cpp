@@ -415,6 +415,122 @@ void Pump::stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars)
         this->pumpState = Stopped;
 }
 
+void Breaker::readMode()
+{
+  uint8_t state = read3State(pcf1Pin, false, *pcf1);
+  if(state == 0)
+    this->breakerMode = Local;
+
+  if(state == 2)
+    this->breakerMode = Auto;
+}
+
+void Breaker::readState()
+{
+
+
+  
+
+  uint8_t state = read3State(pcf1Pin, false, *pcf1);
+  if(state == 1)
+  {
+    if(this->breakerPrevState == Opened || this->breakerState == Opening)
+    {
+      this->timer = millis();
+      this->breakerState = StoppingF;
+    }
+
+    if(this->breakerPrevState == Closed)    
+      this->breakerState = Failure;
+  }
+    
+        
+  else
+  {
+    if(this->breakerMode == Local)
+    {
+        bool openCmd = read2State(pcf2Pin, false, *pcf2);
+        bool closeCmd = !openCmd;
+
+        if(openCmd && (this->breakerState == Closed || this->breakerState == Closing))
+        {
+          this->timer = millis(); //reset timer
+          this->breakerState = Opening;
+        }
+        if(closeCmd && (this->breakerPrevState == Opened || this->breakerState == Opening))
+        {
+          this->timer = millis(); //reset timer
+          this->breakerState = Closing;
+        }
+        if(closeCmd && (this->breakerPrevState == Opened || this->breakerState == Opening))
+        {
+          this->timer = millis(); //reset timer
+          this->breakerState = Closing;
+        }
+            
+        if(closeCmd && (this->breakerPrevState == Failure))
+          this->breakerState = Closed;
+    }
+    else    //Auto - read from modbus
+    {
+
+    }
+    
+  }
+}
+
+
+void Breaker::writeCmd()
+{
+  uint32_t loadTime = 2000;
+  //calculate first pin of pwm channel based on RGB number
+  uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
+  if(this->breakerState == Failure)
+    RGBLedColor(firstPin, 255, 0, 0, *pwm);
+  else
+  {
+    if(this->breakerState == Opened)
+        RGBLedColor(firstPin, 0, 255, 0, *pwm);
+    if(this->breakerState == Closed)
+        RGBLedColor(firstPin, 0, 0, 0, *pwm);
+    if(this->breakerState == Opening)
+    {
+      this->opening(loadTime);
+      RGBLedBlink(*pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+    }
+    if(this->breakerState == Closing)
+    {
+      this->closing(loadTime);
+      RGBLedBlink(*pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+    }
+    if(this->breakerState == StoppingF)
+    {
+      this->closing(loadTime);
+      RGBLedBlink(*pwm, firstPin, 500, 250, Red, &this->blinkTimer);
+    }
+      
+  }
+  
+  
+}
+
+void Breaker::savePrevState()
+{
+    this->breakerPrevState = this->breakerState;
+}
+
+void Breaker::opening(uint32_t loadTime)
+{
+  if(TOff(loadTime, &this->timer))
+    this->breakerState = Opened;
+}
+
+void Breaker::closing(uint32_t loadTime)
+{
+  if(TOff(loadTime, &this->timer))
+    this->breakerState = Closed;
+}
+
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2)
 {
   display.clearDisplay();

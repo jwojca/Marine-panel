@@ -62,6 +62,9 @@ vmsSimVarsStruct gVmsSimVars;
 uint16_t gVmsPump1Speed = 566;
 Valve gValve1(pwm2, RGB7, P0, P0, &pcf4, &pcf5), gValve2(pwm2, RGB10, P2, P1, &pcf4, &pcf5);
 Pump gPump1(pwm2, RGB9, P4, P2, &pcf4, &pcf5), gPump2(pwm2, RGB8, P6, P3, &pcf4, &pcf5);
+Breaker gBreaker1(RGB2, P4, P2, &pcf1, &pcf3, &pwm1), gBreaker2(RGB5, P6, P3, &pcf1, &pcf3, &pwm1);
+Breaker gBreaker3(RGB3, P0, P4, &pcf2, &pcf3, &pwm1), gBreaker4(RGB4, P2, P5, &pcf2, &pcf3, &pwm1);
+Breaker gBreaker5(RGB1, P4, P6, &pcf2, &pcf3, &pwm1), gBreaker6(RGB6, P6, P7, &pcf2, &pcf3, &pwm2);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
@@ -265,6 +268,19 @@ void loop()
   gPump2.readMode();
   gPump2.readState();
 
+  gBreaker1.readMode();
+  gBreaker1.readState();
+  gBreaker2.readMode();
+  gBreaker2.readState();
+  gBreaker3.readMode();
+  gBreaker3.readState();
+  gBreaker4.readMode();
+  gBreaker4.readState();
+  gBreaker5.readMode();
+  gBreaker5.readState();
+  gBreaker6.readMode();
+  gBreaker6.readState();
+
   //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE
@@ -275,6 +291,13 @@ void loop()
   gValve2.writeCmd();
   gPump1.writeCmd();
   gPump2.writeCmd();
+
+  gBreaker1.writeCmd();
+  gBreaker2.writeCmd();
+  gBreaker3.writeCmd();
+  gBreaker4.writeCmd();
+  gBreaker5.writeCmd();
+  gBreaker6.writeCmd();
 
   // 4. VISUALIZE
   if(millis() - timeNow > dispRefreshTime)
@@ -292,6 +315,13 @@ void loop()
   gPump2.savePrevState();
   gValve1.savePrevState();
   gValve2.savePrevState();
+
+  gBreaker1.savePrevState();
+  gBreaker2.savePrevState();
+  gBreaker3.savePrevState();
+  gBreaker4.savePrevState();
+  gBreaker5.savePrevState();
+  gBreaker6.savePrevState();
 
   //6. DEBUG
 

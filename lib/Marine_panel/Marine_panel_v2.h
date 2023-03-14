@@ -182,6 +182,42 @@ class Pump
 
 };
 
+class Breaker
+{
+  public:
+    mpState breakerState = Closed;
+    mpState breakerPrevState = Closed;
+    mpMode breakerMode = Local;
+    uint8_t rgbNumber;
+    Adafruit_PWMServoDriver *pwm;
+
+    PCF8574 *pcf1;
+    PCF8574 *pcf2;
+    uint8_t pcf1Pin;
+    uint8_t pcf2Pin;
+
+    unsigned long timer = 0;
+    unsigned long blinkTimer = 0;
+
+    Breaker(uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL, Adafruit_PWMServoDriver *_pwm = NULL)
+    {
+      rgbNumber = _rgbNumber;
+      pwm = _pwm;
+      pcf1 = _pcf1;
+      pcf2 = _pcf2;
+      pcf1Pin = _pcf1Pin;
+      pcf2Pin = _pcf2Pin;
+    }
+    
+    void readMode();
+    void readState();
+    void writeCmd();
+    void savePrevState();
+    void closing(uint32_t loadTime);
+    void opening(uint32_t loadTime);
+};
+
+
 
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
