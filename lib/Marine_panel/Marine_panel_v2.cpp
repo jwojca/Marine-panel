@@ -8,16 +8,24 @@ color Blue{0, 0, 255};
 
 static int16_t alarmCounter = 0;
 
-void incrementAlarmCounter()
+void incrementAlarmCounter(alarmDispsStruct &alarmDisps)
 {
+  
   ++alarmCounter;
+  dispClearAlarms(*alarmDisps.d1, *alarmDisps.d2, *alarmDisps.d3, *alarmDisps.d4);
 }
 
-void decrementAlarmCounter()
+void decrementAlarmCounter(alarmDispsStruct &alarmDisps)
 {
   --alarmCounter;
   if(alarmCounter < 0)
     alarmCounter = 0;
+  dispClearAlarms(*alarmDisps.d1, *alarmDisps.d2, *alarmDisps.d3, *alarmDisps.d4);
+}
+
+void printAlarmCounter()
+{
+  Serial.println(alarmCounter);
 }
 
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm)
@@ -215,25 +223,36 @@ void W5500Reset()
     display.display();
   }
 
-  void dispDrawRow(Adafruit_SSD1306 &display, String val)
+  void dispDrawRow(Adafruit_SSD1306 &display, String val, uint16_t row)
   {
-    int16_t rowIndex = 10;
-    //display.clearDisplay();
+    int16_t rowIndex = 10 * row;
     display.setFont(&DejaVu_Sans_Mono_10);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, rowIndex * alarmCounter);
+    display.setCursor(0, rowIndex);
     display.print(val);
     display.display();
   }
 
-
-
-  void dispShowAlarm(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4, mpAlarm sAlarm)
+  void dispClearAlarms(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4)
   {
-      dispDrawRow(display1, sAlarm.time);
-      dispDrawRow(display2, sAlarm.objName);
-      dispDrawRow(display3, sAlarm.eventKind);
-      dispDrawRow(display4, sAlarm.descr);
+    display1.clearDisplay();
+    display2.clearDisplay();
+    display3.clearDisplay();
+    display4.clearDisplay();
+  }
+
+
+
+  void dispShowAlarm(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4, mpAlarm sAlarm, uint16_t row)
+  {
+    if(row != 0)
+    {
+      dispDrawRow(display1, sAlarm.time, row);
+      dispDrawRow(display2, sAlarm.objName, row);
+      dispDrawRow(display3, sAlarm.eventKind, row);
+      dispDrawRow(display4, sAlarm.descr, row);
+    }
+
   }
 
 
@@ -263,8 +282,14 @@ void Valve::readState()
       this->valveState = StoppingF;
     }
 
-    if(this->valvePrevState == Closed)    
+    if(this->valvePrevState == Closed)   
+    {
       this->valveState = Failure;
+      
+      incrementAlarmCounter(*this->alarmDisps);
+      this->alarmRow = alarmCounter;
+    } 
+      
   }
     
         
@@ -292,7 +317,13 @@ void Valve::readState()
         }
             
         if(closeCmd && (this->valvePrevState == Failure))
+        {
+          
+          decrementAlarmCounter(*this->alarmDisps);
+          this->alarmRow = 0;
           this->valveState = Closed;
+        }
+          
     }
     else    //Auto - read from modbus
     {
@@ -309,7 +340,10 @@ void Valve::writeCmd()
   //calculate first pin of pwm channel based on RGB number
   uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
   if(this->valveState == Failure)
+  {
     RGBLedColor(firstPin, 255, 0, 0, pwm);
+    dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->valveAlarm1, this->alarmRow);
+  }
   else
   {
     if(this->valveState == Opened)

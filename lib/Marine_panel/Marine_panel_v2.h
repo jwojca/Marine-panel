@@ -103,6 +103,14 @@ struct color
     uint8_t blue;
 };
 
+struct alarmDispsStruct
+{
+  Adafruit_SSD1306 *d1;
+  Adafruit_SSD1306 *d2;
+  Adafruit_SSD1306 *d3;
+  Adafruit_SSD1306 *d4;
+};
+
 
 
 
@@ -123,7 +131,11 @@ class Valve
     unsigned long timer = 0;
     unsigned long blinkTimer = 0;
 
-    Valve(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
+    alarmDispsStruct *alarmDisps;
+    mpAlarm valveAlarm1;
+    uint16_t alarmRow = 0;
+
+    Valve(alarmDispsStruct *_alarmDisps, mpAlarm _valveAlarm1,Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
       pwm = _pwm;
@@ -131,6 +143,8 @@ class Valve
       pcf2 = _pcf2;
       pcf1Pin = _pcf1Pin;
       pcf2Pin = _pcf2Pin;
+      alarmDisps = _alarmDisps;
+      valveAlarm1 = _valveAlarm1;
     }
     
     void readMode();
@@ -221,6 +235,7 @@ class Breaker
 
 void incrementAlarmCounter();
 void decrementAlarmCounter();
+void printAlarmCounter();
 
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
@@ -237,6 +252,7 @@ void pwmInit(Adafruit_PWMServoDriver &pwm);
 void dispInit(Adafruit_SSD1306 &display, bool reset);
 void dispShowID(Adafruit_SSD1306 &display, String ID);
 void dispShowAlarm(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4, mpAlarm sAlarm);
+void dispClearAlarms(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4);
 
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
 void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2);

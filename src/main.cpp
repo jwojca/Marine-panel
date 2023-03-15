@@ -46,6 +46,8 @@ Adafruit_SSD1306 display13(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESE
 Adafruit_SSD1306 display14(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP14_CS);
 Adafruit_SSD1306 display15(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP15_CS);
 
+alarmDispsStruct alarmDisps{&display1, &display2, &display3, &display4};
+
 Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(PWM1_ADRESS);
 Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(PWM2_ADRESS);
 Adafruit_PWMServoDriver pwm3 = Adafruit_PWMServoDriver(PWM3_ADRESS);
@@ -60,7 +62,7 @@ float gVmsPressureAct = 0.0; //Bar*/
 vmsSimVarsStruct gVmsSimVars;
 
 uint16_t gVmsPump1Speed = 566;
-Valve gValve1(pwm2, RGB7, P0, P0, &pcf4, &pcf5), gValve2(pwm2, RGB10, P2, P1, &pcf4, &pcf5);
+Valve gValve1(&alarmDisps, vmsP1Alarm1, pwm2, RGB7, P0, P0, &pcf4, &pcf5), gValve2(&alarmDisps, vmsP2Alarm1, pwm2, RGB10, P2, P1, &pcf4, &pcf5);
 Pump gPump1(pwm2, RGB9, P4, P2, &pcf4, &pcf5), gPump2(pwm2, RGB8, P6, P3, &pcf4, &pcf5);
 
 Breaker gBreaker1(pwm1, RGB2, P4, P2, &pcf1, &pcf3), gBreaker2(pwm1, RGB5, P6, P3, &pcf1, &pcf3);
@@ -249,12 +251,9 @@ unsigned long timeNow = 0;
 void loop()
 {
 
- /* dispShowID(display1, "26-10-2022 08:47");
-  dispShowID(display2, "VMS Pump 1");
-  dispShowID(display3, "Critical");
-  dispShowID(display4, "Power failure");*/
+ 
 
-  incrementAlarmCounter();
+  /*incrementAlarmCounter();
   dispShowAlarm(display1, display2, display3, display4, vmsP1Alarm1);
   incrementAlarmCounter();
   dispShowAlarm(display1, display2, display3, display4, vmsP1Alarm1);
@@ -266,8 +265,12 @@ void loop()
   decrementAlarmCounter();
   decrementAlarmCounter();
   decrementAlarmCounter();
-  decrementAlarmCounter();
+  decrementAlarmCounter();*/
 
+  
+  //printAlarmCounter();
+  Serial.println(gValve1.alarmRow);
+  Serial.println(gValve2.alarmRow);
 
 
   
