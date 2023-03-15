@@ -227,7 +227,9 @@ class Breaker
     mpAlarm breakerAlarm1;
     uint16_t alarmRow = 0;
 
-    Breaker(alarmDispsStruct *_alarmDisps, mpAlarm _breakerAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
+    RTC_DS1307 *rtc;
+
+    Breaker(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _breakerAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
       pwm = _pwm;
@@ -238,6 +240,7 @@ class Breaker
 
       alarmDisps = _alarmDisps;
       breakerAlarm1 = _breakerAlarm1;
+      rtc = _rtc;
     }
     
     void readMode();

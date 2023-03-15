@@ -577,6 +577,7 @@ void Breaker::readState()
       this->breakerState = Failure;
       incrementAlarmCounter(*this->alarmDisps);
       this->alarmRow = alarmCounter;
+      this->breakerAlarm1.time = rtcTime2String(*this->rtc);
     }
       
   }
