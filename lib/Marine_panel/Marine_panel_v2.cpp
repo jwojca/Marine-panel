@@ -239,6 +239,10 @@ void W5500Reset()
     display2.clearDisplay();
     display3.clearDisplay();
     display4.clearDisplay();
+    display1.display();
+    display2.display();
+    display3.display();
+    display4.display();
   }
 
 
@@ -252,7 +256,7 @@ void W5500Reset()
       dispDrawRow(display3, sAlarm.eventKind, row);
       dispDrawRow(display4, sAlarm.descr, row);
     }
-
+      
   }
 
 
