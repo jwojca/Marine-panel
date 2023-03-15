@@ -401,12 +401,7 @@ void Valve::closing(uint32_t loadTime)
     this->valveState = Closed;
 }
 
-void Valve::decrementRow()
-{
-  --this->alarmRow;
-  if(this->alarmRow <= 0)
-    this->alarmRow = 0;
-}
+
 
 void Pump::readMode()
 {

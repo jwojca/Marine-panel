@@ -153,7 +153,6 @@ class Valve
     void savePrevState();
     void closing(uint32_t loadTime);
     void opening(uint32_t loadTime);
-    void decrementRow();
 };
 
 class Pump

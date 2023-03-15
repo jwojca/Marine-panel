@@ -252,31 +252,6 @@ void loop()
 {
 
  
-
-  /*incrementAlarmCounter();
-  dispShowAlarm(display1, display2, display3, display4, vmsP1Alarm1);
-  incrementAlarmCounter();
-  dispShowAlarm(display1, display2, display3, display4, vmsP1Alarm1);
-  incrementAlarmCounter();
-  dispShowAlarm(display1, display2, display3, display4, vmsP1Alarm1);
-  incrementAlarmCounter();
-  dispShowAlarm(display1, display2, display3, display4, vmsP1Alarm1);
-
-  decrementAlarmCounter();
-  decrementAlarmCounter();
-  decrementAlarmCounter();
-  decrementAlarmCounter();*/
-
-  
-  //printAlarmCounter();
-  Serial.println(gValve1.alarmRow);
-  Serial.println(gValve2.alarmRow);
-
-
-  
-
-
-
   /*
   1. READ
 
