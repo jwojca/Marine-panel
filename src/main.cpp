@@ -310,6 +310,7 @@ void loop()
   gBreaker6.readMode();
   gBreaker6.readState();
 
+
   //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE

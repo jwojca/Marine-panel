@@ -246,7 +246,7 @@ void W5500Reset()
   }
 
 
-
+  //show alarm in one row
   void dispShowAlarm(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4, mpAlarm sAlarm, uint16_t row)
   {
     if(row != 0)
@@ -269,13 +269,19 @@ void Valve::readMode()
 
   if(state == 2)
     this->valveMode = Auto;
+  
 }
 
 void Valve::readState()
 {
 
-
-  
+  //For dynamic rows change
+  if(this->alarmRow > alarmCounter)
+  {
+    --this->alarmRow;
+    dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+  }
+    
 
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
   if(state == 1)
@@ -334,7 +340,11 @@ void Valve::readState()
 
     }
     
+    
   }
+
+  
+      
 }
 
 
@@ -371,8 +381,7 @@ void Valve::writeCmd()
     }
       
   }
-  
-  
+
 }
 
 void Valve::savePrevState()
@@ -390,6 +399,13 @@ void Valve::closing(uint32_t loadTime)
 {
   if(TOff(loadTime, &this->timer))
     this->valveState = Closed;
+}
+
+void Valve::decrementRow()
+{
+  --this->alarmRow;
+  if(this->alarmRow <= 0)
+    this->alarmRow = 0;
 }
 
 void Pump::readMode()
