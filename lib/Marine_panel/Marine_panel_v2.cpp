@@ -6,6 +6,20 @@ color Red{255, 0, 0};
 color Green{0, 255, 0};
 color Blue{0, 0, 255};
 
+static int16_t alarmCounter = 0;
+
+void incrementAlarmCounter()
+{
+  ++alarmCounter;
+}
+
+void decrementAlarmCounter()
+{
+  --alarmCounter;
+  if(alarmCounter < 0)
+    alarmCounter = 0;
+}
+
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm)
 {
   uint16_t red, green, blue;
@@ -189,6 +203,37 @@ void W5500Reset()
       }
     }
     
+  }
+
+  void dispShowID(Adafruit_SSD1306 &display, String ID)
+  {
+    display.clearDisplay();
+    display.setFont(&DejaVu_Sans_Mono_10);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, 16);
+    display.print(ID);
+    display.display();
+  }
+
+  void dispDrawRow(Adafruit_SSD1306 &display, String val)
+  {
+    int16_t rowIndex = 10;
+    //display.clearDisplay();
+    display.setFont(&DejaVu_Sans_Mono_10);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, rowIndex * alarmCounter);
+    display.print(val);
+    display.display();
+  }
+
+
+
+  void dispShowAlarm(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4, mpAlarm sAlarm)
+  {
+      dispDrawRow(display1, sAlarm.time);
+      dispDrawRow(display2, sAlarm.objName);
+      dispDrawRow(display3, sAlarm.eventKind);
+      dispDrawRow(display4, sAlarm.descr);
   }
 
 

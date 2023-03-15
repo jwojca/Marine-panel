@@ -78,6 +78,7 @@
 #include "../Marine_panel/Fonts/DejavuSansMono15.h"
 #include "../Marine_panel/Fonts/DejavuSansMono10.h"
 #include "../Marine_panel/Fonts/DejavuSansMono8.h"
+#include "Alarms.h"
 //#include "../lib/Marine_panel_VMS.h"
 
 #include "../Marine_panel/Images/Images.h"
@@ -101,6 +102,7 @@ struct color
     uint8_t green;
     uint8_t blue;
 };
+
 
 
 
@@ -217,7 +219,8 @@ class Breaker
     void opening(uint32_t loadTime);
 };
 
-
+void incrementAlarmCounter();
+void decrementAlarmCounter();
 
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
@@ -232,6 +235,8 @@ uint8_t read3State(uint8_t firstPin, bool printOn, PCF8574 pcf8574);
 void pwmInit(Adafruit_PWMServoDriver &pwm);
 
 void dispInit(Adafruit_SSD1306 &display, bool reset);
+void dispShowID(Adafruit_SSD1306 &display, String ID);
+void dispShowAlarm(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4, mpAlarm sAlarm);
 
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
 void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2);

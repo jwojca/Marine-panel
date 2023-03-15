@@ -131,6 +131,11 @@ void setup()
   dispInit(display15, false);
 
   //rotate bz 180 deg
+  display1.setRotation(2);
+  display2.setRotation(2);
+  display3.setRotation(2);
+  display4.setRotation(2);
+
   display5.setRotation(2);
   display6.setRotation(2);
   display7.setRotation(2);
@@ -244,7 +249,27 @@ unsigned long timeNow = 0;
 void loop()
 {
 
-  
+ /* dispShowID(display1, "26-10-2022 08:47");
+  dispShowID(display2, "VMS Pump 1");
+  dispShowID(display3, "Critical");
+  dispShowID(display4, "Power failure");*/
+
+  incrementAlarmCounter();
+  dispShowAlarm(display1, display2, display3, display4, vmsP1Alarm1);
+  incrementAlarmCounter();
+  dispShowAlarm(display1, display2, display3, display4, vmsP1Alarm1);
+  incrementAlarmCounter();
+  dispShowAlarm(display1, display2, display3, display4, vmsP1Alarm1);
+  incrementAlarmCounter();
+  dispShowAlarm(display1, display2, display3, display4, vmsP1Alarm1);
+
+  decrementAlarmCounter();
+  decrementAlarmCounter();
+  decrementAlarmCounter();
+  decrementAlarmCounter();
+
+
+
   
 
 
