@@ -306,7 +306,7 @@ void Valve::readState()
     if(this->valvePrevState == Closed)   
     {
       this->valveState = Failure;
-      
+      this->valveAlarm1.time = rtcTime2String(*this->rtc);
       incrementAlarmCounter(*this->alarmDisps);
       this->alarmRow = alarmCounter;
     } 
@@ -444,6 +444,7 @@ void Pump::readState()
     {
       this->pumpState = Failure;
       incrementAlarmCounter(*this->alarmDisps);
+      this->pumpAlarm1.time = rtcTime2String(*this->rtc);
       this->alarmRow = alarmCounter;
     }
         
@@ -466,6 +467,7 @@ void Pump::readState()
           alarmIndex = this->alarmRow;
           this->alarmRow = 0;
           this->pumpState = Stopped;
+          
         }
             
     
@@ -576,8 +578,8 @@ void Breaker::readState()
     {
       this->breakerState = Failure;
       incrementAlarmCounter(*this->alarmDisps);
-      this->alarmRow = alarmCounter;
       this->breakerAlarm1.time = rtcTime2String(*this->rtc);
+      this->alarmRow = alarmCounter;
     }
       
   }

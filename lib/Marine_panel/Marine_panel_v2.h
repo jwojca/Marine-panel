@@ -136,7 +136,9 @@ class Valve
     mpAlarm valveAlarm1;
     uint16_t alarmRow = 0;
 
-    Valve(alarmDispsStruct *_alarmDisps, mpAlarm _valveAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
+    RTC_DS1307 *rtc;
+
+    Valve(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _valveAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
       pwm = _pwm;
@@ -146,6 +148,8 @@ class Valve
       pcf2Pin = _pcf2Pin;
       alarmDisps = _alarmDisps;
       valveAlarm1 = _valveAlarm1;
+      rtc = _rtc;
+      
     }
     
     void readMode();
@@ -183,7 +187,9 @@ class Pump
     mpAlarm pumpAlarm1;
     uint16_t alarmRow = 0;
 
-    Pump(alarmDispsStruct *_alarmDisps, mpAlarm _pumpAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
+    RTC_DS1307 *rtc;
+
+    Pump(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _pumpAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
       pwm = _pwm;
@@ -194,6 +200,8 @@ class Pump
 
       alarmDisps = _alarmDisps;
       pumpAlarm1 = _pumpAlarm1;
+      rtc = _rtc;
+      //this->pumpAlarm1.time = rtcTime2String(*this->rtc);
     }
     
     
@@ -241,6 +249,7 @@ class Breaker
       alarmDisps = _alarmDisps;
       breakerAlarm1 = _breakerAlarm1;
       rtc = _rtc;
+      //this->breakerAlarm1.time = rtcTime2String(*this->rtc);
     }
     
     void readMode();
@@ -289,6 +298,7 @@ void W5500Reset();
 
 void rtcPrintTime(RTC_DS1307 &rtc);
 String rtcTime2String(RTC_DS1307 &rtc);
+
 
 
 
