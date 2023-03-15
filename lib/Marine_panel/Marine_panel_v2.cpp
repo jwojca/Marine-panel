@@ -1060,3 +1060,31 @@ void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress)
   display.display();
 }
 
+void rtcPrintTime(RTC_DS1307 &rtc)
+{
+  DateTime now = rtc.now();
+
+  Serial.print(now.year(), DEC);
+  Serial.print('/');
+  Serial.print(now.month(), DEC);
+  Serial.print('/');
+  Serial.print(now.day(), DEC);
+  Serial.print(" (");
+  Serial.print(now.hour(), DEC);
+  Serial.print(':');
+  Serial.print(now.minute(), DEC);
+  Serial.print(':');
+  Serial.print(now.second(), DEC);
+  Serial.print(")");
+  Serial.println();
+}
+
+String rtcTime2String(RTC_DS1307 &rtc)
+{
+  DateTime now = rtc.now();
+
+  //26-10-2022 08:47
+  String value;
+  value = now.day() + String("-") + now.month() + String("-") + now.year() + String(" ") + now.hour() + String(":") + now.minute();
+  return value;
+}

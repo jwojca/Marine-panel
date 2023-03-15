@@ -72,6 +72,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
+#include <RTClib.h>
 
 //#include <SSD1306Spi.h>
 
@@ -282,6 +283,9 @@ float addNoise(float value, float min, float max);
 bool TOff(uint32_t delay, unsigned long *timer);
 
 void W5500Reset();
+
+void rtcPrintTime(RTC_DS1307 &rtc);
+String rtcTime2String(RTC_DS1307 &rtc);
 
 
 
