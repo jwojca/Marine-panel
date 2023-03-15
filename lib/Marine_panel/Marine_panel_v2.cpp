@@ -556,10 +556,13 @@ void Breaker::readMode()
 
 void Breaker::readState()
 {
-
-
+   //For dynamic rows change
+  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+  {
+    --this->alarmRow;
+    dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+  }
   
-
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
   if(state == 1)
   {
@@ -570,7 +573,12 @@ void Breaker::readState()
     }
 
     if(this->breakerPrevState == Closed)    
+    {
       this->breakerState = Failure;
+      incrementAlarmCounter(*this->alarmDisps);
+      this->alarmRow = alarmCounter;
+    }
+      
   }
     
         
@@ -598,7 +606,13 @@ void Breaker::readState()
         }
             
         if(closeCmd && (this->breakerPrevState == Failure))
+        {
+          decrementAlarmCounter(*this->alarmDisps);
+          alarmIndex = this->alarmRow;
+          this->alarmRow = 0;
           this->breakerState = Closed;
+        }
+          
     }
     else    //Auto - read from modbus
     {
@@ -615,7 +629,10 @@ void Breaker::writeCmd()
   //calculate first pin of pwm channel based on RGB number
   uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
   if(this->breakerState == Failure)
+  {
+    dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->breakerAlarm1, this->alarmRow);
     RGBLedColor(firstPin, 255, 0, 0, pwm);
+  }
   else
   {
     if(this->breakerState == Opened)

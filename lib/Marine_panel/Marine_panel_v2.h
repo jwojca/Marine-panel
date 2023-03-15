@@ -222,7 +222,11 @@ class Breaker
     unsigned long timer = 0;
     unsigned long blinkTimer = 0;
 
-    Breaker(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
+    alarmDispsStruct *alarmDisps;
+    mpAlarm breakerAlarm1;
+    uint16_t alarmRow = 0;
+
+    Breaker(alarmDispsStruct *_alarmDisps, mpAlarm _breakerAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
       pwm = _pwm;
@@ -230,6 +234,9 @@ class Breaker
       pcf2 = _pcf2;
       pcf1Pin = _pcf1Pin;
       pcf2Pin = _pcf2Pin;
+
+      alarmDisps = _alarmDisps;
+      breakerAlarm1 = _breakerAlarm1;
     }
     
     void readMode();

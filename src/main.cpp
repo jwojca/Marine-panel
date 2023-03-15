@@ -65,9 +65,9 @@ uint16_t gVmsPump1Speed = 566;
 Valve gValve1(&alarmDisps, vmsV1Alarm1, pwm2, RGB7, P0, P0, &pcf4, &pcf5), gValve2(&alarmDisps, vmsV2Alarm1, pwm2, RGB10, P2, P1, &pcf4, &pcf5);
 Pump gPump1(&alarmDisps, vmsP1Alarm1, pwm2, RGB9, P4, P2, &pcf4, &pcf5), gPump2(&alarmDisps, vmsP2Alarm1, pwm2, RGB8, P6, P3, &pcf4, &pcf5);
 
-Breaker gBreaker1(pwm1, RGB2, P4, P2, &pcf1, &pcf3), gBreaker2(pwm1, RGB5, P6, P3, &pcf1, &pcf3);
-Breaker gBreaker3(pwm1, RGB3, P0, P4, &pcf2, &pcf3), gBreaker4(pwm1, RGB4, P2, P5, &pcf2, &pcf3);
-Breaker gBreaker5(pwm1, RGB1, P4, P6, &pcf2, &pcf3), gBreaker6(pwm2, RGB6, P6, P7, &pcf2, &pcf3);
+Breaker gBreaker1(&alarmDisps, pemsCB1Alarm1, pwm1, RGB2, P4, P2, &pcf1, &pcf3), gBreaker2(&alarmDisps, pemsCB2Alarm1, pwm1, RGB5, P6, P3, &pcf1, &pcf3);
+Breaker gBreaker3(&alarmDisps, pemsCB3Alarm1, pwm1, RGB3, P0, P4, &pcf2, &pcf3), gBreaker4(&alarmDisps, pemsCB4Alarm1, pwm1, RGB4, P2, P5, &pcf2, &pcf3);
+Breaker gBreaker5(&alarmDisps, pemsCB5Alarm1, pwm1, RGB1, P4, P6, &pcf2, &pcf3), gBreaker6(&alarmDisps, pemsCB6Alarm1, pwm2, RGB6, P6, P7, &pcf2, &pcf3);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
@@ -251,7 +251,7 @@ unsigned long timeNow = 0;
 void loop()
 {
 
-  printAlarmIndex();
+  //printAlarmIndex();
 
  
   /*
