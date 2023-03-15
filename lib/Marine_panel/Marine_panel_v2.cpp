@@ -7,6 +7,7 @@ color Green{0, 255, 0};
 color Blue{0, 0, 255};
 
 static int16_t alarmCounter = 0;
+static int16_t alarmIndex = 1000;
 
 void incrementAlarmCounter(alarmDispsStruct &alarmDisps)
 {
@@ -26,6 +27,16 @@ void decrementAlarmCounter(alarmDispsStruct &alarmDisps)
 void printAlarmCounter()
 {
   Serial.println(alarmCounter);
+}
+
+void printAlarmIndex()
+{
+  Serial.println(alarmIndex);
+}
+
+void resetAlarmIndex()
+{
+  alarmIndex = 1000;
 }
 
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm)
@@ -276,7 +287,7 @@ void Valve::readState()
 {
 
   //For dynamic rows change
-  if(this->alarmRow > alarmCounter)
+  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
   {
     --this->alarmRow;
     dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
@@ -330,6 +341,7 @@ void Valve::readState()
         {
           
           decrementAlarmCounter(*this->alarmDisps);
+          alarmIndex = this->alarmRow;
           this->alarmRow = 0;
           this->valveState = Closed;
         }
@@ -415,13 +427,26 @@ void Pump::readMode()
 
 void Pump::readState()
 {
+
+  //For dynamic rows change
+  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+  {
+    --this->alarmRow;
+    dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+  }
+
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
   if(state == 1)
   {
     if(this->pumpPrevState == Running || this->pumpPrevState == Starting)
         this->pumpState = StoppingF;
-    if(this->pumpPrevState == Stopped)    
-        this->pumpState = Failure;
+    if(this->pumpPrevState == Stopped)   
+    {
+      this->pumpState = Failure;
+      incrementAlarmCounter(*this->alarmDisps);
+      this->alarmRow = alarmCounter;
+    }
+        
   }
     
   else
@@ -436,7 +461,13 @@ void Pump::readState()
         if (stop && (this->pumpPrevState == Running || this->pumpPrevState == Starting))
             this->pumpState = Stopping;
         if (stop && (this->pumpPrevState == Failure))
-            this->pumpState = Stopped;
+        {
+          decrementAlarmCounter(*this->alarmDisps);
+          alarmIndex = this->alarmRow;
+          this->alarmRow = 0;
+          this->pumpState = Stopped;
+        }
+            
     
     }
     else    //Auto - read from modbus
@@ -454,7 +485,11 @@ void Pump::writeCmd()
     //calculate first pin of pwm channel based on RGB number
     uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
     if(this->pumpState == Failure)
-        RGBLedColor(firstPin, 255, 0, 0, pwm);
+    {
+      RGBLedColor(firstPin, 255, 0, 0, pwm);
+      dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->pumpAlarm1, this->alarmRow);
+    }
+        
     else
     {
         if(this->pumpState == Starting)

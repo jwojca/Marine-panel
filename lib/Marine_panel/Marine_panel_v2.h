@@ -135,7 +135,7 @@ class Valve
     mpAlarm valveAlarm1;
     uint16_t alarmRow = 0;
 
-    Valve(alarmDispsStruct *_alarmDisps, mpAlarm _valveAlarm1,Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
+    Valve(alarmDispsStruct *_alarmDisps, mpAlarm _valveAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
       pwm = _pwm;
@@ -178,7 +178,11 @@ class Pump
 
     unsigned long timer = 0;
 
-    Pump(Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
+    alarmDispsStruct *alarmDisps;
+    mpAlarm pumpAlarm1;
+    uint16_t alarmRow = 0;
+
+    Pump(alarmDispsStruct *_alarmDisps, mpAlarm _pumpAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
       pwm = _pwm;
@@ -186,6 +190,9 @@ class Pump
       pcf2 = _pcf2;
       pcf1Pin = _pcf1Pin;
       pcf2Pin = _pcf2Pin;
+
+      alarmDisps = _alarmDisps;
+      pumpAlarm1 = _pumpAlarm1;
     }
     
     
@@ -236,6 +243,8 @@ class Breaker
 void incrementAlarmCounter();
 void decrementAlarmCounter();
 void printAlarmCounter();
+void printAlarmIndex();
+void resetAlarmIndex();
 
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);

@@ -62,8 +62,8 @@ float gVmsPressureAct = 0.0; //Bar*/
 vmsSimVarsStruct gVmsSimVars;
 
 uint16_t gVmsPump1Speed = 566;
-Valve gValve1(&alarmDisps, vmsP1Alarm1, pwm2, RGB7, P0, P0, &pcf4, &pcf5), gValve2(&alarmDisps, vmsP2Alarm1, pwm2, RGB10, P2, P1, &pcf4, &pcf5);
-Pump gPump1(pwm2, RGB9, P4, P2, &pcf4, &pcf5), gPump2(pwm2, RGB8, P6, P3, &pcf4, &pcf5);
+Valve gValve1(&alarmDisps, vmsV1Alarm1, pwm2, RGB7, P0, P0, &pcf4, &pcf5), gValve2(&alarmDisps, vmsV2Alarm1, pwm2, RGB10, P2, P1, &pcf4, &pcf5);
+Pump gPump1(&alarmDisps, vmsP1Alarm1, pwm2, RGB9, P4, P2, &pcf4, &pcf5), gPump2(&alarmDisps, vmsP2Alarm1, pwm2, RGB8, P6, P3, &pcf4, &pcf5);
 
 Breaker gBreaker1(pwm1, RGB2, P4, P2, &pcf1, &pcf3), gBreaker2(pwm1, RGB5, P6, P3, &pcf1, &pcf3);
 Breaker gBreaker3(pwm1, RGB3, P0, P4, &pcf2, &pcf3), gBreaker4(pwm1, RGB4, P2, P5, &pcf2, &pcf3);
@@ -251,6 +251,8 @@ unsigned long timeNow = 0;
 void loop()
 {
 
+  printAlarmIndex();
+
  
   /*
   1. READ
@@ -346,6 +348,8 @@ void loop()
  
   //Serial.println(analogData);
   //Serial.println(analogData2);
+
+  resetAlarmIndex();
 
  
   //PEMS
