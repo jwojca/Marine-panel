@@ -1095,19 +1095,20 @@ String rtcTime2String(RTC_DS1307 &rtc)
 //=============================================================================================================================//
 //                                                  RCS                                                                        //
 //=============================================================================================================================//
-void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, uint8_t progress)
+void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVars)
 {
-
+  //RPM
   display.clearDisplay();
-  dispProgBarVertical(display, 118, 0, 10, 64, progress*2);
-  dispStringALigned("180", display, DejaVu_Sans_Mono_10, RightTop, 110, 0);
+  uint8_t rpmPct = map(rcsVars.actRPM, rcsVars.minRPM, rcsVars.maxRPM, 0, 100);
+  dispProgBarVertical(display, 118, 0, 10, 64, rpmPct);
+  dispStringALigned(String(rcsVars.maxRPM), display, DejaVu_Sans_Mono_10, RightTop, 110, 0);
   dispStringALigned("0", display, DejaVu_Sans_Mono_10, RightBottom, 110, 36);
-  dispStringALigned("-180", display, DejaVu_Sans_Mono_10, RightBottom, 110, 64);
+  dispStringALigned(String(rcsVars.minRPM), display, DejaVu_Sans_Mono_10, RightBottom, 110, 64);
 
   dispStringALigned("Ref.", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 10);
-  dispStringALigned("100 RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 20);
+  dispStringALigned(String(rcsVars.refRPM) + " RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 20);
   dispStringALigned("Actual", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 35);
-  dispStringALigned(String(progress) + " RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 45);
+  dispStringALigned(String(rcsVars.actRPM) + " RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 45);
 
   display.display();
 
@@ -1186,16 +1187,18 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
   //display3.setFont(&DejaVu_Sans_Mono_10);
   //display3.setTextColor(SSD1306_WHITE); 
 
+  //POWER
   display3.clearDisplay();
-  dispProgBarVertical(display3, 0, 0, 10, 64, progress);
-  dispStringALigned("10", display3, DejaVu_Sans_Mono_10, LeftTop, 20, 0);
+  uint8_t powerPct = map(rcsVars.actPower, rcsVars.minPower, rcsVars.maxPower, 0, 100);
+  dispProgBarVertical(display3, 0, 0, 10, 64, powerPct);
+  dispStringALigned(String(int(rcsVars.maxPower)), display3, DejaVu_Sans_Mono_10, LeftTop, 20, 0);
   dispStringALigned("0", display3, DejaVu_Sans_Mono_10, LeftBottom, 25, 54);
-  dispStringALigned("-2", display3, DejaVu_Sans_Mono_10, LeftBottom, 20, 64);
+  dispStringALigned(String(int(rcsVars.minPower)), display3, DejaVu_Sans_Mono_10, LeftBottom, 20, 64);
 
   dispStringALigned("Ref.", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 10);
-  dispStringALigned("10 MW", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 20);
+  dispStringALigned(String(rcsVars.refPower) + " MW", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 20);
   dispStringALigned("Actual", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 35);
-  dispStringALigned(String(progress/10) + " MW", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 45);
+  dispStringALigned(String(rcsVars.actPower) + " MW", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 45);
   display3.display();
   
  

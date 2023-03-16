@@ -97,6 +97,13 @@ struct vmsSimVarsStruct
     float Inflow = 0.0, Outflow = 0.0;                              //l/s
 };
 
+struct rcsVarsStruct
+{
+  int16_t refRPM = 100, actRPM = 0, minRPM = -180, maxRPM = 180;
+  float refPower = 8, actPower = 0, minPower = -2.0, maxPower = 10.0;
+  uint16_t refAngle = 0, actAngle = 0; 
+};
+
 struct color
 {
     uint8_t red;
@@ -295,7 +302,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
 void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &display, uint8_t progress, bool innerCircle = false);
 void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
 
-void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, uint8_t progress);
+void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVarsStruct);
 
 float addNoise(float value, float min, float max);
 

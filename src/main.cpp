@@ -65,6 +65,7 @@ float gVmsTankMaxVol = 10000.0; //l
 float gVmsPressureAct = 0.0; //Bar*/
 
 vmsSimVarsStruct gVmsSimVars;
+rcsVarsStruct grcsVars;
 
 uint16_t gVmsPump1Speed = 566;
 Valve gValve1(&rtc, &alarmDisps, vmsV1Alarm1, pwm2, RGB7, P0, P0, &pcf4, &pcf5), gValve2(&rtc, &alarmDisps, vmsV2Alarm1, pwm2, RGB10, P2, P1, &pcf4, &pcf5);
@@ -356,7 +357,7 @@ void loop()
     progress = 0;
 
   //---------- RCS -----------
-  dispRCSAzipodVisualize(display5, display6, display7, progress);
+  dispRCSAzipodVisualize(display5, display6, display7, grcsVars);
  
   // 5. SAVE PREV STATE
   //---------- VMS -----------
