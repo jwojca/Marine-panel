@@ -137,7 +137,7 @@ void setup()
   dispInit(display14, false);
   dispInit(display15, false);
 
-  //rotate bz 180 deg
+  //rotate by 180 deg
   display1.setRotation(2);
   display2.setRotation(2);
   display3.setRotation(2);
@@ -293,6 +293,7 @@ void loop()
   */
 
   // 1. READ
+  //---------- VMS -----------
   gValve1.readMode();
   gValve1.readState();
   gValve2.readMode();
@@ -302,6 +303,7 @@ void loop()
   gPump2.readMode();
   gPump2.readState();
 
+  //---------- PEMS -----------
   gBreaker1.readMode();
   gBreaker1.readState();
   gBreaker2.readMode();
@@ -319,14 +321,17 @@ void loop()
   //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE
+  //---------- VMS -----------
   vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
 
   //3. WRITE
+  //---------- VMS -----------
   gValve1.writeCmd();
   gValve2.writeCmd();
   gPump1.writeCmd();
   gPump2.writeCmd();
 
+  //---------- PEMS -----------
   gBreaker1.writeCmd();
   gBreaker2.writeCmd();
   gBreaker3.writeCmd();
@@ -335,27 +340,32 @@ void loop()
   gBreaker6.writeCmd();
 
   // 4. VISUALIZE
-
+  //---------- VMS -----------
   if(millis() - timeNow > dispRefreshTime)
   {
     vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
     vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
-
     timeNow = millis();
-
-    //rtc
-    //rtcPrintTime(rtc);
-    //Serial.println(rtcTime2String(rtc));
-  
   }
-  
+
+  //---------- PEMS -----------
+  dispPemsVisualize(display8, progress);
+  dispPemsVisualize(display9, progress);
+  progress += 3;
+  if(progress > 100)
+    progress = 0;
+
+  //---------- RCS -----------
+  dispRCSAzipodVisualize(display5, display6, display7, progress);
  
   // 5. SAVE PREV STATE
+  //---------- VMS -----------
   gPump1.savePrevState();
   gPump2.savePrevState();
   gValve1.savePrevState();
   gValve2.savePrevState();
 
+  //---------- PEMS -----------
   gBreaker1.savePrevState();
   gBreaker2.savePrevState();
   gBreaker3.savePrevState();
@@ -385,12 +395,7 @@ void loop()
   resetAlarmIndex();
 
  
-  //PEMS
-  dispPemsVisualize(display8, progress);
-  dispPemsVisualize(display9, progress);
-  progress += 3;
-  if(progress > 100)
-    progress = 0;
+  
   
 
 
@@ -432,4 +437,5 @@ void loop()
   }
   
 }
+
 

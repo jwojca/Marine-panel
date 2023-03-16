@@ -112,6 +112,8 @@ struct alarmDispsStruct
   Adafruit_SSD1306 *d4;
 };
 
+enum fontAligment{LeftTop, RightTop, LeftBottom, RightBottom};
+
 
 
 
@@ -282,6 +284,9 @@ void dispInit(Adafruit_SSD1306 &display, bool reset);
 void dispShowID(Adafruit_SSD1306 &display, String ID);
 void dispShowAlarm(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4, mpAlarm sAlarm);
 void dispClearAlarms(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4);
+void dispProgBar(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, uint8_t progress);
+void dispProgBarVertical(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, uint8_t progress);
+void dispStringALigned(String text, Adafruit_SSD1306 &display, GFXfont font, fontAligment aligment, int16_t x, int16_t y);
 
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
 void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2);
@@ -289,6 +294,8 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
 
 void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &display, uint8_t progress, bool innerCircle = false);
 void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
+
+void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, uint8_t progress);
 
 float addNoise(float value, float min, float max);
 
@@ -315,90 +322,9 @@ String rtcTime2String(RTC_DS1307 &rtc);
 
 
 
-void dispRCSAzipodVisualize(SSD1306Spi &display, SSD1306Spi &display2, SSD1306Spi &display3)
-{
-  //RPM
-  uint8_t dispXOffset = 3;
-  uint8_t dispYOffset = 10;
-  display.clear();
-  display.setFont(ArialMT_Plain_10);
-  display.drawString(dispXOffset, dispYOffset-6, "RPM");
-  display.setFont(ArialMT_Plain_10);
-  display.drawString(dispXOffset, dispYOffset + 12, "100 port");
-  display.drawString(dispXOffset + 58, dispYOffset + 12, "0");
-  display.drawString(dispXOffset + 80, dispYOffset + 12, "stbd 100");
-  display.drawString(dispXOffset + 55, dispYOffset - 5, "port");
-  display.drawString(dispXOffset + 110, dispYOffset - 5, "%");
-  display.setFont(ArialMT_Plain_16);
-  display.drawString(dispXOffset + 78, dispYOffset - 10, "60.0");
-  //display.drawString(dispXOffset + 83, dispYOffset - 5, "%");
-  display.drawProgressBar(dispXOffset, dispYOffset + 27, 120, 20, 70);
-  display.display();
 
-  //Angle
-  display2.clear();
-  display2.drawXbm(0, 0, thrustWithcircle_width, thrustWithcircle_height, thrustWithcircle);
-  display2.setFont(ArialMT_Plain_16);
-  display2.drawString(0, 0, "150°");
-  display2.setFont(ArialMT_Plain_10);
-  display2.drawString(0, 15, "DEG actual");
-  display2.setFont(ArialMT_Plain_16);
-  display2.drawString(0, 37, "100°");
-  display2.setFont(ArialMT_Plain_10);
-  display2.drawString(0, 52, "DEG reference");
-  display2.display();
 
-  //Power
-  uint8_t disp3XOffset = 3;
-  uint8_t disp3YOffset = 10;
-  display3.clear();
-  display3.setFont(ArialMT_Plain_10);
-  display3.drawString(disp3XOffset, disp3YOffset-6, "POWER");
-  display3.setFont(ArialMT_Plain_10);
-  display3.drawString(disp3XOffset + 2, disp3YOffset + 12, "0");
-  display3.drawString(disp3XOffset + 105, disp3YOffset + 12, "1.1");
-  display3.drawString(disp3XOffset + 103, disp3YOffset - 5, "MW");
-  display3.setFont(ArialMT_Plain_16);
-  display3.drawString(disp3XOffset + 78, disp3YOffset - 10, "0.2");
-  display3.drawProgressBar(disp3XOffset, disp3YOffset + 27, 120, 20, 70);
-  display3.display();
-}
 
-void dispAlarmVisualize(SSD1306Spi &display, SSD1306Spi &display2, SSD1306Spi &display3, SSD1306Spi &display4)
-{
- 
-  //time and date
-  uint8_t dispXOffset = 0;
-  uint8_t dispYOffset = 20;
-  display.clear();
-  display.setFont(ArialMT_Plain_16);
-  display.drawString(dispXOffset, 0 * dispYOffset, "20-10-2022 08:49");
-  display.drawString(dispXOffset, 1 * dispYOffset, "20-10-2022 08:48");
-  display.drawString(dispXOffset, 2 * dispYOffset, "20-10-2022 08:47");
-  display.display();
-
- 
-  display2.clear();
-  display2.setFont(ArialMT_Plain_16);
-  display2.drawString(dispXOffset, 0 * dispYOffset, "VMS Pump1");
-  display2.drawString(dispXOffset, 1 * dispYOffset, "VMS Pump2");
-  display2.drawString(dispXOffset, 2 * dispYOffset, "VMS Pump3");
-  display2.display();
-
-  display3.clear();
-  display3.setFont(ArialMT_Plain_16);
-  display3.drawString(dispXOffset, 0 * dispYOffset, "Power failure");
-  display3.drawString(dispXOffset, 1 * dispYOffset, "Power failure");
-  display3.drawString(dispXOffset, 2 * dispYOffset, "Power failure");
-  display3.display();
-
-  display4.clear();
-  display4.setFont(ArialMT_Plain_16);
-  display4.drawString(dispXOffset, 0 * dispYOffset, "Text Text Text");
-  display4.drawString(dispXOffset, 1 * dispYOffset, "Text Text Text");
-  display4.drawString(dispXOffset, 2 * dispYOffset, "Text Text Text");
-  display4.display();
-}
 
 void mbTCPInit()
 {

@@ -1091,3 +1091,154 @@ String rtcTime2String(RTC_DS1307 &rtc)
   value = now.day() + String("-") + now.month() + String("-") + now.year() + String(" ") + now.hour() + String(":") + now.minute();
   return value;
 }
+
+//=============================================================================================================================//
+//                                                  RCS                                                                        //
+//=============================================================================================================================//
+void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, uint8_t progress)
+{
+
+  display.clearDisplay();
+  dispProgBarVertical(display, 118, 0, 10, 64, progress*2);
+  dispStringALigned("180", display, DejaVu_Sans_Mono_10, RightTop, 110, 0);
+  dispStringALigned("0", display, DejaVu_Sans_Mono_10, RightBottom, 110, 36);
+  dispStringALigned("-180", display, DejaVu_Sans_Mono_10, RightBottom, 110, 64);
+
+  dispStringALigned("Ref.", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 10);
+  dispStringALigned("100 RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 20);
+  dispStringALigned("Actual", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 35);
+  dispStringALigned(String(progress) + " RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 45);
+
+  display.display();
+
+
+  
+  /*
+  //RPM
+  uint8_t dispXOffset = 3;
+  uint8_t dispYOffset = 10;
+  display.clearDisplay();
+  display.setFont(&DejaVu_Sans_Mono_10);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(dispXOffset, dispYOffset-6);
+  display.print("RPM");
+
+  display.setCursor(dispXOffset, dispYOffset + 12);
+  display.print("100 port");
+  display.setCursor(dispXOffset + 58, dispYOffset + 12);
+  display.print("0");
+  display.setCursor(dispXOffset + 80, dispYOffset + 12);
+  display.print("stbd 100");
+  display.setCursor(dispXOffset + 55, dispYOffset - 5);
+  display.print("port");
+  display.setCursor(dispXOffset + 110, dispYOffset - 5);
+  display.print("%");
+
+  display.setFont(&DejaVu_Sans_Mono_15);
+  display.setTextColor(SSD1306_WHITE);  
+  display.setCursor(dispXOffset + 78, dispYOffset - 10);
+  display.print("60.0");
+  //display.drawString(dispXOffset + 83, dispYOffset - 5, "%");
+  //display.drawProgressBar(dispXOffset, dispYOffset + 27, 120, 20, 70);
+  display.display();
+  */
+
+  //Angle
+  display2.clearDisplay();
+  display2.drawXBitmap(0, 0, thrustWithcircle, thrustWithcircle_width, thrustWithcircle_height, 1);
+
+  display2.setFont(&DejaVu_Sans_Mono_15);
+  display2.setTextColor(SSD1306_WHITE); 
+  display2.setCursor(0, 0);
+  display2.print("150°");
+  
+  display2.setFont(&DejaVu_Sans_Mono_10);
+  display2.setTextColor(SSD1306_WHITE); 
+  display2.setCursor(0, 15);
+  display2.print("DEG actual");
+  display2.setFont(&DejaVu_Sans_Mono_15);
+  display2.setTextColor(SSD1306_WHITE); 
+  display2.setCursor(0, 37);
+  display2.print("100°");
+  display2.setFont(&DejaVu_Sans_Mono_10);
+  display2.setTextColor(SSD1306_WHITE); 
+  display2.setCursor(0, 52);
+  display2.print("DEG reference");
+  display2.display();
+
+  //Power
+  /*uint8_t disp3XOffset = 3;
+  uint8_t disp3YOffset = 10;
+  display3.clear();
+  display3.setFont(ArialMT_Plain_10);
+  display3.drawString(disp3XOffset, disp3YOffset-6, "POWER");
+  display3.setFont(ArialMT_Plain_10);
+  display3.drawString(disp3XOffset + 2, disp3YOffset + 12, "0");
+  display3.drawString(disp3XOffset + 105, disp3YOffset + 12, "1.1");
+  display3.drawString(disp3XOffset + 103, disp3YOffset - 5, "MW");
+  display3.setFont(ArialMT_Plain_16);
+  display3.drawString(disp3XOffset + 78, disp3YOffset - 10, "0.2");
+  display3.drawProgressBar(disp3XOffset, disp3YOffset + 27, 120, 20, 70);
+  display3.display();*/
+  //display3.clearDisplay();
+  //dispProgBarVertical(display3, 10, 0, 10, 64, progress);
+
+  //display3.setFont(&DejaVu_Sans_Mono_10);
+  //display3.setTextColor(SSD1306_WHITE); 
+
+  display3.clearDisplay();
+  dispProgBarVertical(display3, 0, 0, 10, 64, progress);
+  dispStringALigned("10", display3, DejaVu_Sans_Mono_10, LeftTop, 20, 0);
+  dispStringALigned("0", display3, DejaVu_Sans_Mono_10, LeftBottom, 25, 54);
+  dispStringALigned("-2", display3, DejaVu_Sans_Mono_10, LeftBottom, 20, 64);
+
+  dispStringALigned("Ref.", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 10);
+  dispStringALigned("10 MW", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 20);
+  dispStringALigned("Actual", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 35);
+  dispStringALigned(String(progress/10) + " MW", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 45);
+  display3.display();
+  
+ 
+}
+
+void dispProgBar(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, uint8_t progress)
+{
+  display.drawRect(x, y, width, height, 1);
+  progress = constrain(progress, 0, 100);
+  int16_t progressWidth = int16_t((width * progress)/100);
+  
+  display.fillRect(x, y, progressWidth, height, 1);
+}
+
+void dispProgBarVertical(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, uint8_t progress)
+{
+  display.drawRect(x, y, width, height, 1);
+  progress = constrain(progress, 0, 100);
+  int16_t progressHeight = int16_t((height * progress)/100);
+  display.setRotation(0);
+  display.fillRect(SCREEN_WIDTH - x - width, y, width, progressHeight, 1);
+  display.setRotation(2);
+}
+
+void dispStringALigned(String text, Adafruit_SSD1306 &display, GFXfont font, fontAligment aligment, int16_t x, int16_t y)
+{
+  uint16_t stringW, stringH;
+  int16_t stringX, stringY;
+
+  display.setFont(&font);
+  display.setTextColor(SSD1306_WHITE); 
+
+  display.getTextBounds(text, 0, 32, &stringX, &stringY, &stringW, &stringH);
+
+  if(aligment == RightTop)
+    display.setCursor(x - stringW, y + stringH);
+  else if(aligment == LeftTop)
+    display.setCursor(x, y  + stringH);
+  else if(aligment == RightBottom)
+    display.setCursor(x - stringW, y);
+  else if(aligment == LeftBottom)
+    display.setCursor(x, y);
+
+  display.print(text);
+
+}
