@@ -357,7 +357,24 @@ void loop()
     progress = 0;
 
   //---------- RCS -----------
+
+  grcsVars.actAngle += 5;
+  if(grcsVars.actAngle > 355)
+    grcsVars.actAngle = 0;
+    
   dispRCSAzipodVisualize(display5, display6, display7, grcsVars);
+
+  
+
+  display13.fillRect(0, 0, 128, 64, 1);
+  display13.display();
+  display14.fillRect(0, 0, 128, 64, 1);
+  display14.display();
+  display15.fillRect(0, 0, 128, 64, 1);
+  display15.display();
+
+
+
  
   // 5. SAVE PREV STATE
   //---------- VMS -----------

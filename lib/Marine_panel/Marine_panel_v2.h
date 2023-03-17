@@ -303,6 +303,7 @@ void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &di
 void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
 
 void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVarsStruct);
+void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);
 
 float addNoise(float value, float min, float max);
 
