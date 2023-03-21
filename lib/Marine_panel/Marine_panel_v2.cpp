@@ -1101,14 +1101,14 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
   display.clearDisplay();
   uint8_t rpmPct = map(rcsVars.actRPM, rcsVars.minRPM, rcsVars.maxRPM, 0, 100);
   dispProgBarVertical(display, 118, 0, 10, 64, rpmPct);
-  dispStringALigned(String(rcsVars.maxRPM), display, DejaVu_Sans_Mono_10, RightTop, 110, 0);
+  dispStringALigned(String(int32_t(rcsVars.maxRPM)), display, DejaVu_Sans_Mono_10, RightTop, 110, 0);
   dispStringALigned("0", display, DejaVu_Sans_Mono_10, RightBottom, 110, 36);
-  dispStringALigned(String(rcsVars.minRPM), display, DejaVu_Sans_Mono_10, RightBottom, 110, 64);
+  dispStringALigned(String(int32_t(rcsVars.minRPM)), display, DejaVu_Sans_Mono_10, RightBottom, 110, 64);
 
   dispStringALigned("Ref.", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 10);
-  dispStringALigned(String(rcsVars.refRPM) + " RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 20);
+  dispStringALigned(String(int32_t(rcsVars.refRPM)) + " RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 20);
   dispStringALigned("Actual", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 35);
-  dispStringALigned(String(rcsVars.actRPM) + " RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 45);
+  dispStringALigned(String(int32_t(rcsVars.actRPM)) + " RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 45);
 
   display.display();
 
@@ -1243,7 +1243,10 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
 
   }
   display2.setRotation(2);
-  dispStringALigned("Test", display2, DejaVu_Sans_Mono_10, LeftTop, 70, 0);
+  String refAngleStr = "Ref: " + String(uint16_t(rcsVars.refAngle)) + "°";
+  String actualAngleStr = "Act: " + String(rcsVars.actAngle) + "°";
+  dispStringALigned(refAngleStr, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 0);
+  dispStringALigned(actualAngleStr, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 10);
   display2.display();
   
 
@@ -1303,6 +1306,19 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
   
  
 }
+
+void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task)
+{
+  int angle = joyReadData(JOY1_X);
+  int rpm = joyReadData(JOY1_Y, true);
+
+  float angleIncrSpeed = 3.0;
+
+  rcsVars.refRPM += (float)(rpm) * (angleIncrSpeed/task);
+  rcsVars.refRPM = constrain(rcsVars.refRPM, rcsVars.minRPM, rcsVars.maxRPM);
+}
+
+
 //GPT TEST
 void drawVerticalBarGraph(Adafruit_SSD1306& display, int value, int range) {
   int barHeight = map(value, 0, range, 0, display.height());
@@ -1374,3 +1390,16 @@ void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle) {
   display.display();
 }
 
+
+int joyReadData(uint8_t pin, bool verticalAxis)
+{
+  int value;
+  if(verticalAxis)
+    value = map(analogRead(pin), 0, 8191, 110, -110);
+  else
+    value = map(analogRead(pin), 0, 8191, -110, 110);
+  value = constrain(value, -100, 100);
+  if(value > -12 && value < 12)
+    value = 0;
+  return value;
+}

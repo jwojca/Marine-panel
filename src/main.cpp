@@ -318,6 +318,10 @@ void loop()
   gBreaker6.readMode();
   gBreaker6.readState();
 
+  //RCS
+  rcsAzipodReadData(grcsVars, task);
+  
+
 
   //Serial.println(gValve1.valveState);
 
@@ -358,10 +362,10 @@ void loop()
 
   //---------- RCS -----------
 
-  grcsVars.actAngle += 5;
+  /*grcsVars.actAngle += 5;
   if(grcsVars.actAngle > 355)
-    grcsVars.actAngle = 0;
-    
+    grcsVars.actAngle = 0;*/
+
   dispRCSAzipodVisualize(display5, display6, display7, grcsVars);
 
   
@@ -403,12 +407,8 @@ void loop()
   RGBLedTest(5, pwm2);
   RGBLedTest(4, pwm3);*/
 
-  int analogData  = map(analogRead(20), 0, 8191, 0, 100);
-  int analogData2  = map(analogRead(19), 0, 8191, 0, 100);
 
- 
-  //Serial.println(analogData);
-  //Serial.println(analogData2);
+  
 
   resetAlarmIndex();
 

@@ -42,6 +42,11 @@
 #define DISP14_CS   16
 #define DISP15_CS   45
 
+#define JOY1_X 20
+#define JOY1_Y 19
+#define JOY2_X 18
+#define JOY2_Y 17
+
 #define RGB1 1
 #define RGB2 2
 #define RGB3 3
@@ -99,9 +104,10 @@ struct vmsSimVarsStruct
 
 struct rcsVarsStruct
 {
-  int16_t refRPM = 100, actRPM = 0, minRPM = -180, maxRPM = 180;
+  float actRPM = 0.0, refRPM = 0.0, minRPM = -180.0, maxRPM = 180.0;
   float refPower = 8, actPower = 0, minPower = -2.0, maxPower = 10.0;
-  uint16_t refAngle = 0, actAngle = 0; 
+  float refAngle = 0, actAngle = 0; 
+  float refAngleSTBD = 0.0, refAnglePORT = 0.0; 
 };
 
 struct color
@@ -302,6 +308,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
 void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &display, uint8_t progress, bool innerCircle = false);
 void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
 
+void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task);
 void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVarsStruct);
 void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);
 
@@ -309,6 +316,7 @@ float addNoise(float value, float min, float max);
 
 bool TOff(uint32_t delay, unsigned long *timer);
 
+int joyReadData(uint8_t pin, bool verticalAxis = false);
 void W5500Reset();
 
 void rtcPrintTime(RTC_DS1307 &rtc);
