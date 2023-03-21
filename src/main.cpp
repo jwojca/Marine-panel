@@ -270,6 +270,8 @@ uint16_t test2 = 0;
 uint16_t test3 = 0;
 uint16_t test4 = 0;
 uint16_t progress = 0;
+uint16_t progressDG1 = 0;
+uint16_t progressDG2 = 0;
 uint8_t state = 0;
 uint32_t showLast = 0;
 
@@ -354,28 +356,27 @@ void loop()
   }
 
   //---------- PEMS -----------
-  dispPemsVisualize(display8, progress);
+  
   dispPemsVisualize(display9, progress);
-  progress += 3;
+
+  if(gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)
+  {
+    progressDG1 += 1;
+    progressDG1 = constrain(progressDG1, 0, 70);
+    dispPemsVisualize(display8, progressDG1);
+  }
+  else
+    progressDG1 = 0;
+    
   if(progress > 100)
     progress = 0;
 
   //---------- RCS -----------
 
-  /*grcsVars.actAngle += 5;
-  if(grcsVars.actAngle > 355)
-    grcsVars.actAngle = 0;*/
-
   dispRCSAzipodVisualize(display5, display6, display7, grcsVars);
+  dispRCSBowThrustersVisualize(display13, display14, display15, grcsVars);
 
   
-
-  display13.fillRect(0, 0, 128, 64, 1);
-  display13.display();
-  display14.fillRect(0, 0, 128, 64, 1);
-  display14.display();
-  display15.fillRect(0, 0, 128, 64, 1);
-  display15.display();
 
 
 

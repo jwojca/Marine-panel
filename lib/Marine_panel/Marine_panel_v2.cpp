@@ -1016,8 +1016,9 @@ void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress)
   display.setFont(&DejaVu_Sans_Mono_10);
   display.setTextColor(SSD1306_WHITE);
 
+
   display.setCursor(0, 28);
-  display.println(F("       1229   "));
+  display.println(("       " + String(progress * 13) +"   "));
   cursorY = display.getCursorY();
   display.setCursor(0, cursorY - 5);
 
@@ -1031,7 +1032,7 @@ void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress)
   display.setFont(&DejaVu_Sans_Mono_10);
   display.setTextColor(SSD1306_WHITE);
 
-  display.println(F("       1627"));
+  display.println(("       " + String(progress * 17)));
   cursorY = display.getCursorY();
   display.setCursor(0, cursorY - 5);
 
@@ -1112,10 +1113,6 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
   dispStringALigned(String(int32_t(rcsVars.actRPM)) + " RPM", display, DejaVu_Sans_Mono_10, LeftTop, 20, 43);
 
   display.display();
-
-
-  
-
 
   //Angle
   display2.clearDisplay();
@@ -1205,8 +1202,23 @@ void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task)
   rcsVars.refRPM += (float)(rpm) * (rpmIncrSpeed/task);
   rcsVars.refRPM = constrain(rcsVars.refRPM, rcsVars.minRPM, rcsVars.maxRPM);
 
-  
 }
+
+void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVars)
+{
+  //Power
+  String powerBgStr = String(rcsVars.minPowerBT) + "          " + String(rcsVars.maxPowerBT);
+  dispStringALigned(powerBgStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
+  dispProgBarHorizontal(display, 0, 30, SCREEN_WIDTH, 15, 50);
+
+  display.display();
+  
+
+  //Rpm
+
+}
+
+
 
 
 //GPT TEST
