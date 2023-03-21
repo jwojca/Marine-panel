@@ -109,8 +109,9 @@ struct rcsVarsStruct
   float refAngle = 0, actAngle = 0; 
   float refAngleSTBD = 0.0, refAnglePORT = 0.0; 
 
-  float actRpmBT = 0.0, refRpmBT = 0.0, minRpmBT = -180.0, maxRpmBT = 180.0;
-  float refPowerBT = 8, actPowerBT = 0, minPowerBT = 0.0, maxPowerBT = 1.0;
+  float refRpmBt = 0.0, actRpmBT = 0.0, minRpmBT = 0.0, maxRpmBT = 100.0;
+  float refRpmStbdBT = 0.0, refRpmPortBT = 0.0;
+  float refPowerBT = 0.0, actPowerBT = 0.0, minPowerBT = 0.0, maxPowerBT = 1.0;
 };
 
 struct color
@@ -312,6 +313,7 @@ void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &di
 void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
 
 void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task);
+void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task);
 void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVarsStruct);
 void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVars);
 void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);

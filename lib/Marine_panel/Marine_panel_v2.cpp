@@ -1204,17 +1204,90 @@ void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task)
 
 }
 
+void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task)
+{
+
+  int steer = joyReadData(JOY1_X);
+  int rpm = joyReadData(JOY1_Y, true);
+
+  //Steer 
+  float steerIncrSpeed = 3;
+  if(steer > 0) //STBD
+  {
+    if(rcsVars.refRpmPortBT == 0.0)
+      rcsVars.refRpmStbdBT += (float)(steer) * (steerIncrSpeed/task);
+    else
+      rcsVars.refRpmPortBT -= (float)(steer) * (steerIncrSpeed/task);
+
+    rcsVars.refRpmStbdBT = constrain(rcsVars.refRpmStbdBT, rcsVars.minRpmBT, rcsVars.maxRpmBT); 
+    rcsVars.refRpmPortBT = constrain(rcsVars.refRpmPortBT, rcsVars.minRpmBT, rcsVars.maxRpmBT); 
+  }
+  else //PORT
+  {
+    if(rcsVars.refRpmStbdBT == 0.0)
+      rcsVars.refRpmPortBT -= (float)(steer) * (steerIncrSpeed/task);
+    else
+      rcsVars.refRpmStbdBT += (float)(steer) * (steerIncrSpeed/task);
+
+    rcsVars.refRpmStbdBT = constrain(rcsVars.refRpmStbdBT, rcsVars.minRpmBT, rcsVars.maxRpmBT); 
+    rcsVars.refRpmPortBT = constrain(rcsVars.refRpmPortBT, rcsVars.minRpmBT, rcsVars.maxRpmBT); 
+  }
+
+  //RPM increase/decrease
+  float rpmIncrSpeed = 0.5;
+  if(rcsVars.refRpmStbdBT > 0)
+    rcsVars.refRpmStbdBT += (float)(rpm) * (rpmIncrSpeed/task);
+  else
+    rcsVars.refRpmPortBT += (float)(rpm) * (rpmIncrSpeed/task);
+
+  rcsVars.refRpmStbdBT = constrain(rcsVars.refRpmStbdBT, rcsVars.minRpmBT, rcsVars.maxRpmBT); 
+  rcsVars.refRpmPortBT = constrain(rcsVars.refRpmPortBT, rcsVars.minRpmBT, rcsVars.maxRpmBT); 
+
+
+  //Debug
+  String port = "PORT:" + String(rcsVars.refRpmPortBT) + "°";
+  String stdb = "STBD:" + String(rcsVars.refRpmStbdBT) + "°";
+
+  Serial.println(port);
+  Serial.println(stdb);
+
+
+}
+
 void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVars)
 {
   //Power
-  String powerBgStr = String(rcsVars.minPowerBT) + "          " + String(rcsVars.maxPowerBT);
-  dispStringALigned(powerBgStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
-  dispProgBarHorizontal(display, 0, 30, SCREEN_WIDTH, 15, 50);
+  display.clearDisplay();
+  String powerRefStr = "Ref. power: " + String(rcsVars.refPowerBT, 1) + "MW";
+  String powerActStr = "Act. power: " + String(rcsVars.actPowerBT, 1) + "MW";
+  String powerBgStr = String(rcsVars.minPowerBT, 1) + "               " + String(rcsVars.maxPowerBT, 1);
 
+
+  dispStringALigned(powerRefStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
+  dispStringALigned(powerActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 13);
+  dispStringALigned(powerBgStr, display, DejaVu_Sans_Mono_8, LeftTop, 0, 39);
+
+  //map power to 0-100 range
+  int power = map(int(rcsVars.refPowerBT * 100), int(rcsVars.minPowerBT * 100), int(rcsVars.maxPowerBT * 100), 0, 100);
+  dispProgBarHorizontal(display, 0, 49, SCREEN_WIDTH, 15, uint8_t(power));
   display.display();
-  
 
   //Rpm
+  display2.clearDisplay();
+  String rpmRefStr = "Ref. rpm: " + String(rcsVars.refRpmPortBT, 1) + "%";
+  String rpmActStr = "Act. rpm: " + String(0.0, 1) + "%";
+  String rpmBgStr = String(rcsVars.maxRpmBT, 0) + "       0       " + String(rcsVars.maxRpmBT, 0);
+
+
+  dispStringALigned(rpmRefStr, display2, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
+  dispStringALigned(rpmActStr, display2, DejaVu_Sans_Mono_10, LeftTop, 0, 13);
+  dispStringALigned(rpmBgStr, display2, DejaVu_Sans_Mono_8, LeftTop, 0, 39);
+
+  //map power to 0-100 range
+  //int power = map(int(rcsVars.refPowerBT * 100), int(rcsVars.minPowerBT * 100), int(rcsVars.maxPowerBT * 100), 0, 100);
+  dispProgBarHorizontal(display2, 0, 49, SCREEN_WIDTH, 15, 20);
+
+  display2.display();
 
 }
 
@@ -1239,8 +1312,7 @@ void dispProgBarHorizontal(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int1
 {
   display.drawRect(x, y, width, height, 1);
   progress = constrain(progress, 0, 100);
-  int16_t progressWidth = int16_t((width * progress)/100);
-  
+  int16_t progressWidth = int16_t((width * progress)/100); 
   display.fillRect(x, y, progressWidth, height, 1);
 }
 

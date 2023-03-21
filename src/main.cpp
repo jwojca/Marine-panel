@@ -322,6 +322,7 @@ void loop()
 
   //RCS
   rcsAzipodReadData(grcsVars, task);
+  rcsBowThrustersReadData(grcsVars, task);
   
 
 
