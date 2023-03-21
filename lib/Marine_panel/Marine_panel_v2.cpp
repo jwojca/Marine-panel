@@ -1245,8 +1245,8 @@ void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task)
 
 
   //Debug
-  String port = "PORT:" + String(rcsVars.refRpmPortBT) + "°";
-  String stdb = "STBD:" + String(rcsVars.refRpmStbdBT) + "°";
+  String port = "PORT:" + String(rcsVars.refRpmPortBT) + "%";
+  String stdb = "STBD:" + String(rcsVars.refRpmStbdBT) + "%";
 
   Serial.println(port);
   Serial.println(stdb);
@@ -1285,7 +1285,10 @@ void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &d
 
   //map power to 0-100 range
   //int power = map(int(rcsVars.refPowerBT * 100), int(rcsVars.minPowerBT * 100), int(rcsVars.maxPowerBT * 100), 0, 100);
-  dispProgBarHorizontal(display2, 0, 49, SCREEN_WIDTH, 15, 20);
+  //dispProgBarHorizontal(display2, 0, 49, SCREEN_WIDTH, 15, 20);
+  rcsVars.refRpmBt = rcsVars.refRpmStbdBT - rcsVars.refRpmPortBT;
+  Serial.println(rcsVars.refRpmBt);
+  dispProgBarHorizontal2(display2, 0, 49, SCREEN_WIDTH, 15, int16_t(rcsVars.refRpmBt), -100, 100);
 
   display2.display();
 
@@ -1314,6 +1317,28 @@ void dispProgBarHorizontal(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int1
   progress = constrain(progress, 0, 100);
   int16_t progressWidth = int16_t((width * progress)/100); 
   display.fillRect(x, y, progressWidth, height, 1);
+}
+
+void dispProgBarHorizontal2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, int16_t progress, int16_t minVal, int16_t maxVal)
+{
+  uint16_t posZero = 0;
+  posZero = map(posZero, minVal, maxVal, x, width);
+
+  if(progress > 0)
+  {
+    int16_t progressPct = map(progress, 0, maxVal, 0, 100);
+    int16_t progressWidth = map(progressPct, 0, 100, posZero, width);
+    display.fillRect(x + posZero, y, progressWidth - posZero, height, WHITE);
+  }
+  else if(progress < 0)
+  {
+    int16_t progressPct = map(progress, 0, minVal, 0, 100);
+    int16_t progressWidth = map(progressPct, 0, 100, 0, posZero);
+    display.fillRect(x - progressWidth + posZero , y, progressWidth, height, WHITE);
+  }
+  display.drawRect(x, y, width, height, WHITE);
+  //progress = constrain(progress, 0, 100);
+  
 }
 
 
