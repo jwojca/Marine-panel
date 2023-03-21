@@ -1106,190 +1106,41 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
   dispStringALigned("0", display, DejaVu_Sans_Mono_10, RightBottom, 110, 36);
   dispStringALigned(String(int32_t(rcsVars.minRPM)), display, DejaVu_Sans_Mono_10, RightBottom, 110, 64);
 
-  dispStringALigned("Ref.", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 10);
-  dispStringALigned(String(int32_t(rcsVars.refRPM)) + " RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 20);
-  dispStringALigned("Actual", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 35);
-  dispStringALigned(String(int32_t(rcsVars.actRPM)) + " RPM", display, DejaVu_Sans_Mono_10, LeftBottom, 20, 45);
+  dispStringALigned("Ref.", display, DejaVu_Sans_Mono_10, LeftTop, 20, 0);
+  dispStringALigned(String(int32_t(rcsVars.refRPM)) + " RPM", display, DejaVu_Sans_Mono_10, LeftTop, 20, 13);
+  dispStringALigned("Actual", display, DejaVu_Sans_Mono_10, LeftTop, 20, 30);
+  dispStringALigned(String(int32_t(rcsVars.actRPM)) + " RPM", display, DejaVu_Sans_Mono_10, LeftTop, 20, 43);
 
   display.display();
 
 
   
-  /*
-  //RPM
-  uint8_t dispXOffset = 3;
-  uint8_t dispYOffset = 10;
-  display.clearDisplay();
-  display.setFont(&DejaVu_Sans_Mono_10);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(dispXOffset, dispYOffset-6);
-  display.print("RPM");
 
-  display.setCursor(dispXOffset, dispYOffset + 12);
-  display.print("100 port");
-  display.setCursor(dispXOffset + 58, dispYOffset + 12);
-  display.print("0");
-  display.setCursor(dispXOffset + 80, dispYOffset + 12);
-  display.print("stbd 100");
-  display.setCursor(dispXOffset + 55, dispYOffset - 5);
-  display.print("port");
-  display.setCursor(dispXOffset + 110, dispYOffset - 5);
-  display.print("%");
-
-  display.setFont(&DejaVu_Sans_Mono_15);
-  display.setTextColor(SSD1306_WHITE);  
-  display.setCursor(dispXOffset + 78, dispYOffset - 10);
-  display.print("60.0");
-  //display.drawString(dispXOffset + 83, dispYOffset - 5, "%");
-  //display.drawProgressBar(dispXOffset, dispYOffset + 27, 120, 20, 70);
-  display.display();
-  */
 
   //Angle
-
-  //dispDrawThrustBitmap(display2, rcsVars.actAngle);
-
-  
   display2.clearDisplay();
+  dispDrawThrustBitmap(display2, rcsVars.refAngle);
 
-  //convert actual angle to angle with 5 deg step
-  uint16_t angle5 = round(rcsVars.refAngle/5.0) * 5;
-  if(rcsVars.refAngle < 0)
-    angle5 = 0;
-  else if(angle5 > 360)
-    angle5 = 360;
+  String refAngleStr1 = "Ref ang.";
+  String refAngleStr2;
 
-  int16_t thrustX = 0, thrustY = 0, thrustWidth = 64, thrustHeight = 64;
+  if(rcsVars.refAngleSTBD > 0)
+    refAngleStr2 = "SB " + String(rcsVars.refAngleSTBD, 1);
+  else if(rcsVars.refAnglePORT > 0)
+    refAngleStr2 = "PO " + String(rcsVars.refAnglePORT, 1);
+  else
+    refAngleStr2 = "   " + String(rcsVars.refAnglePORT, 1);
+  
+  String actualAngleStr1 = "Act ang. ";
+  String actualAngleStr2 = "   " + String(rcsVars.actAngle);
 
-  if(angle5 >= 90 && angle5 < 180)
-  {
-    angle5 -= 90;
-    thrustX = 0;
-    thrustY = thrustHeight;
-    display2.setRotation(3);
-  }
-  else if(angle5 >= 180 && angle5 < 270)
-  {
-    angle5 -= 180;
-    thrustX = 64;
-    thrustY = 0;
-    display2.setRotation(0);
-  }
-  else if(angle5 >= 270 && angle5 <= 355)
-  {
-    angle5 -= 270;
-    thrustX = 0;
-    thrustY = 0;
-    display2.setRotation(1);
-  }
 
-  switch(angle5) 
-  {
-    case 0:
-      display2.drawXBitmap(thrustX, thrustY, thrust0deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 5:
-      display2.drawXBitmap(thrustX, thrustY, thrust5deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 10:
-      display2.drawXBitmap(thrustX, thrustY, thrust10deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 15:
-      display2.drawXBitmap(thrustX, thrustY, thrust15deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 20:
-      display2.drawXBitmap(thrustX, thrustY, thrust20deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 25:
-      display2.drawXBitmap(thrustX, thrustY, thrust25deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 30:
-      display2.drawXBitmap(thrustX, thrustY, thrust30deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 35:
-      display2.drawXBitmap(thrustX, thrustY, thrust35deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 40:
-      display2.drawXBitmap(thrustX, thrustY, thrust40deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 45:
-      display2.drawXBitmap(thrustX, thrustY, thrust45deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 50:
-      display2.drawXBitmap(thrustX, thrustY, thrust50deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 55:
-      display2.drawXBitmap(thrustX, thrustY, thrust55deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 60:
-      display2.drawXBitmap(thrustX, thrustY, thrust60deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 65:
-    display2.drawXBitmap(thrustX, thrustY, thrust65deg_bits, thrustWidth, thrustHeight, 1);
-    break;
-    case 70:
-      display2.drawXBitmap(thrustX, thrustY, thrust70deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 75:
-      display2.drawXBitmap(thrustX, thrustY, thrust75deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 80:
-      display2.drawXBitmap(thrustX, thrustY, thrust80deg_bits, thrustWidth, thrustHeight, 1);
-      break;
-    case 85:
-    display2.drawXBitmap(thrustX, thrustY, thrust85deg_bits, thrustWidth, thrustHeight, 1);
-    break;
-    default:
-      break;
-
-  }
-  display2.setRotation(2);
-  String refAngleStr = "Ref: " + String(uint16_t(rcsVars.refAngle));
-  String actualAngleStr = "Act: " + String(rcsVars.actAngle);
-  dispStringALigned(refAngleStr, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 0);
-  dispStringALigned(actualAngleStr, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 10);
+  dispStringALigned(refAngleStr1, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 0);
+  dispStringALigned(refAngleStr2, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 13);
+  dispStringALigned(actualAngleStr1, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 30);
+  dispStringALigned(actualAngleStr2, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 43);
   display2.display();
-  
 
-  /*
-  display2.setFont(&DejaVu_Sans_Mono_15);
-  display2.setTextColor(SSD1306_WHITE); 
-  display2.setCursor(0, 0);
-  display2.print("150°");
-  
-  display2.setFont(&DejaVu_Sans_Mono_10);
-  display2.setTextColor(SSD1306_WHITE); 
-  display2.setCursor(0, 15);
-  display2.print("DEG actual");
-  display2.setFont(&DejaVu_Sans_Mono_15);
-  display2.setTextColor(SSD1306_WHITE); 
-  display2.setCursor(0, 37);
-  display2.print("100°");
-  display2.setFont(&DejaVu_Sans_Mono_10);
-  display2.setTextColor(SSD1306_WHITE); 
-  display2.setCursor(0, 52);
-  display2.print("DEG reference");
-  display2.display();*/
-
-  //Power
-  /*uint8_t disp3XOffset = 3;
-  uint8_t disp3YOffset = 10;
-  display3.clear();
-  display3.setFont(ArialMT_Plain_10);
-  display3.drawString(disp3XOffset, disp3YOffset-6, "POWER");
-  display3.setFont(ArialMT_Plain_10);
-  display3.drawString(disp3XOffset + 2, disp3YOffset + 12, "0");
-  display3.drawString(disp3XOffset + 105, disp3YOffset + 12, "1.1");
-  display3.drawString(disp3XOffset + 103, disp3YOffset - 5, "MW");
-  display3.setFont(ArialMT_Plain_16);
-  display3.drawString(disp3XOffset + 78, disp3YOffset - 10, "0.2");
-  display3.drawProgressBar(disp3XOffset, disp3YOffset + 27, 120, 20, 70);
-  display3.display();*/
-  //display3.clearDisplay();
-  //dispProgBarVertical(display3, 10, 0, 10, 64, progress);
-
-  //display3.setFont(&DejaVu_Sans_Mono_10);
-  //display3.setTextColor(SSD1306_WHITE); 
 
   //POWER
   display3.clearDisplay();
@@ -1298,10 +1149,10 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
   dispStringALigned("0", display3, DejaVu_Sans_Mono_10, LeftBottom, 25, 54);
   dispStringALigned(String(int(rcsVars.minPower)), display3, DejaVu_Sans_Mono_10, LeftBottom, 20, 64);
 
-  dispStringALigned("Ref.", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 10);
-  dispStringALigned(String(rcsVars.refPower) + " MW", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 20);
-  dispStringALigned("Actual", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 35);
-  dispStringALigned(String(rcsVars.actPower) + " MW", display3, DejaVu_Sans_Mono_10, LeftBottom, 40, 45);
+  dispStringALigned("Ref.", display3, DejaVu_Sans_Mono_10, LeftTop, 55, 0);
+  dispStringALigned(String(rcsVars.refPower) + " MW", display3, DejaVu_Sans_Mono_10, LeftTop, 55, 13);
+  dispStringALigned("Actual", display3, DejaVu_Sans_Mono_10, LeftTop, 55, 30);
+  dispStringALigned(String(rcsVars.actPower) + " MW", display3, DejaVu_Sans_Mono_10, LeftTop, 55, 43);
   display3.display();
   
  
@@ -1372,7 +1223,7 @@ void drawVerticalBarGraph(Adafruit_SSD1306& display, int value, int range) {
 }
 
 
-void dispProgBar(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, uint8_t progress)
+void dispProgBarHorizontal(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, uint8_t progress)
 {
   display.drawRect(x, y, width, height, 1);
   progress = constrain(progress, 0, 100);
@@ -1381,22 +1232,13 @@ void dispProgBar(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width,
   display.fillRect(x, y, progressWidth, height, 1);
 }
 
-void dispProgBarVertical(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, uint8_t progress)
-{
-  display.drawRect(x, y, width, height, WHITE);
-  progress = constrain(progress, 0, 100);
-  int16_t progressHeight = int16_t((height * progress)/100);
-  display.setRotation(0);
-  display.fillRect(SCREEN_WIDTH - x - width, y, width, progressHeight, 1);
-  display.setRotation(2);
-}
+
 
 void dispProgBarVertical2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, int16_t progress, int16_t minVal, int16_t maxVal)
 {
   
   uint16_t posZero = 0;
   posZero = map(posZero, minVal, maxVal, height, y);
-  Serial.println(posZero);
 
   if(progress > 0)
   {
@@ -1443,31 +1285,112 @@ void dispStringALigned(String text, Adafruit_SSD1306 &display, GFXfont font, fon
 
 }
 
-void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle) {
-  int thrustIndex = round(thrustAngle / 5.0) * 5; // Round angle to nearest multiple of 5
-  if (thrustIndex < 0) {
-    thrustIndex = 0;
-  } else if (thrustIndex > 85) {
-    thrustIndex = 85;
+void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle) 
+{
+   //convert actual angle to angle with 5 deg step
+  uint16_t angle5 = round(thrustAngle/5.0) * 5;
+  if(thrustAngle < 0 || angle5 >= 360)
+    angle5 = 0;
+
+  int16_t thrustX = 0, thrustY = 0, thrustWidth = 64, thrustHeight = 64;
+
+  if(angle5 >= 90 && angle5 < 180)
+  {
+    angle5 -= 90;
+    thrustX = 0;
+    thrustY = thrustHeight;
+    display.setRotation(3);
   }
-  char bitmapName[20];
-  snprintf(bitmapName, sizeof(bitmapName), "thrust%ddeg_bits", thrustIndex);
-  const uint8_t* bitmap = reinterpret_cast<const uint8_t*>(pgm_read_word(&bitmapName));
-  display.clearDisplay();
-  display.drawXBitmap(0, 0, bitmap, display.width(), display.height(), 1);
-  display.display();
+  else if(angle5 >= 180 && angle5 < 270)
+  {
+    angle5 -= 180;
+    thrustX = 64;
+    thrustY = 0;
+    display.setRotation(0);
+  }
+  else if(angle5 >= 270 && angle5 <= 355)
+  {
+    angle5 -= 270;
+    thrustX = 0;
+    thrustY = 0;
+    display.setRotation(1);
+  }
+
+  switch(angle5) 
+  {
+    case 0:
+      display.drawXBitmap(thrustX, thrustY, thrust0deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 5:
+      display.drawXBitmap(thrustX, thrustY, thrust5deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 10:
+      display.drawXBitmap(thrustX, thrustY, thrust10deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 15:
+      display.drawXBitmap(thrustX, thrustY, thrust15deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 20:
+      display.drawXBitmap(thrustX, thrustY, thrust20deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 25:
+      display.drawXBitmap(thrustX, thrustY, thrust25deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 30:
+      display.drawXBitmap(thrustX, thrustY, thrust30deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 35:
+      display.drawXBitmap(thrustX, thrustY, thrust35deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 40:
+      display.drawXBitmap(thrustX, thrustY, thrust40deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 45:
+      display.drawXBitmap(thrustX, thrustY, thrust45deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 50:
+      display.drawXBitmap(thrustX, thrustY, thrust50deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 55:
+      display.drawXBitmap(thrustX, thrustY, thrust55deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 60:
+      display.drawXBitmap(thrustX, thrustY, thrust60deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 65:
+    display.drawXBitmap(thrustX, thrustY, thrust65deg_bits, thrustWidth, thrustHeight, 1);
+    break;
+    case 70:
+      display.drawXBitmap(thrustX, thrustY, thrust70deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 75:
+      display.drawXBitmap(thrustX, thrustY, thrust75deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 80:
+      display.drawXBitmap(thrustX, thrustY, thrust80deg_bits, thrustWidth, thrustHeight, 1);
+      break;
+    case 85:
+    display.drawXBitmap(thrustX, thrustY, thrust85deg_bits, thrustWidth, thrustHeight, 1);
+    break;
+    default:
+      break;
+
+  }
+  display.setRotation(2);
+  
 }
 
 
 int joyReadData(uint8_t pin, bool verticalAxis)
 {
+  uint8_t deadBand = 20;
   int value;
   if(verticalAxis)
     value = map(analogRead(pin), 0, 8191, 110, -110);
   else
     value = map(analogRead(pin), 0, 8191, -110, 110);
   value = constrain(value, -100, 100);
-  if(value > -12 && value < 12)
+  if(value > -deadBand && value < deadBand)
     value = 0;
   return value;
 }
