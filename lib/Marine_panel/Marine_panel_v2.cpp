@@ -1100,7 +1100,8 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
   //RPM
   display.clearDisplay();
   uint8_t rpmPct = map(rcsVars.actRPM, rcsVars.minRPM, rcsVars.maxRPM, 0, 100);
-  dispProgBarVertical(display, 118, 0, 10, 64, rpmPct);
+  //dispProgBarVertical(display, 118, 0, 10, 64, rpmPct);
+  dispProgBarVertical2(display, 118,  0, 10, 64, int16_t(rcsVars.refRPM), int16_t(rcsVars.minRPM), int16_t(rcsVars.maxRPM));
   dispStringALigned(String(int32_t(rcsVars.maxRPM)), display, DejaVu_Sans_Mono_10, RightTop, 110, 0);
   dispStringALigned("0", display, DejaVu_Sans_Mono_10, RightBottom, 110, 36);
   dispStringALigned(String(int32_t(rcsVars.minRPM)), display, DejaVu_Sans_Mono_10, RightBottom, 110, 64);
@@ -1383,12 +1384,40 @@ void dispProgBar(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width,
 
 void dispProgBarVertical(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, uint8_t progress)
 {
-  display.drawRect(x, y, width, height, 1);
+  display.drawRect(x, y, width, height, WHITE);
   progress = constrain(progress, 0, 100);
   int16_t progressHeight = int16_t((height * progress)/100);
   display.setRotation(0);
   display.fillRect(SCREEN_WIDTH - x - width, y, width, progressHeight, 1);
   display.setRotation(2);
+}
+
+void dispProgBarVertical2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, int16_t progress, int16_t minVal, int16_t maxVal)
+{
+  
+  uint16_t posZero = 0;
+  posZero = 32;
+  if(progress > 0)
+  {
+    int16_t progressPct = map(progress, 0, maxVal, 0, 100);
+    int16_t progressHeight = map(progressPct, 0, 100, height - posZero, height);
+    
+    display.fillRect(x, y, width, posZero, WHITE);
+    display.fillRect(x, y, width, height - progressHeight, BLACK);
+  }
+  else if(progress < 0)
+  {
+    int16_t progressPct = map(progress, 0, minVal, 0, 100);
+    int16_t progressHeight = map(progressPct, 0, 100, posZero, height);
+    
+    display.fillRect(x, posZero, width, height, WHITE);
+    display.fillRect(x, y + progressHeight, width, height, BLACK);
+  }
+
+
+  display.drawRect(x, y, width, height, WHITE);
+  
+  
 }
 
 void dispStringALigned(String text, Adafruit_SSD1306 &display, GFXfont font, fontAligment aligment, int16_t x, int16_t y)
