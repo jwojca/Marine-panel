@@ -1245,11 +1245,11 @@ void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task)
 
 
   //Debug
-  String port = "PORT:" + String(rcsVars.refRpmPortBT) + "%";
+  /*String port = "PORT:" + String(rcsVars.refRpmPortBT) + "%";
   String stdb = "STBD:" + String(rcsVars.refRpmStbdBT) + "%";
 
   Serial.println(port);
-  Serial.println(stdb);
+  Serial.println(stdb);*/
 
 
 }
@@ -1274,10 +1274,14 @@ void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &d
 
   //Rpm
   display2.clearDisplay();
-  String rpmRefStr = "Ref. rpm: " + String(rcsVars.refRpmPortBT, 1) + "%";
-  String rpmActStr = "Act. rpm: " + String(0.0, 1) + "%";
+  String rpmRefStr;
+  String rpmActStr = "Act.rpm: " + String(0.0, 1) + "%";
   String rpmBgStr = String(rcsVars.maxRpmBT, 0) + "       0       " + String(rcsVars.maxRpmBT, 0);
 
+  if(rcsVars.refRpmPortBT > 0.0)
+    rpmRefStr = "Ref.rpm: PO " + String(rcsVars.refRpmPortBT, 1) + "%";
+  else
+    rpmRefStr = "Ref.rpm: ST " + String(rcsVars.refRpmStbdBT, 1) + "%";
 
   dispStringALigned(rpmRefStr, display2, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
   dispStringALigned(rpmActStr, display2, DejaVu_Sans_Mono_10, LeftTop, 0, 13);
@@ -1287,7 +1291,6 @@ void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &d
   //int power = map(int(rcsVars.refPowerBT * 100), int(rcsVars.minPowerBT * 100), int(rcsVars.maxPowerBT * 100), 0, 100);
   //dispProgBarHorizontal(display2, 0, 49, SCREEN_WIDTH, 15, 20);
   rcsVars.refRpmBt = rcsVars.refRpmStbdBT - rcsVars.refRpmPortBT;
-  Serial.println(rcsVars.refRpmBt);
   dispProgBarHorizontal2(display2, 0, 49, SCREEN_WIDTH, 15, int16_t(rcsVars.refRpmBt), -100, 100);
 
   display2.display();
