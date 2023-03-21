@@ -1293,8 +1293,7 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
 
   //POWER
   display3.clearDisplay();
-  uint8_t powerPct = map(rcsVars.actPower, rcsVars.minPower, rcsVars.maxPower, 0, 100);
-  dispProgBarVertical(display3, 0, 0, 10, 64, powerPct);
+  dispProgBarVertical2(display3, 0, 0, 10, 64, int16_t(rcsVars.refPower), int16_t(rcsVars.minPower), int16_t(rcsVars.maxPower));
   dispStringALigned(String(int(rcsVars.maxPower)), display3, DejaVu_Sans_Mono_10, LeftTop, 20, 0);
   dispStringALigned("0", display3, DejaVu_Sans_Mono_10, LeftBottom, 25, 54);
   dispStringALigned(String(int(rcsVars.minPower)), display3, DejaVu_Sans_Mono_10, LeftBottom, 20, 64);
@@ -1342,12 +1341,12 @@ void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task)
     rcsVars.refAngle = rcsVars.refAnglePORT + (360.0 - rcsVars.refAngleSTBD);
 
   //Debug
-  String port = "PORT:" + String(rcsVars.refAnglePORT) + "°";
+  /*String port = "PORT:" + String(rcsVars.refAnglePORT) + "°";
   String stdb = "STBD:" + String(rcsVars.refAngleSTBD) + "°";
   String total = "Total:" + String(rcsVars.refAngle) + "°";
   Serial.println(port);
   Serial.println(stdb);
-  Serial.println(total);
+  Serial.println(total);*/
 
 
   //rpm
@@ -1396,7 +1395,9 @@ void dispProgBarVertical2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16
 {
   
   uint16_t posZero = 0;
-  posZero = 32;
+  posZero = map(posZero, minVal, maxVal, height, y);
+  Serial.println(posZero);
+
   if(progress > 0)
   {
     int16_t progressPct = map(progress, 0, maxVal, 0, 100);
@@ -1416,8 +1417,7 @@ void dispProgBarVertical2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16
 
 
   display.drawRect(x, y, width, height, WHITE);
-  
-  
+ 
 }
 
 void dispStringALigned(String text, Adafruit_SSD1306 &display, GFXfont font, fontAligment aligment, int16_t x, int16_t y)
