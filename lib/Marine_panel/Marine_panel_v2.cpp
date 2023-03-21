@@ -1152,8 +1152,8 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
   display2.clearDisplay();
 
   //convert actual angle to angle with 5 deg step
-  uint16_t angle5 = round(rcsVars.actAngle/5.0) * 5;
-  if(rcsVars.actAngle < 0)
+  uint16_t angle5 = round(rcsVars.refAngle/5.0) * 5;
+  if(rcsVars.refAngle < 0)
     angle5 = 0;
   else if(angle5 > 360)
     angle5 = 360;
@@ -1243,8 +1243,8 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
 
   }
   display2.setRotation(2);
-  String refAngleStr = "Ref: " + String(uint16_t(rcsVars.refAngle)) + "°";
-  String actualAngleStr = "Act: " + String(rcsVars.actAngle) + "°";
+  String refAngleStr = "Ref: " + String(uint16_t(rcsVars.refAngle));
+  String actualAngleStr = "Act: " + String(rcsVars.actAngle);
   dispStringALigned(refAngleStr, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 0);
   dispStringALigned(actualAngleStr, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 10);
   display2.display();
@@ -1312,10 +1312,49 @@ void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task)
   int angle = joyReadData(JOY1_X);
   int rpm = joyReadData(JOY1_Y, true);
 
-  float angleIncrSpeed = 3.0;
+  float angleIncrSpeed = 1.0;
+  //angle
+  if(angle > 0) //STBD
+  {
+    if(rcsVars.refAnglePORT == 0.0)
+      rcsVars.refAngleSTBD += (float)(angle) * (angleIncrSpeed/task);
+    else
+      rcsVars.refAnglePORT -= (float)(angle) * (angleIncrSpeed/task);
 
-  rcsVars.refRPM += (float)(rpm) * (angleIncrSpeed/task);
+    rcsVars.refAngleSTBD = constrain(rcsVars.refAngleSTBD, 0.0, 180.0); 
+    rcsVars.refAnglePORT = constrain(rcsVars.refAnglePORT, 0.0, 180.0); 
+  }
+  else //PORT
+  {
+    if(rcsVars.refAngleSTBD == 0.0)
+      rcsVars.refAnglePORT -= (float)(angle) * (angleIncrSpeed/task);
+    else
+      rcsVars.refAngleSTBD += (float)(angle) * (angleIncrSpeed/task);
+
+    rcsVars.refAngleSTBD = constrain(rcsVars.refAngleSTBD, 0.0, 180.0); 
+    rcsVars.refAnglePORT = constrain(rcsVars.refAnglePORT, 0.0, 180.0); 
+  }
+
+  if(rcsVars.refAngleSTBD == 0)
+     rcsVars.refAngle = rcsVars.refAnglePORT;
+  else
+    rcsVars.refAngle = rcsVars.refAnglePORT + (360.0 - rcsVars.refAngleSTBD);
+
+  //Debug
+  String port = "PORT:" + String(rcsVars.refAnglePORT) + "°";
+  String stdb = "STBD:" + String(rcsVars.refAngleSTBD) + "°";
+  String total = "Total:" + String(rcsVars.refAngle) + "°";
+  Serial.println(port);
+  Serial.println(stdb);
+  Serial.println(total);
+
+
+  //rpm
+  float rpmIncrSpeed = 3.0;
+  rcsVars.refRPM += (float)(rpm) * (rpmIncrSpeed/task);
   rcsVars.refRPM = constrain(rcsVars.refRPM, rcsVars.minRPM, rcsVars.maxRPM);
+
+  
 }
 
 
