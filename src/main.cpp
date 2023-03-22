@@ -75,6 +75,8 @@ Breaker gBreaker1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm1, RGB2, P4, P2, &pcf1, &
 Breaker gBreaker3(&rtc, &alarmDisps, pemsCB3Alarm1, pwm1, RGB3, P0, P4, &pcf2, &pcf3), gBreaker4(&rtc, &alarmDisps, pemsCB4Alarm1, pwm1, RGB4, P2, P5, &pcf2, &pcf3);
 Breaker gBreaker5(&rtc, &alarmDisps, pemsCB5Alarm1, pwm1, RGB1, P4, P6, &pcf2, &pcf3), gBreaker6(&rtc, &alarmDisps, pemsCB6Alarm1, pwm2, RGB6, P6, P7, &pcf2, &pcf3);
 
+Generator gGenerator1(&rtc, &alarmDisps, pemsDG1Alarm1, &display8, P0, P0, &pcf1, &pcf3);
+
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
 static const unsigned char PROGMEM logo_bmp[] =
@@ -320,6 +322,9 @@ void loop()
   gBreaker6.readMode();
   gBreaker6.readState();
 
+  gGenerator1.readMode();
+  gGenerator1.readState();
+
   //RCS
   rcsAzipodReadData(grcsVars, task);
   rcsBowThrustersReadData(grcsVars, task);
@@ -347,6 +352,8 @@ void loop()
   gBreaker5.writeCmd();
   gBreaker6.writeCmd();
 
+  gGenerator1.writeCmd();
+
   // 4. VISUALIZE
   //---------- VMS -----------
   if(millis() - timeNow > dispRefreshTime)
@@ -357,10 +364,10 @@ void loop()
   }
 
   //---------- PEMS -----------
-  
+  progress = 50;
   dispPemsVisualize(display9, progress);
 
-  if(gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)
+  /*if(gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)
   {
     progressDG1 += 1;
     progressDG1 = constrain(progressDG1, 0, 70);
@@ -370,7 +377,7 @@ void loop()
     progressDG1 = 0;
     
   if(progress > 100)
-    progress = 0;
+    progress = 0;*/
 
   //---------- RCS -----------
 
@@ -396,6 +403,8 @@ void loop()
   gBreaker4.savePrevState();
   gBreaker5.savePrevState();
   gBreaker6.savePrevState();
+
+  gGenerator1.savePrevState();
 
   //6. DEBUG
 

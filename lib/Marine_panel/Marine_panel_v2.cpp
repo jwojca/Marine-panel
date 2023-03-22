@@ -680,6 +680,155 @@ void Breaker::closing(uint32_t loadTime)
     this->breakerState = Closed;
 }
 
+// ---------------------------- GENERATOR CLASS FUNCTIONS -------------------------------------------------
+void Generator::readMode()
+{
+  uint8_t state = read3State(pcf1Pin, false, *pcf1);
+  if(state == 0)
+    this->generatorMode = Local;
+
+  if(state == 2)
+    this->generatorMode = Auto;
+}
+
+void Generator::readState()
+{
+
+  //For dynamic rows change
+  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+  {
+    --this->alarmRow;
+    dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+  }
+
+  uint8_t state = read3State(pcf1Pin, false, *pcf1);
+  if(state == 1)
+  {
+    if(this->generatorPrevState == Running || this->generatorPrevState == Starting)
+        this->generatorState = StoppingF;
+    if(this->generatorPrevState == Stopped)   
+    {
+      this->generatorState = Failure;
+      incrementAlarmCounter(*this->alarmDisps);
+      this->generatorAlarm1.time = rtcTime2String(*this->rtc);
+      this->alarmRow = alarmCounter;
+    }
+        
+  }
+    
+  else
+  {
+    if(this->generatorMode == Local)
+    {
+        bool run = read2State(pcf2Pin, false, *pcf2);
+        bool stop = !run;
+
+        if(run && (this->generatorPrevState == Stopped || this->generatorPrevState == Stopping))
+        {
+          this->timer = millis(); //reset timer
+          this->generatorState = Starting;
+        }
+            
+        if (stop && (this->generatorPrevState == Running || this->generatorPrevState == Starting))
+        {
+           this->timer = millis(); //reset timer
+           this->generatorState = Stopping;
+        }
+        if (stop && (this->generatorPrevState == Failure))
+        {
+          decrementAlarmCounter(*this->alarmDisps);
+          alarmIndex = this->alarmRow;
+          this->alarmRow = 0;
+          this->generatorState = Stopped;
+          
+        }
+            
+    
+    }
+
+    else    //Auto - read from modbus
+    {
+
+    }
+    
+  }
+
+}
+
+void Generator::writeCmd()
+{   
+
+    uint32_t loadTime = 3000;
+
+    if(this->generatorState == Failure)
+    {
+      //RGBLedColor(firstPin, 255, 0, 0, pwm);
+      dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->generatorAlarm1, this->alarmRow);
+    }
+        
+    else
+    {
+        if(this->generatorState == Starting)
+        {
+          this->starting(loadTime);
+          this->dispState("Starting");
+        }
+        if(this->generatorState == Running)
+        {
+          //RGBLedColor(firstPin, 0, 0, 0, pwm);
+          this->display->clearDisplay();
+          this->dispState("Running");
+        }
+            //RGBLedColor(firstPin, 0, 255, 0, pwm);
+        if(this->generatorState == Stopping)
+        {
+          this->stopping(loadTime);
+          this->dispState("Stopping");
+        }
+            
+        if(this->generatorState == Stopped)
+        {
+          this->dispState("Stopped");
+        }
+            
+        if(this->generatorState == StoppingF)
+        {
+          this->stopping(loadTime);
+          this->dispState("Stopping");
+        }
+            
+    }
+  
+}
+
+
+void Generator::savePrevState()
+{
+    this->generatorPrevState = this->generatorState;
+}
+
+void Generator::starting(uint32_t loadTime)
+{
+  if(TOff(loadTime, &this->timer))
+    this->generatorState = Running;
+}
+
+void Generator::stopping(uint32_t loadTime)
+{
+  if(TOff(loadTime, &this->timer))
+    this->generatorState = Stopped;
+}
+
+void Generator::dispState(String text)
+{
+  this->display->clearDisplay();
+  this->display->setRotation(3);
+  dispStringALigned(text, *this->display, DejaVu_Sans_Mono_10, LeftTop, 5, 0);
+  this->display->setRotation(0);
+  this->display->display();
+}
+
+
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2)
 {
   display.clearDisplay();

@@ -279,6 +279,58 @@ class Breaker
     void opening(uint32_t loadTime);
 };
 
+class Generator
+{
+  public:
+    float power;
+    float nomPower;
+    uint16_t speed;
+    uint16_t maxSpeed;
+    float voltage;
+    float nomVoltage;
+    float frequency;
+    mpState generatorState = Stopped;
+    mpState generatorPrevState = Stopped;
+    mpMode generatorMode = Local;
+
+    PCF8574 *pcf1;
+    PCF8574 *pcf2;
+    uint8_t pcf1Pin;
+    uint8_t pcf2Pin;
+
+    Adafruit_SSD1306 *display;
+
+    unsigned long timer = 0;
+
+    alarmDispsStruct *alarmDisps;
+    mpAlarm generatorAlarm1;
+    uint16_t alarmRow = 0;
+
+    RTC_DS1307 *rtc;
+
+    Generator(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _generatorAlarm1, Adafruit_SSD1306 *_display, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
+    {
+      pcf1 = _pcf1;
+      pcf2 = _pcf2;
+      pcf1Pin = _pcf1Pin;
+      pcf2Pin = _pcf2Pin;
+      display = _display;
+      alarmDisps = _alarmDisps;
+      generatorAlarm1 = _generatorAlarm1;
+      rtc = _rtc;
+    }
+    
+    
+    void readMode();
+    void readState();
+    void writeCmd();
+    void savePrevState();
+    void stopping(uint32_t loadTime);
+    void starting(uint32_t loadTime);
+    void dispState(String text);
+
+};
+
 void incrementAlarmCounter();
 void decrementAlarmCounter();
 void printAlarmCounter();

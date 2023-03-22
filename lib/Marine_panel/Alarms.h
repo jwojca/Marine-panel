@@ -11,12 +11,17 @@ struct mpAlarm
   String descr;
 };
 
-
+//----------------------------------------- VMS -----------------------------------------------------
 static mpAlarm vmsP1Alarm1 {"26-10-2022 08:47", "VMS Pump 1", "Critical", "Power failure"};
 static mpAlarm vmsP2Alarm1 {"26-10-2022 08:47", "VMS Pump 2", "Low priority", "Bla bla"};
 static mpAlarm vmsV1Alarm1 {"26-10-2022 08:47", "VMS Valve 1", "Critical", "Not opening"};
 static mpAlarm vmsV2Alarm1 {"26-10-2022 08:47", "VMS Valve 2", "Low priority", "Clogged"};
-                              
+
+
+//----------------------------------------- PEMS -----------------------------------------------------
+static mpAlarm pemsDG1Alarm1 {"26-10-2022 08:47", "PEMS Generator 1", "Med priority", "Connect fail"};
+static mpAlarm pemsDG2Alarm1 {"26-10-2022 08:47", "PEMS Generator 2", "Med priority", "Connect fail"};
+
 static mpAlarm pemsCB1Alarm1 {"26-10-2022 08:47", "PEMS Cbreaker 1", "Critical", "Bla bla"};
 static mpAlarm pemsCB2Alarm1 {"26-10-2022 08:47", "PEMS Cbreaker 2", "Low priority", "Bla bla"};
 static mpAlarm pemsCB3Alarm1 {"26-10-2022 08:47", "PEMS Cbreaker 3", "Critical", "Bla bla"};
