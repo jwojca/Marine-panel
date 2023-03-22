@@ -77,7 +77,7 @@ Breaker gBreaker1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm1, RGB2, P4, P2, &pcf1, &
 Breaker gBreaker3(&rtc, &alarmDisps, pemsCB3Alarm1, pwm1, RGB3, P0, P4, &pcf2, &pcf3), gBreaker4(&rtc, &alarmDisps, pemsCB4Alarm1, pwm1, RGB4, P2, P5, &pcf2, &pcf3);
 Breaker gBreaker5(&rtc, &alarmDisps, pemsCB5Alarm1, pwm1, RGB1, P4, P6, &pcf2, &pcf3), gBreaker6(&rtc, &alarmDisps, pemsCB6Alarm1, pwm2, RGB6, P6, P7, &pcf2, &pcf3);
 
-Generator gGenerator1(&rtc, &alarmDisps, pemsDG1Alarm1, &display8, P0, P0, &pcf1, &pcf3), gGenerator2(&rtc, &alarmDisps, pemsDG2Alarm1, &display9, P2, P1, &pcf1, &pcf3);
+Generator gGenerator1(&rtc, &alarmDisps, pemsDG1Alarm1, pemsDG1Alarm2,  &display8, P0, P0, &pcf1, &pcf3), gGenerator2(&rtc, &alarmDisps, pemsDG2Alarm1, pemsDG2Alarm2, &display9, P2, P1, &pcf1, &pcf3);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16

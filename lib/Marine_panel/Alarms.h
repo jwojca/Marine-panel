@@ -20,7 +20,9 @@ static mpAlarm vmsV2Alarm1 {"26-10-2022 08:47", "VMS Valve 2", "Low priority", "
 
 //----------------------------------------- PEMS -----------------------------------------------------
 static mpAlarm pemsDG1Alarm1 {"26-10-2022 08:47", "PEMS Generator 1", "Med priority", "Connect fail"};
+static mpAlarm pemsDG1Alarm2 {"26-10-2022 08:47", "PEMS Generator 1", "Med priority", "Tripped"};
 static mpAlarm pemsDG2Alarm1 {"26-10-2022 08:47", "PEMS Generator 2", "Med priority", "Connect fail"};
+static mpAlarm pemsDG2Alarm2 {"26-10-2022 08:47", "PEMS Generator 2", "Med priority", "Tripped"};
 
 static mpAlarm pemsCB1Alarm1 {"26-10-2022 08:47", "PEMS Cbreaker 1", "Critical", "Bla bla"};
 static mpAlarm pemsCB2Alarm1 {"26-10-2022 08:47", "PEMS Cbreaker 2", "Low priority", "Bla bla"};

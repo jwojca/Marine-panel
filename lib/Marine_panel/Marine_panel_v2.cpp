@@ -701,12 +701,23 @@ void Generator::readState()
     dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
   }
 
+  //Read state
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
   if(state == 1)
+    this->failure = true;
+
+  if(this->failure)
   {
-    if(this->generatorPrevState == Running || this->generatorPrevState == Starting)
+    if(this->generatorPrevState == StoppingF)
+    {
+      this->generatorState = Failure2;
+      incrementAlarmCounter(*this->alarmDisps);
+      this->generatorAlarm1.time = rtcTime2String(*this->rtc);
+      this->alarmRow = alarmCounter;
+    }
+    else if(this->generatorPrevState == Running || this->generatorPrevState == Starting)
         this->generatorState = StoppingF;
-    if(this->generatorPrevState == Stopped)   
+    else if(this->generatorPrevState == Stopped)   
     {
       this->generatorState = Failure;
       incrementAlarmCounter(*this->alarmDisps);
@@ -715,7 +726,6 @@ void Generator::readState()
     }
         
   }
-    
   else
   {
     if(this->generatorMode == Local)
@@ -729,12 +739,20 @@ void Generator::readState()
           this->generatorState = Starting;
         }
             
-        if (stop && (this->generatorPrevState == Running || this->generatorPrevState == Starting))
+        if ((this->generatorPrevState == Running || this->generatorPrevState == Starting))
         {
-           this->timer = millis(); //reset timer
-           this->generatorState = Stopping;
+          if(stop)
+          {
+            this->timer = millis(); //reset timer
+            this->generatorState = Stopping;
+          }
+          else if(!this->breakersClosed)
+          {
+            this->generatorState = StoppingF;
+          }
+           
         }
-        if (stop && (this->generatorPrevState == Failure))
+        if (stop && (this->generatorPrevState == Failure || this->generatorPrevState == Failure2))
         {
           decrementAlarmCounter(*this->alarmDisps);
           alarmIndex = this->alarmRow;
@@ -762,9 +780,17 @@ void Generator::writeCmd()
 
     if(this->generatorState == Failure)
     {
-      //RGBLedColor(firstPin, 255, 0, 0, pwm);
       dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->generatorAlarm1, this->alarmRow);
+      this->failure = false;
+      this->dispState("Failure");
     }
+    else if(this->generatorState == Failure2)
+    {
+      dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->generatorAlarm2, this->alarmRow);
+      this->failure = false;
+      this->dispState("Failure");
+    }
+      
         
     else
     {
@@ -796,11 +822,12 @@ void Generator::writeCmd()
         if(this->generatorState == StoppingF)
         {
           this->stopping(loadTime);
-          this->dispState("Stopping");
+          this->dispState("Stopp.F");
         }
             
     }
-  
+
+      
 }
 
 
@@ -833,7 +860,10 @@ void Generator::stopping(uint32_t loadTime)
   {
     this->speed = this->minSpeed;
     this->power = this->minPower;
-    this->generatorState = Stopped;
+    if(this->generatorState == StoppingF)
+      this->failure = true;
+    else
+      this->generatorState = Stopped;
   }
 }
 

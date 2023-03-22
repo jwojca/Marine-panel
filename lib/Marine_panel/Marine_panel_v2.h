@@ -93,7 +93,7 @@ static int task = 50;
 
 
 enum mpMode{Local, Auto};
-enum mpState{Closed, Opened, Failure, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running}; //states for valves and pumps 
+enum mpState{Closed, Opened, Failure, Failure2, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running}; //states for valves and pumps 
 //TODO split states for valves, pumps, breakers, DGs
 
 
@@ -304,13 +304,15 @@ class Generator
 
     alarmDispsStruct *alarmDisps;
     mpAlarm generatorAlarm1;
+    mpAlarm generatorAlarm2;
     uint16_t alarmRow = 0;
 
     bool breakersClosed = false;
+    bool failure = false;
 
     RTC_DS1307 *rtc;
 
-    Generator(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _generatorAlarm1, Adafruit_SSD1306 *_display, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
+    Generator(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _generatorAlarm1, mpAlarm _generatorAlarm2, Adafruit_SSD1306 *_display, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       pcf1 = _pcf1;
       pcf2 = _pcf2;
@@ -319,6 +321,7 @@ class Generator
       display = _display;
       alarmDisps = _alarmDisps;
       generatorAlarm1 = _generatorAlarm1;
+      generatorAlarm2 = _generatorAlarm2;
       rtc = _rtc;
     }
     
