@@ -723,7 +723,7 @@ void Generator::readState()
         bool run = read2State(pcf2Pin, false, *pcf2);
         bool stop = !run;
 
-        if(run && (this->generatorPrevState == Stopped || this->generatorPrevState == Stopping))
+        if(run && (this->generatorPrevState == Stopped || this->generatorPrevState == Stopping) && this->breakersClosed)
         {
           this->timer = millis(); //reset timer
           this->generatorState = Starting;
@@ -921,6 +921,14 @@ void Generator::visualize()
   }
   else
     this->display->display();
+}
+
+void Generator::readBreakersState(bool state1, bool state2)
+{
+  if(state1 && state2)
+    this->breakersClosed = true;
+  else
+    this->breakersClosed = false;
 }
 
 

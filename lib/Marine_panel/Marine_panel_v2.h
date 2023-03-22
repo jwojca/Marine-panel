@@ -306,6 +306,8 @@ class Generator
     mpAlarm generatorAlarm1;
     uint16_t alarmRow = 0;
 
+    bool breakersClosed = false;
+
     RTC_DS1307 *rtc;
 
     Generator(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _generatorAlarm1, Adafruit_SSD1306 *_display, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
@@ -329,6 +331,7 @@ class Generator
     void starting(uint32_t loadTime);
     void dispState(String text);
     void visualize();
+    void readBreakersState(bool state1, bool state2);
 
 };
 

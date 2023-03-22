@@ -325,8 +325,11 @@ void loop()
   gBreaker6.readState();
 
   gGenerator1.readMode();
+  gGenerator1.readBreakersState(gBreaker1.breakerState == Opened, gBreaker5.breakerState == Opened);
   gGenerator1.readState();
+  
   gGenerator2.readMode();
+  gGenerator2.readBreakersState(gBreaker2.breakerState == Opened, gBreaker6.breakerState == Opened);
   gGenerator2.readState();
 
 
