@@ -1491,8 +1491,12 @@ void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task)
 void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task)
 {
 
-  int steer = joyReadData(JOY1_X);
-  int rpm = joyReadData(JOY1_Y, true);
+  int steer = joyReadData(JOY2_X);
+  int rpm = joyReadData(JOY2_Y, true);
+
+  Serial.println(rpm);
+
+ 
 
   //Steer 
   float steerIncrSpeed = 3;
@@ -1786,6 +1790,8 @@ int joyReadData(uint8_t pin, bool verticalAxis)
   else
     value = map(analogRead(pin), 0, 8191, -110, 110);
   value = constrain(value, -100, 100);
+
+
   if(value > -deadBand && value < deadBand)
     value = 0;
   return value;

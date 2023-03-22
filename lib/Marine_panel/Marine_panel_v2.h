@@ -39,12 +39,12 @@
 #define DISP11_CS   13
 #define DISP12_CS   14
 #define DISP13_CS   15
-#define DISP14_CS   16
+#define DISP14_CS   21
 #define DISP15_CS   45
 
 #define JOY1_X 20
 #define JOY1_Y 19
-#define JOY2_X 18
+#define JOY2_X 16
 #define JOY2_Y 17
 
 #define RGB1 1
