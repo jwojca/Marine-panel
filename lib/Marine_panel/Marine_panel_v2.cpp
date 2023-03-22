@@ -826,6 +826,8 @@ void Generator::stopping(uint32_t loadTime)
   this->power = addNoise(this->power, -5.0, 5.0);
   this->speed -= (this->nomSpeed/loadTime) * task;
   this->speed = addNoise(this->speed, -5.0, 5.0);
+  
+  this->speed = constrain(this->speed, this->minSpeed, this->maxSpeed);
 
   if(this->power <= this->minPower)
   {
@@ -859,9 +861,10 @@ void Generator::visualize()
   int8_t physQtyOffset = -4;
   int8_t circleOffset = 5;
 
+
+
   uint8_t powerPct, speedPct;
   powerPct = map(this->power, this->minPower, this->maxPower, 0, 100);
-  Serial.println(powerPct);
   speedPct = map(this->speed, this->minSpeed, this->maxSpeed, 0, 100);
 
 
@@ -878,30 +881,33 @@ void Generator::visualize()
   this->display->setFont(&DejaVu_Sans_Mono_10);
   this->display->setTextColor(SSD1306_WHITE);
 
+  int16_t yOffset = 18;
+  int16_t xOffsetPow = 75;
+  int16_t xOffsetSpd = 75;
 
-  this->display->setCursor(0, 28);
-  this->display->println(("       " + powerStr +"   "));
-  cursorY = this->display->getCursorY();
-  this->display->setCursor(0, cursorY - 5);
+  if(this->power < 10.0)
+    xOffsetPow = 66;
+  else if (this->power >= 10.0 && this->power < 100.0)
+    xOffsetPow = 69;
+  else if (this->power >= 100.0 && this->power < 1000.0)
+    xOffsetPow = 72;
+  else
+    xOffsetPow = 75;
 
-  this->display->setFont(&DejaVu_Sans_Mono_8);
-  this->display->setTextColor(SSD1306_WHITE);
+  if(this->speed < 10.0)
+    xOffsetSpd = 66;
+  else if (this->speed >= 10.0 && this->speed < 100.0)
+    xOffsetSpd = 69;
+  else if (this->speed >= 100.0 && this->speed < 1000.0)
+    xOffsetSpd = 72;
+  else
+    xOffsetSpd = 75;
 
-  this->display->println  ("          kW    ");
-  cursorY = this->display->getCursorY();
-  this->display->setCursor(0, cursorY + 3);
+  dispStringALigned(powerStr, *display, DejaVu_Sans_Mono_10, RightTop, xOffsetPow, yOffset);
+  dispStringALigned("kw", *display, DejaVu_Sans_Mono_10, RightTop, 69, yOffset + 10);
+  dispStringALigned(speedStr, *display, DejaVu_Sans_Mono_10, RightTop, xOffsetSpd, yOffset + 20);
+  dispStringALigned("rpm", *display, DejaVu_Sans_Mono_10, RightTop, 72, yOffset + 30);
 
-  this->display->setFont(&DejaVu_Sans_Mono_10);
-  this->display->setTextColor(SSD1306_WHITE);
-
-  this->display->println(("       " + speedStr));
-  cursorY = this->display->getCursorY();
-  this->display->setCursor(0, cursorY - 5);
-
-  this->display->setFont(&DejaVu_Sans_Mono_8);
-  this->display->setTextColor(SSD1306_WHITE);
-
-  this->display->println  ("         rpm    ");
   
   //If generator started, refresh display less often
   int dispRefreshTime = 300;

@@ -370,13 +370,8 @@ void loop()
 
   }
 
-  //---------- PEMS -----------
-  /*progress += 1;
-  if(progress > 100)
-    progress = 0;
-  dispPemsVisualize(display9, progress);*/
-  
   gGenerator1.visualize();
+  gGenerator2.visualize();
  
 
   /*if(gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)
