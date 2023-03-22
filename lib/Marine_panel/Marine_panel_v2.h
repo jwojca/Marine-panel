@@ -89,6 +89,8 @@
 
 #include "../Marine_panel/Images/Images.h"
 
+static int task = 50; 
+
 
 enum mpMode{Local, Auto};
 enum mpState{Closed, Opened, Failure, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running}; //states for valves and pumps 
@@ -282,10 +284,8 @@ class Breaker
 class Generator
 {
   public:
-    float power;
-    float nomPower;
-    uint16_t speed;
-    uint16_t maxSpeed;
+    float power = 0.0, nomPower = 1500.0 , minPower = 0.0, maxPower = 2000.0;
+    float speed = 0.0, nomSpeed = 850.0, maxSpeed = 1500.0, minSpeed = 0.0;
     float voltage;
     float nomVoltage;
     float frequency;
@@ -328,6 +328,7 @@ class Generator
     void stopping(uint32_t loadTime);
     void starting(uint32_t loadTime);
     void dispState(String text);
+    void visualize();
 
 };
 

@@ -19,6 +19,8 @@ bool setTime = false;
 
 
 
+
+
 //peripherals
 PCF8574 pcf1(PCF1_ADRESS); 
 PCF8574 pcf2(PCF2_ADRESS); 
@@ -277,7 +279,7 @@ uint16_t progressDG2 = 0;
 uint8_t state = 0;
 uint32_t showLast = 0;
 
-int task = 50; 
+
 int dispRefreshTime = 500;
 unsigned long timeNow = 0;
 
@@ -369,10 +371,12 @@ void loop()
   }
 
   //---------- PEMS -----------
-  progress += 1;
+  /*progress += 1;
   if(progress > 100)
     progress = 0;
-  dispPemsVisualize(display9, progress);
+  dispPemsVisualize(display9, progress);*/
+  
+  gGenerator1.visualize();
  
 
   /*if(gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)

@@ -775,9 +775,11 @@ void Generator::writeCmd()
         }
         if(this->generatorState == Running)
         {
-          //RGBLedColor(firstPin, 0, 0, 0, pwm);
           this->display->clearDisplay();
           this->dispState("Running");
+          //values oscilating
+          this->power = addNoise(this->nomPower, -5.0, 5.0);
+          this->speed = addNoise(this->nomSpeed, -5.0, 5.0);
         }
             //RGBLedColor(firstPin, 0, 255, 0, pwm);
         if(this->generatorState == Stopping)
@@ -808,15 +810,29 @@ void Generator::savePrevState()
 }
 
 void Generator::starting(uint32_t loadTime)
-{
-  if(TOff(loadTime, &this->timer))
+{   
+  this->power += (this->nomPower/loadTime) * task;
+  this->power = addNoise(this->power, -5.0, 5.0);
+  this->speed += (this->nomSpeed/loadTime) * task;  
+  this->speed = addNoise(this->speed, -5.0, 5.0);
+
+  if(this->power >= nomPower)
     this->generatorState = Running;
 }
 
 void Generator::stopping(uint32_t loadTime)
 {
-  if(TOff(loadTime, &this->timer))
+  this->power -= (this->nomPower/loadTime) * task;
+  this->power = addNoise(this->power, -5.0, 5.0);
+  this->speed -= (this->nomSpeed/loadTime) * task;
+  this->speed = addNoise(this->speed, -5.0, 5.0);
+
+  if(this->power <= this->minPower)
+  {
+    this->speed = this->minSpeed;
+    this->power = this->minPower;
     this->generatorState = Stopped;
+  }
 }
 
 //IMPORTANT - function only clears display and write state into buffer. Text is displayed in visualize function.
@@ -827,6 +843,80 @@ void Generator::dispState(String text)
   dispStringALigned(text, *this->display, DejaVu_Sans_Mono_10, LeftTop, 5, 0);
   this->display->setRotation(0);
 }
+
+void Generator::visualize()
+{
+  int bigRadius = 37;
+  int smallRadius = 28;
+  String powerStr = String(this->power, 0);
+  String speedStr = String(this->speed, 0);
+
+  int16_t cursorX = 0;
+  int16_t cursorY = 40;
+
+  //probably not needed vars
+  uint8_t progressStringOffset = 15;
+  int8_t physQtyOffset = -4;
+  int8_t circleOffset = 5;
+
+  uint8_t powerPct, speedPct;
+  powerPct = map(this->power, this->minPower, this->maxPower, 0, 100);
+  Serial.println(powerPct);
+  speedPct = map(this->speed, this->minSpeed, this->maxSpeed, 0, 100);
+
+
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius, *display, powerPct);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius - 1, *display, powerPct, true);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, bigRadius - 2, *display, powerPct);
+
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius, *display, speedPct);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 1 , *display, speedPct, true);
+  drawCirclePems(DISP_CENTER_X0, DISP_CENTER_Y0 + circleOffset, smallRadius + 2, *display, speedPct);
+
+
+
+  this->display->setFont(&DejaVu_Sans_Mono_10);
+  this->display->setTextColor(SSD1306_WHITE);
+
+
+  this->display->setCursor(0, 28);
+  this->display->println(("       " + powerStr +"   "));
+  cursorY = this->display->getCursorY();
+  this->display->setCursor(0, cursorY - 5);
+
+  this->display->setFont(&DejaVu_Sans_Mono_8);
+  this->display->setTextColor(SSD1306_WHITE);
+
+  this->display->println  ("          kW    ");
+  cursorY = this->display->getCursorY();
+  this->display->setCursor(0, cursorY + 3);
+
+  this->display->setFont(&DejaVu_Sans_Mono_10);
+  this->display->setTextColor(SSD1306_WHITE);
+
+  this->display->println(("       " + speedStr));
+  cursorY = this->display->getCursorY();
+  this->display->setCursor(0, cursorY - 5);
+
+  this->display->setFont(&DejaVu_Sans_Mono_8);
+  this->display->setTextColor(SSD1306_WHITE);
+
+  this->display->println  ("         rpm    ");
+  
+  //If generator started, refresh display less often
+  int dispRefreshTime = 300;
+  if(this->generatorState == Running && this->generatorPrevState == Running)
+  {
+    if(millis() - timer > dispRefreshTime)
+    {
+      this->display->display();
+      timer = millis();
+    }
+  }
+  else
+    this->display->display();
+}
+
 
 
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2)
@@ -1212,6 +1302,7 @@ void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress)
 
   display.display();
 }
+
 
 void rtcPrintTime(RTC_DS1307 &rtc)
 {
