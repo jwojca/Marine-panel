@@ -75,7 +75,7 @@ Breaker gBreaker1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm1, RGB2, P4, P2, &pcf1, &
 Breaker gBreaker3(&rtc, &alarmDisps, pemsCB3Alarm1, pwm1, RGB3, P0, P4, &pcf2, &pcf3), gBreaker4(&rtc, &alarmDisps, pemsCB4Alarm1, pwm1, RGB4, P2, P5, &pcf2, &pcf3);
 Breaker gBreaker5(&rtc, &alarmDisps, pemsCB5Alarm1, pwm1, RGB1, P4, P6, &pcf2, &pcf3), gBreaker6(&rtc, &alarmDisps, pemsCB6Alarm1, pwm2, RGB6, P6, P7, &pcf2, &pcf3);
 
-Generator gGenerator1(&rtc, &alarmDisps, pemsDG1Alarm1, &display8, P0, P0, &pcf1, &pcf3);
+Generator gGenerator1(&rtc, &alarmDisps, pemsDG1Alarm1, &display8, P0, P0, &pcf1, &pcf3), gGenerator2(&rtc, &alarmDisps, pemsDG2Alarm1, &display9, P2, P1, &pcf1, &pcf3);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
@@ -324,6 +324,9 @@ void loop()
 
   gGenerator1.readMode();
   gGenerator1.readState();
+  gGenerator2.readMode();
+  gGenerator2.readState();
+
 
   //RCS
   rcsAzipodReadData(grcsVars, task);
@@ -353,6 +356,7 @@ void loop()
   gBreaker6.writeCmd();
 
   gGenerator1.writeCmd();
+  gGenerator2.writeCmd();
 
   // 4. VISUALIZE
   //---------- VMS -----------
@@ -361,11 +365,15 @@ void loop()
     vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
     vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
     timeNow = millis();
+
   }
 
   //---------- PEMS -----------
-  progress = 50;
+  progress += 1;
+  if(progress > 100)
+    progress = 0;
   dispPemsVisualize(display9, progress);
+ 
 
   /*if(gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)
   {
@@ -405,6 +413,7 @@ void loop()
   gBreaker6.savePrevState();
 
   gGenerator1.savePrevState();
+  gGenerator2.savePrevState();
 
   //6. DEBUG
 

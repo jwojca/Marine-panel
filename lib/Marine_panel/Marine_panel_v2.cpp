@@ -819,13 +819,13 @@ void Generator::stopping(uint32_t loadTime)
     this->generatorState = Stopped;
 }
 
-void Generator::dispState(String text)
+//IMPORTANT - function only clears display and write state into buffer. Text is displayed in visualize function.
+void Generator::dispState(String text)  
 {
   this->display->clearDisplay();
   this->display->setRotation(3);
   dispStringALigned(text, *this->display, DejaVu_Sans_Mono_10, LeftTop, 5, 0);
   this->display->setRotation(0);
-  this->display->display();
 }
 
 
@@ -1145,7 +1145,7 @@ void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress)
   else
     progressStringOffset = 22;
 
-  display.clearDisplay();
+  //display.clearDisplay();
   
   /*display.drawString(DISP_CENTER_X0 + physQtyOffset, DISP_CENTER_Y0 - 5,  " MW");
   display.drawString(DISP_CENTER_X0 + physQtyOffset, DISP_CENTER_Y0 + 5,  " RPM");
