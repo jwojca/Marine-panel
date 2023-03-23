@@ -1,5 +1,7 @@
 #include "HVAC.h"
 
+
+
 void Damper::readMode()
 {
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
@@ -82,7 +84,58 @@ void Damper::readState()
     
     
   }
+     
+}
 
-  
+void Damper::writeCmd()
+{
+  uint32_t loadTime = 2000;
+  //calculate first pin of pwm channel based on RGB number
+  uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
+  if(this->damperState == eDamperState::Failure)
+  {
+    RGBLedColor(firstPin, 255, 0, 0, pwm);
+    dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->damperAlarm1, this->alarmRow);
+  }
+  else
+  {
+    if(this->damperState == eDamperState::Opened)
+        RGBLedColor(firstPin, 0, 255, 0, pwm);
+    if(this->damperState == eDamperState::Closed)
+        RGBLedColor(firstPin, 0, 0, 0, pwm);
+    if(this->damperState == eDamperState::Opening)
+    {
+      this->opening(loadTime);
+      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+    }
+    if(this->damperState == eDamperState::Closing)
+    {
+      this->closing(loadTime);
+      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+    }
+    if(this->damperState == eDamperState::ClosingF)
+    {
+      this->closing(loadTime);
+      RGBLedBlink(pwm, firstPin, 500, 250, Red, &this->blinkTimer);
+    }
       
+  }
+
+}
+
+void Damper::savePrevState()
+{
+    this->damperPrevState = this->damperState;
+}
+
+void Damper::opening(uint32_t loadTime)
+{
+  if(TOff(loadTime, &this->timer))
+    this->damperState = eDamperState::Opened;
+}
+
+void Damper::closing(uint32_t loadTime)
+{
+  if(TOff(loadTime, &this->timer))
+    this->damperState = eDamperState::Closed;
 }

@@ -2,6 +2,8 @@
 
 #include "../Marine_panel/Marine_panel_v2.h"
 
+enum class eDamperState{Opened, Closed, Opening, Closing, Failure, ClosingF, failClogged};
+
 class Damper
 {
   public:

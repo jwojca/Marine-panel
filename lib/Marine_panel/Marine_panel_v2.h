@@ -99,7 +99,7 @@ extern int16_t alarmIndex;// = 1000;
 enum mpMode{Local, Auto};
 enum mpState{Closed, Opened, Failure, Failure2, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running}; //states for valves and pumps 
 
-enum class eDamperState{Opened, Closed, Opening, Closing, Failure, ClosingF, failClogged};
+
 //TODO split states for valves, pumps, breakers, DGs
 
 
@@ -128,6 +128,10 @@ struct color
     uint8_t green;
     uint8_t blue;
 };
+
+extern color Red;
+extern color Green;
+extern color Blue;
 
 struct alarmDispsStruct
 {
@@ -355,7 +359,7 @@ void resetAlarmIndex();
 void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
 void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm);
-void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn, int durationOff, color aColor, unsigned long timeNow);
+void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn, int durationOff, color aColor, unsigned long *timer);
 
 void pcfAllOutInit(PCF8574 &pcf);
 void pcfAllInInit(PCF8574 &pcf);
@@ -366,7 +370,7 @@ void pwmInit(Adafruit_PWMServoDriver &pwm);
 
 void dispInit(Adafruit_SSD1306 &display, bool reset);
 void dispShowID(Adafruit_SSD1306 &display, String ID);
-void dispShowAlarm(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4, mpAlarm sAlarm);
+void dispShowAlarm(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4, mpAlarm sAlarm, uint16_t row);
 void dispClearAlarms(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4);
 void dispProgBarHorizontal(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, uint8_t progress);
 void dispProgBarHorizontal2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, int16_t progress, int16_t minVal, int16_t maxVal);
