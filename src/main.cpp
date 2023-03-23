@@ -27,6 +27,7 @@ PCF8574 pcf2(PCF2_ADRESS);
 PCF8574 pcf3(PCF3_ADRESS); 
 PCF8574 pcf4(PCF4_ADRESS); 
 PCF8574 pcf5(PCF5_ADRESS);
+PCF8574 pcf6(PCF6_ADRESS);
 
 
 // Declaration for SSD1306 display connected using software SPI (default case):
@@ -119,6 +120,7 @@ void setup()
   pcfAllInInit(pcf3);
   pcfAllInInit(pcf4);
   pcfAllInInit(pcf5);
+  pcfAllInInit(pcf6);
 	
   pwmInit(pwm1);
   pwmInit(pwm2);
@@ -421,6 +423,16 @@ void loop()
 
   //Serial.println(gPump1.timer);
  // Serial.println(gPump2.timer);
+  String voltageX1 = "X1 " + String(analogReadMilliVolts(JOY1_X)) + "mV";
+  String voltageY1 = "Y1 " + String(analogReadMilliVolts(JOY1_Y)) + "mV";
+  String voltageX2 = "X2 " + String(analogReadMilliVolts(JOY2_X)) + "mV";
+  String voltageY2 = "Y2 " + String(analogReadMilliVolts(JOY2_Y)) + "mV";
+  display15.clearDisplay();
+  dispStringALigned(voltageX1, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
+  dispStringALigned(voltageY1, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 10);
+  dispStringALigned(voltageX2, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 20);
+  dispStringALigned(voltageY2, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 30);
+  display15.display();
 
  
   delay(task);

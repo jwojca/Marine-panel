@@ -1783,7 +1783,7 @@ void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle)
 
 int joyReadData(uint8_t pin, bool verticalAxis)
 {
-  uint8_t deadBand = 20;
+  uint8_t deadBand = 30;
   int value;
   if(verticalAxis)
     value = map(analogRead(pin), 0, 8191, 110, -110);
