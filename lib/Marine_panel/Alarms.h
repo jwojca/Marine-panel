@@ -31,5 +31,11 @@ static mpAlarm pemsCB4Alarm1 {"26-10-2022 08:47", "PEMS Cbreaker 4", "Low priori
 static mpAlarm pemsCB5Alarm1 {"26-10-2022 08:47", "PEMS Cbreaker 5", "Critical", "Bla bla"};
 static mpAlarm pemsCB6Alarm1 {"26-10-2022 08:47", "PEMS Cbreaker 6", "Low priority", "Bla bla"};
 
+//----------------------------------------- HVAC -----------------------------------------------------
+static mpAlarm hvacD1Alarm1 {"26-10-2022 08:47", "HVAC Damper 1", "Med priority", "Connect fail"};
+static mpAlarm hvacD2Alarm1 {"26-10-2022 08:47", "HVAC Damper 1", "Med priority", "Tripped"};
+static mpAlarm hvacV3Alarm1 {"26-10-2022 08:47", "HVAC Valve 3", "Med priority", "Connect fail"};
+static mpAlarm hvacF1Alarm1 {"26-10-2022 08:47", "HVAC Fan 2", "Med priority", "Tripped"};
+
 
 #endif

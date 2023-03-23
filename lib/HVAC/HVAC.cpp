@@ -277,3 +277,159 @@ void ValveLinear::closing(uint32_t loadTime)
   if(TOff(loadTime, &this->timer))
     this->valveState = eValveLinState::Closed;
 }
+
+void Fan::readMode()
+{
+  uint8_t state = read3State(pcf1Pin, false, *pcf1);
+  if(state == 0)
+    this->fanMode = Local;
+
+  if(state == 2)
+    this->fanMode = Auto;
+}
+
+void Fan::readState()
+{
+
+  //For dynamic rows change
+  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+  {
+    --this->alarmRow;
+    dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+  }
+
+  //Read state
+  uint8_t state = read3State(pcf1Pin, false, *pcf1);
+  if(state == 1)
+    this->failure = true;
+
+  if(this->failure)
+  {
+
+    if(this->fanPrevState == eFanState::Running || this->fanPrevState == eFanState::Starting)
+        this->fanState = eFanState::StoppingF;
+    else if(this->fanPrevState == eFanState::Stopped)   
+    {
+      this->fanState = eFanState::Failure;
+      incrementAlarmCounter(*this->alarmDisps);
+      this->fanAlarm1.time = rtcTime2String(*this->rtc);
+      this->alarmRow = alarmCounter;
+    }
+        
+  }
+  else
+  {
+    if(this->fanMode == Local)
+    {
+        bool run = read2State(pcf2Pin, false, *pcf2);
+        bool stop = !run;
+
+        if(run && (this->fanPrevState == eFanState::Stopped || this->fanPrevState == eFanState::Stopping))
+        {
+          this->timer = millis(); //reset timer
+          this->fanState = eFanState::Starting;
+        }
+            
+        if ((this->fanPrevState == eFanState::Running || this->fanPrevState == eFanState::Starting))
+        {
+          if(stop)
+          {
+            this->timer = millis(); //reset timer
+            this->fanState = eFanState::Stopping;
+          }
+        }
+        if (stop && (this->fanPrevState == eFanState::Failure))
+        {
+          decrementAlarmCounter(*this->alarmDisps);
+          alarmIndex = this->alarmRow;
+          this->alarmRow = 0;
+          this->fanState = eFanState::Stopped;
+          
+        }
+            
+    
+    }
+
+    else    //Auto - read from modbus
+    {
+
+    }
+    
+  }
+
+}
+
+void Fan::writeCmd()
+{   
+
+    uint32_t loadTime = 3000;
+    uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
+    if(this->fanState == eFanState::Failure)
+    {
+      dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->fanAlarm1, this->alarmRow);
+      this->failure = false;
+    }
+     
+    else
+    {
+        if(this->fanState == eFanState::Starting)
+        {
+          this->starting(loadTime);
+          RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+        }
+        if(this->fanState == eFanState::Running)
+        {
+          RGBLedColor(firstPin, 0, 255, 0, pwm);
+          this->speed = addNoise(this->refSpeed, -5.0, 5.0);
+        }
+            //RGBLedColor(firstPin, 0, 255, 0, pwm);
+        if(this->fanState == eFanState::Stopping)
+        {
+          this->stopping(loadTime);
+          RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+        }
+            
+        if(this->fanState == eFanState::Stopped)
+        {
+          RGBLedColor(firstPin, 0, 0, 0, pwm);
+        }
+            
+        if(this->fanState == eFanState::StoppingF)
+        {
+          this->stopping(loadTime);
+          RGBLedBlink(pwm, firstPin, 500, 250, Red, &this->blinkTimer);
+        }
+            
+    }
+
+      
+}
+
+
+void Fan::savePrevState()
+{
+    this->fanPrevState = this->fanState;
+}
+
+void Fan::starting(uint32_t loadTime)
+{   
+  this->speed += (this->refSpeed/loadTime) * task;  
+  this->speed = addNoise(this->speed, -5.0, 5.0);
+
+  if(this->speed >= this->refSpeed)
+    this->fanState = eFanState::Running;
+}
+
+void Fan::stopping(uint32_t loadTime)
+{
+  this->speed -= (this->refSpeed/loadTime) * task;
+  this->speed = addNoise(this->speed, -5.0, 5.0);
+  
+  this->speed = constrain(this->speed, this->minSpeed, this->maxSpeed);
+
+  if(this->speed <= this->minSpeed)
+  {
+    this->speed = this->minSpeed;
+    this->fanState = eFanState::Stopped;
+  }
+}

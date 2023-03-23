@@ -80,8 +80,9 @@ Breaker gBreaker3(&rtc, &alarmDisps, pemsCB3Alarm1, pwm1, RGB3, P0, P4, &pcf2, &
 Breaker gBreaker5(&rtc, &alarmDisps, pemsCB5Alarm1, pwm1, RGB1, P4, P6, &pcf2, &pcf3), gBreaker6(&rtc, &alarmDisps, pemsCB6Alarm1, pwm2, RGB6, P6, P7, &pcf2, &pcf3);
 
 Generator gGenerator1(&rtc, &alarmDisps, pemsDG1Alarm1, pemsDG1Alarm2,  &display8, P0, P0, &pcf1, &pcf3), gGenerator2(&rtc, &alarmDisps, pemsDG2Alarm1, pemsDG2Alarm2, &display9, P2, P1, &pcf1, &pcf3);
-Damper gDamper1(&rtc, &alarmDisps, pemsDG1Alarm1, pwm3, RGB11, P0, P4, &pcf6, &pcf5), gDamper2(&rtc, &alarmDisps, pemsDG1Alarm1, pwm3, RGB14, P2, P5, &pcf6, &pcf5);
-ValveLinear gValve3(&rtc, &alarmDisps, pemsCB1Alarm1, pwm3, RGB12, P4, &pcf6, P6, &pcf5);
+Damper gDamper1(&rtc, &alarmDisps, hvacD1Alarm1, pwm3, RGB11, P0, P4, &pcf6, &pcf5), gDamper2(&rtc, &alarmDisps, hvacD2Alarm1, pwm3, RGB14, P2, P5, &pcf6, &pcf5);
+ValveLinear gValve3(&rtc, &alarmDisps, hvacV3Alarm1, pwm3, RGB12, P4, &pcf6, P6, &pcf5);
+Fan gFan1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm3, RGB13, P6, &pcf6, P7, &pcf5);
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
@@ -348,9 +349,10 @@ void loop()
   gDamper1.readState();
   gDamper2.readMode();
   gDamper2.readState();
-
   gValve3.readMode();
   gValve3.readState();
+  gFan1.readMode();
+  gFan1.readState();
 
 
 
@@ -381,8 +383,8 @@ void loop()
   //---------- HVAC -----------
   gDamper1.writeCmd();
   gDamper2.writeCmd();
-
-   gValve3.writeCmd();
+  gValve3.writeCmd();
+  gFan1.writeCmd();
 
   // 4. VISUALIZE
   //---------- VMS -----------
@@ -441,8 +443,8 @@ void loop()
   //---------- HVAC -----------
   gDamper1.savePrevState();
   gDamper2.savePrevState();
-
   gValve3.savePrevState();
+  gFan1.savePrevState();
 
   //6. DEBUG
 
