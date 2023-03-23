@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <Adafruit_PWMServoDriver.h>
 #include "../lib/Marine_panel/Marine_panel_v2.h"
+#include "../lib/HVAC/HVAC.h"
 
 
 #include <SPI.h> 
@@ -112,6 +113,7 @@ boolean mbOn = false;
 
 void setup()
 {
+
 	Serial.begin(9600);
 	delay(1000);
 
