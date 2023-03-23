@@ -362,6 +362,11 @@ void loop()
   //---------- VMS -----------
   vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
 
+  //---------- HVAC -----------
+  hvacSimulation(gDamper1, gDamper2, gValve3, gFan1);
+
+
+
   //3. WRITE
   //---------- VMS -----------
   gValve1.writeCmd();
@@ -387,33 +392,24 @@ void loop()
   gFan1.writeCmd();
 
   // 4. VISUALIZE
-  //---------- VMS -----------
+ 
   if(millis() - timeNow > dispRefreshTime)
   {
+    //---------- VMS -----------
     vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
     vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
+
+    //---------- HVAC -----------
+    hvacVisualization(display12, gFan1);
     timeNow = millis();
 
   }
 
+  //---------- PEMS -----------
   gGenerator1.visualize();
   gGenerator2.visualize();
- 
-
-  /*if(gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)
-  {
-    progressDG1 += 1;
-    progressDG1 = constrain(progressDG1, 0, 70);
-    dispPemsVisualize(display8, progressDG1);
-  }
-  else
-    progressDG1 = 0;
-    
-  if(progress > 100)
-    progress = 0;*/
 
   //---------- RCS -----------
-
   dispRCSAzipodVisualize(display5, display6, display7, grcsVars);
   dispRCSBowThrustersVisualize(display13, display14, display15, grcsVars);
 

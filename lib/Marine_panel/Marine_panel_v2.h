@@ -89,10 +89,9 @@
 
 #include "../Marine_panel/Images/Images.h"
 
-static int task = 50; 
-
-extern int16_t alarmCounter;// = 0;
-extern int16_t alarmIndex;// = 1000;
+extern int task; 
+extern int16_t alarmCounter;
+extern int16_t alarmIndex;
 
 
 

@@ -1,5 +1,6 @@
 #include "Marine_panel_v2.h"
 
+int task = 50;
 int16_t alarmCounter = 0;
 int16_t alarmIndex = 1000;
 
@@ -698,7 +699,6 @@ void Generator::readMode()
 
 void Generator::readState()
 {
-
   //For dynamic rows change
   if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
   {

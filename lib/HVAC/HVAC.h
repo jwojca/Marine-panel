@@ -6,6 +6,12 @@ enum class eDamperState{Opened, Closed, Opening, Closing, Failure, ClosingF, fai
 enum class eValveLinState{Opened, Closed, Opening, Closing, Failure, ClosingF};
 enum class eFanState{Stopped, Running, Starting, Stopping, Failure, StoppingF};
 
+struct hvacSimVarsStruct
+{
+    float pressureRef, pressure, pressMin, pressMax;
+    float tempRef, temp;
+};
+
 class Damper
 {
   public:
@@ -150,4 +156,6 @@ class Fan
 };
 
 
+void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan);
+void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan);
 

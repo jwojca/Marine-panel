@@ -1,5 +1,14 @@
 #include "HVAC.h"
 
+hvacSimVarsStruct hvacSimVars
+{
+  .pressureRef = 1600.0,
+  .pressure = 0.0,
+  .pressMin = 0.0,
+  .pressMax = 2000.0,
+  .tempRef = 21.0,
+  .temp = 21.0
+};
 
 
 void Damper::readMode()
@@ -432,4 +441,36 @@ void Fan::stopping(uint32_t loadTime)
     this->speed = this->minSpeed;
     this->fanState = eFanState::Stopped;
   }
+}
+
+void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan)
+{
+  //Active State
+  if(damper1.damperState == eDamperState::Opened && damper2.damperState == eDamperState::Opened)
+  {
+    float fanSpeedPct = map(fan.speed, fan.minSpeed, fan.maxSpeed, 0, 100);
+    float presIncrease = 500.0;
+    hvacSimVars.pressure += fanSpeedPct/100.0 * presIncrease * (task/1000.0);
+    hvacSimVars.pressure = constrain(hvacSimVars.pressure, hvacSimVars.pressMin, hvacSimVars.pressureRef);
+  }
+}
+
+void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan)
+{
+  display.clearDisplay();
+  String fanSpeedStr = "Fan speed:" + String(fan.speed, 0) + " rpm";
+  String tempRefStr = "Temp. ref:";
+  String tempActStr = "Temp. act:";
+  String pressRefStr = "Press.ref:";
+  String pressActStr = "Press.act:" + String(hvacSimVars.pressure, 0) + " Pa";
+
+  uint8_t rowSpace = 13;
+
+  dispStringALigned(fanSpeedStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
+  dispStringALigned(tempRefStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, rowSpace);
+  dispStringALigned(tempActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 2 * rowSpace);
+  dispStringALigned(pressRefStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 3 * rowSpace);
+  dispStringALigned(pressActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 4 * rowSpace);
+
+  display.display();
 }
