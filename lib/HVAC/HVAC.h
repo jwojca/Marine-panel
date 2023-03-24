@@ -9,7 +9,7 @@ enum class eFanState{Stopped, Running, Starting, Stopping, Failure, StoppingF};
 struct hvacSimVarsStruct
 {
     float pressureRef, pressure, pressMin, pressMax;
-    float tempRef, temp;
+    float tempRef, temp, tempMin, tempMax;
     float roomVolume;
     float airInRoom;
 };
@@ -109,8 +109,8 @@ class ValveLinear
 class Fan
 {
   public:
-    float speed = 0.0, refSpeed = 850.0, maxSpeed = 1500.0, minSpeed = 0.0;     //rpm
-    float actAirFlow = 0.0, maxAirFlow = 7000.0;        //m3/min
+    float speed = 0.0, refSpeed = 540.0, maxSpeed = 1500.0, minSpeed = 0.0;     //rpm
+    float actAirFlow = 0.0, maxAirFlow = 70000.0;        //m3/min
     float maxStaticPressure = 2800.0;                   //Pa
 
     eFanState fanState = eFanState::Stopped;

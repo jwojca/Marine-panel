@@ -1502,10 +1502,6 @@ void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task)
   int steer = joyReadData(JOY2_X);
   int rpm = joyReadData(JOY2_Y, true);
 
-  Serial.println(rpm);
-
- 
-
   //Steer 
   float steerIncrSpeed = 3;
   if(steer > 0) //STBD
