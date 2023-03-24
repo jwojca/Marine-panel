@@ -297,10 +297,32 @@ void Valve::readState()
 {
 
   //For dynamic rows change
-  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+  if(alarmCounter == 0)
+    alarmRemoved = false;
+    
+  if(newAlarmAdded && this->alarmRow > 0)
   {
-    --this->alarmRow;
+    ++this->alarmRow;
+    ++updatedAlarmRows;
+    if(updatedAlarmRows == (alarmCounter - 1))
+      newAlarmAdded = false;
     dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+  }
+    
+  if(alarmRemoved && this->alarmRow > 0)
+  {
+    if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+    {
+      --updatedAlarmRows2;
+      --this->alarmRow;
+      if(updatedAlarmRows2 == 0)
+      {
+        alarmRemoved = false;
+        alarmIndex = 1000;
+      }
+        
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+    }
   }
     
 
@@ -318,7 +340,10 @@ void Valve::readState()
       this->valveState = Failure;
       this->valveAlarm1.time = rtcTime2String(*this->rtc);
       incrementAlarmCounter(*this->alarmDisps);
-      this->alarmRow = alarmCounter;
+      this->alarmRow = 1;
+      if(alarmCounter > 1)
+        newAlarmAdded = true;
+      updatedAlarmRows = 0;
     } 
       
   }
@@ -349,9 +374,13 @@ void Valve::readState()
             
         if(closeCmd && (this->valvePrevState == Failure))
         {
-          
-          decrementAlarmCounter(*this->alarmDisps);
           alarmIndex = this->alarmRow;
+          if(alarmCounter > 1 && alarmIndex < alarmCounter)
+          {
+            alarmRemoved = true;
+            updatedAlarmRows2 = alarmCounter - alarmIndex;
+          }
+          decrementAlarmCounter(*this->alarmDisps);
           this->alarmRow = 0;
           this->valveState = Closed;
         }
@@ -441,7 +470,7 @@ void Pump::readState()
   //For dynamic rows change
   if(alarmCounter == 0)
     alarmRemoved = false;
-    
+
   if(newAlarmAdded && this->alarmRow > 0)
   {
     ++this->alarmRow;
@@ -772,10 +801,32 @@ void Generator::readMode()
 void Generator::readState()
 {
   //For dynamic rows change
-  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+  if(alarmCounter == 0)
+    alarmRemoved = false;
+    
+  if(newAlarmAdded && this->alarmRow > 0)
   {
-    --this->alarmRow;
+    ++this->alarmRow;
+    ++updatedAlarmRows;
+    if(updatedAlarmRows == (alarmCounter - 1))
+      newAlarmAdded = false;
     dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+  }
+    
+  if(alarmRemoved && this->alarmRow > 0)
+  {
+    if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+    {
+      --updatedAlarmRows2;
+      --this->alarmRow;
+      if(updatedAlarmRows2 == 0)
+      {
+        alarmRemoved = false;
+        alarmIndex = 1000;
+      }
+        
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+    }
   }
 
   //Read state
@@ -790,7 +841,12 @@ void Generator::readState()
       this->generatorState = Failure2;
       incrementAlarmCounter(*this->alarmDisps);
       this->generatorAlarm1.time = rtcTime2String(*this->rtc);
-      this->alarmRow = alarmCounter;
+      this->alarmRow = 1;
+      if(alarmCounter > 1)
+        newAlarmAdded = true;
+      updatedAlarmRows = 0;
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+      
     }
     else if(this->generatorPrevState == Running || this->generatorPrevState == Starting)
         this->generatorState = StoppingF;
@@ -799,7 +855,12 @@ void Generator::readState()
       this->generatorState = Failure;
       incrementAlarmCounter(*this->alarmDisps);
       this->generatorAlarm1.time = rtcTime2String(*this->rtc);
-      this->alarmRow = alarmCounter;
+      this->alarmRow = 1;
+      if(alarmCounter > 1)
+        newAlarmAdded = true;
+      updatedAlarmRows = 0;
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+      
     }
         
   }
@@ -831,8 +892,13 @@ void Generator::readState()
         }
         if (stop && (this->generatorPrevState == Failure || this->generatorPrevState == Failure2))
         {
-          decrementAlarmCounter(*this->alarmDisps);
           alarmIndex = this->alarmRow;
+          if(alarmCounter > 1 && alarmIndex < alarmCounter)
+          {
+            alarmRemoved = true;
+            updatedAlarmRows2 = alarmCounter - alarmIndex;
+          }
+          decrementAlarmCounter(*this->alarmDisps);
           this->alarmRow = 0;
           this->generatorState = Stopped;
           
