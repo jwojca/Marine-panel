@@ -1,13 +1,11 @@
 #include "HVAC.h"
+#include <Statistical.h>
 
 hvacSimVarsStruct hvacSimVars
 {
-  .pressureRef = 1600.0,
-  .pressure = 0.0,
-  .pressMin = 0.0,
-  .pressMax = 2000.0,
-  .tempRef = 21.0,
-  .temp = 21.0
+  .pressureRef = 1600.0, .pressure = 0.0, .pressMin = 0.0, .pressMax = 2000.0,      //Pa
+  .tempRef = 21.0, .temp = 21.0,                                                    //°C
+  .roomVolume = 10000.0, .airInRoom = 0.0                                           //m3
 };
 
 
@@ -445,6 +443,16 @@ void Fan::stopping(uint32_t loadTime)
 
 void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan)
 {
+  float Data_X[] = {0.0, fan.maxAirFlow};
+  float Data_Y[] = {fan.maxStaticPressure, 0.0};
+  Linear_Regression<float, float> Regression(Data_X, Data_Y, sizeof(Data_X) / sizeof(Data_X[0]));   //TODO make regresiion only once
+
+  // Print Regression Slope
+	Serial.print("Slope        : "); Serial.println(Regression.Slope(),5);
+	// Print Regression Offset
+	Serial.print("Offset       : "); Serial.println(Regression.Offset(),5);
+
+
   //Active State
   if(damper1.damperState == eDamperState::Opened && damper2.damperState == eDamperState::Opened)
   {

@@ -1052,7 +1052,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
         Pump1.pressure = Pump1.nomPressure;
         Pump1.pressure = addNoise(Pump1.pressure, -0.15, 0.15);
         float dp = (Pump1.pressure - vmsSimVars.PressureAct) * 0.1;
-        Pump1.actInflow = Pump1.maxInflow * dp;  //TODO how to handle valveState multiplication??
+        Pump1.actInflow = Pump1.maxInflow * dp;  
         Pump1.speed = 955;
         Pump1.speed += random(-10, 10);
     }
@@ -1107,7 +1107,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
     //Serial.println(vmsSimVars.TankWater);
 
     //pressure equation
-    vmsSimVars.PressureAct = (vmsSimVars.MaxPressure * 1000) / (vmsSimVars.TankMaxVol - vmsSimVars.TankWater);
+    vmsSimVars.PressureAct = (vmsSimVars.MaxPressure * 1000.0) / (vmsSimVars.TankMaxVol - vmsSimVars.TankWater);  //TODO revise equation
 
 }
 

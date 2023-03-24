@@ -10,6 +10,8 @@ struct hvacSimVarsStruct
 {
     float pressureRef, pressure, pressMin, pressMax;
     float tempRef, temp;
+    float roomVolume;
+    float airInRoom;
 };
 
 class Damper
@@ -107,7 +109,10 @@ class ValveLinear
 class Fan
 {
   public:
-    float speed = 0.0, refSpeed = 850.0, maxSpeed = 1500.0, minSpeed = 0.0;
+    float speed = 0.0, refSpeed = 850.0, maxSpeed = 1500.0, minSpeed = 0.0;     //rpm
+    float actAirFlow = 0.0, maxAirFlow = 7000.0;        //m3/min
+    float maxStaticPressure = 2800.0;                   //Pa
+
     eFanState fanState = eFanState::Stopped;
     eFanState fanPrevState = eFanState::Stopped;
     mpMode fanMode = Local;
@@ -129,6 +134,8 @@ class Fan
 
     bool breakersClosed = false;
     bool failure = false;
+
+    
 
     RTC_DS1307 *rtc;
 
