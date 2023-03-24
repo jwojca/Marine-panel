@@ -473,7 +473,6 @@ void loop()
   
   
 
-
   if(mbOn)
   {
     while (Ethernet.linkStatus() == LinkOFF) 

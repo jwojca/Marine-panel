@@ -1,6 +1,9 @@
 #include "HVAC.h"
 #include <Statistical.h>
 
+bool gRegressionCalculated = false;
+float gSlope, gOffset;
+
 hvacSimVarsStruct hvacSimVars
 {
   .pressureRef = 1600.0, .pressure = 0.0, .pressMin = 0.0, .pressMax = 2000.0,      //Pa
@@ -443,23 +446,45 @@ void Fan::stopping(uint32_t loadTime)
 
 void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan)
 {
-  float Data_X[] = {0.0, fan.maxAirFlow};
-  float Data_Y[] = {fan.maxStaticPressure, 0.0};
-  Linear_Regression<float, float> Regression(Data_X, Data_Y, sizeof(Data_X) / sizeof(Data_X[0]));   //TODO make regresiion only once
+  
+  if(!gRegressionCalculated)
+  {
+    float Data_X[] = {0.0, fan.maxAirFlow};
+    float Data_Y[] = {fan.maxStaticPressure, 0.0};
+    Linear_Regression<float, float> Regression(Data_X, Data_Y, sizeof(Data_X) / sizeof(Data_X[0]));
+    gSlope = Regression.Slope();
+    gOffset = Regression.Offset();
 
-  // Print Regression Slope
-	Serial.print("Slope        : "); Serial.println(Regression.Slope(),5);
-	// Print Regression Offset
-	Serial.print("Offset       : "); Serial.println(Regression.Offset(),5);
+    Serial.print("Slope        : "); Serial.println(gSlope, 5);
+    Serial.print("Offset       : "); Serial.println(gOffset, 5);
+    gRegressionCalculated = true;
+  }
+  
+
+
 
 
   //Active State
   if(damper1.damperState == eDamperState::Opened && damper2.damperState == eDamperState::Opened)
   {
     float fanSpeedPct = map(fan.speed, fan.minSpeed, fan.maxSpeed, 0, 100);
-    float presIncrease = 500.0;
-    hvacSimVars.pressure += fanSpeedPct/100.0 * presIncrease * (task/1000.0);
-    hvacSimVars.pressure = constrain(hvacSimVars.pressure, hvacSimVars.pressMin, hvacSimVars.pressureRef);
+ 
+    /*
+    fan.actAirFlow = float(map(fanSpeedPct, 0, 100, 0, fan.maxAirFlow));        //airFlow is proportional to fan speed
+    hvacSimVars.airInRoom += (fan.actAirFlow/60.0) * task/1000.0;
+    hvacSimVars.pressure += hvacSimVars.airInRoom/1000.0;
+
+    Serial.println("Air in room: " + String(hvacSimVars.airInRoom));
+    Serial.println("Pressure: " + String(hvacSimVars.pressure));*/
+
+    float maxPresIncrease = 500.0; 
+    float pressDiffPct = map(fan.maxStaticPressure - hvacSimVars.pressure, 0, fan.maxStaticPressure, 0, 100);
+    float pressInrease = map(fanSpeedPct, 0, 100, 0, maxPresIncrease) * pressDiffPct/100.0;
+
+    Serial.println("Pressure incr: " + String(pressInrease));
+
+    hvacSimVars.pressure += fanSpeedPct/100.0 * pressInrease * (task/1000.0);
+    hvacSimVars.pressure = constrain(hvacSimVars.pressure, hvacSimVars.pressMin, fan.maxStaticPressure);
   }
 }
 
