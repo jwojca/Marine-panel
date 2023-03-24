@@ -6,9 +6,9 @@ float gSlope, gOffset;
 
 hvacSimVarsStruct hvacSimVars
 {
-  .pressureRef = 1600.0, .pressure = 0.0, .pressMin = 0.0, .pressMax = 2000.0,      //Pa
-  .tempRef = 21.0, .temp = 21.0,                                                    //°C
-  .roomVolume = 10000.0, .airInRoom = 0.0                                           //m3
+  .pressureRef = 1600.0, .pressure = 1000.0, .pressMin = 0.0, .pressMax = 2000.0,      //Pa
+  .tempRef = 21.0, .temp = 21.0, .tempMin = 18.0, .tempMax = 30.0,                     //°C
+  .roomVolume = 10000.0, .airInRoom = 0.0                                              //m3
 };
 
 
@@ -460,42 +460,50 @@ void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &f
     gRegressionCalculated = true;
   }
   
-
-
+  float fanSpeedPct = map(fan.speed, fan.minSpeed, fan.maxSpeed, 0, 100);
+  float maxPresIncrease = 500.0; 
+  float pressDiffPct = map(fan.maxStaticPressure - hvacSimVars.pressure, 0, fan.maxStaticPressure, 0, 100);
+  float pressInrease = map(fanSpeedPct, 0, 100, 0, maxPresIncrease) * pressDiffPct/100.0 * (task/1000.0);
+  float maxPressDecrease = maxPresIncrease/10.0;
+  float pressDecrease = maxPressDecrease * (1.0 - pressDiffPct/100.0) * (task/1000.0);
 
 
   //Active State
   if(damper1.damperState == eDamperState::Opened && damper2.damperState == eDamperState::Opened)
   {
-    float fanSpeedPct = map(fan.speed, fan.minSpeed, fan.maxSpeed, 0, 100);
- 
-    /*
-    fan.actAirFlow = float(map(fanSpeedPct, 0, 100, 0, fan.maxAirFlow));        //airFlow is proportional to fan speed
-    hvacSimVars.airInRoom += (fan.actAirFlow/60.0) * task/1000.0;
-    hvacSimVars.pressure += hvacSimVars.airInRoom/1000.0;
-
-    Serial.println("Air in room: " + String(hvacSimVars.airInRoom));
-    Serial.println("Pressure: " + String(hvacSimVars.pressure));*/
-
-    float maxPresIncrease = 500.0; 
-    float pressDiffPct = map(fan.maxStaticPressure - hvacSimVars.pressure, 0, fan.maxStaticPressure, 0, 100);
-    float pressInrease = map(fanSpeedPct, 0, 100, 0, maxPresIncrease) * pressDiffPct/100.0;
-
-    Serial.println("Pressure incr: " + String(pressInrease));
-
-    hvacSimVars.pressure += fanSpeedPct/100.0 * pressInrease * (task/1000.0);
+    hvacSimVars.pressure += fanSpeedPct/100.0 * pressInrease;
     hvacSimVars.pressure = constrain(hvacSimVars.pressure, hvacSimVars.pressMin, fan.maxStaticPressure);
+
+    //Cooling temperature
+    if(valve.valveState == eValveLinState::Opened)
+    {
+      float airIncrease = fanSpeedPct/100.0 * pressInrease; //Lets say that airvolume increase is proportional to pressIncrease and fans rpm
+      float tempDecreaseFactor = 0.2;
+      float tempDecrease = airIncrease * 0.001;
+      hvacSimVars.temp -= tempDecrease;
+      hvacSimVars.temp = constrain(hvacSimVars.temp, hvacSimVars.tempMin, hvacSimVars.tempMax);
+    }
   }
+
+  //Air leakage 
+  hvacSimVars.pressure -= pressDecrease;
+
+  /*Debug
+  Serial.println("Pressure incr: " + String((fanSpeedPct/100.0 * pressInrease)));
+  Serial.println("Pressure decr: " + String(pressDecrease));*/
+
+
 }
 
 void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan)
 {
   display.clearDisplay();
-  String fanSpeedStr = "Fan speed:" + String(fan.speed, 0) + " rpm";
-  String tempRefStr = "Temp. ref:";
-  String tempActStr = "Temp. act:";
-  String pressRefStr = "Press.ref:";
-  String pressActStr = "Press.act:" + String(hvacSimVars.pressure, 0) + " Pa";
+  
+  String fanSpeedStr = "Fan speed: " + String(fan.speed, 0) + " rpm";
+  String tempRefStr = "Temp. ref:  " + String(hvacSimVars.tempRef, 1) + " C";
+  String tempActStr = "Temp. act:  " + String(hvacSimVars.temp, 1) + " C";
+  String pressRefStr = "Press.ref: " + String(hvacSimVars.pressureRef, 0) + " Pa";
+  String pressActStr = "Press.act: " + String(hvacSimVars.pressure, 0) + " Pa";
 
   uint8_t rowSpace = 13;
 
@@ -504,6 +512,34 @@ void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan)
   dispStringALigned(tempActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 2 * rowSpace);
   dispStringALigned(pressRefStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 3 * rowSpace);
   dispStringALigned(pressActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 4 * rowSpace);
+  
+ /*
+  String fanSpeedStr = "Fan speed:     rpm";
+  String tempRefStr =  "Temp. ref:       C";
+  String tempActStr =  "Temp. act:       C";
+  String pressRefStr = "Press.ref:      Pa";
+  String pressActStr = "Press.act:      Pa";
+
+  String fanSpeedValStr = String(fan.speed, 0);
+  String tempRefValStr =  "0";
+  String tempActValStr =  String(hvacSimVars.temp, 1);
+  String pressRefValStr = "0";
+  String pressActValStr = String(hvacSimVars.pressure, 0);
+
+  uint8_t rowSpace = 13;
+
+  dispStringALigned(fanSpeedStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
+  dispStringALigned(tempRefStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, rowSpace);
+  dispStringALigned(tempActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 2 * rowSpace);
+  dispStringALigned(pressRefStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 3 * rowSpace);
+  dispStringALigned(pressActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 4 * rowSpace);
+
+  uint8_t valXPos = 100, xValOffset = 3;
+  dispStringALigned(fanSpeedValStr, display, DejaVu_Sans_Mono_10, RightBottom, valXPos, rowSpace - xValOffset);
+  dispStringALigned(tempRefValStr, display, DejaVu_Sans_Mono_10, RightBottom, valXPos, 2* rowSpace -xValOffset);
+  dispStringALigned(tempActValStr, display, DejaVu_Sans_Mono_10, RightBottom, valXPos, 3 * rowSpace - xValOffset);
+  dispStringALigned(pressRefValStr, display, DejaVu_Sans_Mono_10, RightBottom, valXPos, 4 * rowSpace - xValOffset);
+  dispStringALigned(pressActValStr, display, DejaVu_Sans_Mono_10, RightBottom, valXPos, 5 * rowSpace - xValOffset);*/
 
   display.display();
 }
