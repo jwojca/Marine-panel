@@ -94,6 +94,8 @@ extern int16_t alarmCounter;
 extern int16_t alarmIndex;
 extern bool newAlarmAdded;
 extern bool alarmRemoved;
+extern int16_t updatedAlarmRows;
+extern int16_t updatedAlarmRows2;
 
 
 

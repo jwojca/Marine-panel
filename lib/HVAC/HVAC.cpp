@@ -27,10 +27,32 @@ void Damper::readState()
 {
 
   //For dynamic rows change
-  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+  if(alarmCounter == 0)
+    alarmRemoved = false;
+
+  if(newAlarmAdded && this->alarmRow > 0)
   {
-    --this->alarmRow;
+    ++this->alarmRow;
+    ++updatedAlarmRows;
+    if(updatedAlarmRows == (alarmCounter - 1))
+      newAlarmAdded = false;
     dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+  }
+    
+  if(alarmRemoved && this->alarmRow > 0)
+  {
+    if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+    {
+      --updatedAlarmRows2;
+      --this->alarmRow;
+      if(updatedAlarmRows2 == 0)
+      {
+        alarmRemoved = false;
+        alarmIndex = 1000;
+      }
+        
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+    }
   }
     
 
@@ -48,7 +70,10 @@ void Damper::readState()
       this->damperState = eDamperState::Failure;
       this->damperAlarm1.time = rtcTime2String(*this->rtc);
       incrementAlarmCounter(*this->alarmDisps);
-      this->alarmRow = alarmCounter;
+      this->alarmRow = 1;
+      if(alarmCounter > 1)
+        newAlarmAdded = true;
+      updatedAlarmRows = 0;
     } 
       
   }
@@ -79,9 +104,13 @@ void Damper::readState()
             
         if(closeCmd && (this->damperPrevState == eDamperState::Failure))
         {
-          
-          decrementAlarmCounter(*this->alarmDisps);
           alarmIndex = this->alarmRow;
+          if(alarmCounter > 1 && alarmIndex < alarmCounter)
+          {
+            alarmRemoved = true;
+            updatedAlarmRows2 = alarmCounter - alarmIndex;
+          }
+          decrementAlarmCounter(*this->alarmDisps);
           this->alarmRow = 0;
           this->damperState = eDamperState::Closed;
         }
@@ -165,11 +194,33 @@ void ValveLinear::readMode()
 void ValveLinear::readState()
 {
 
-  //For dynamic rows change
-  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+   //For dynamic rows change
+  if(alarmCounter == 0)
+    alarmRemoved = false;
+    
+  if(newAlarmAdded && this->alarmRow > 0)
   {
-    --this->alarmRow;
+    ++this->alarmRow;
+    ++updatedAlarmRows;
+    if(updatedAlarmRows == (alarmCounter - 1))
+      newAlarmAdded = false;
     dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+  }
+    
+  if(alarmRemoved && this->alarmRow > 0)
+  {
+    if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+    {
+      --updatedAlarmRows2;
+      --this->alarmRow;
+      if(updatedAlarmRows2 == 0)
+      {
+        alarmRemoved = false;
+        alarmIndex = 1000;
+      }
+        
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+    }
   }
     
 
@@ -187,7 +238,10 @@ void ValveLinear::readState()
       this->valveState = eValveLinState::Failure;
       this->valveAlarm1.time = rtcTime2String(*this->rtc);
       incrementAlarmCounter(*this->alarmDisps);
-      this->alarmRow = alarmCounter;
+      this->alarmRow = 1;
+      if(alarmCounter > 1)
+        newAlarmAdded = true;
+      updatedAlarmRows = 0;
     } 
       
   }
@@ -217,9 +271,13 @@ void ValveLinear::readState()
             
         if(closeCmd && (this->valvePrevState == eValveLinState::Failure))
         {
-          
-          decrementAlarmCounter(*this->alarmDisps);
           alarmIndex = this->alarmRow;
+          if(alarmCounter > 1 && alarmIndex < alarmCounter)
+          {
+            alarmRemoved = true;
+            updatedAlarmRows2 = alarmCounter - alarmIndex;
+          }
+          decrementAlarmCounter(*this->alarmDisps);
           this->alarmRow = 0;
           this->valveState = eValveLinState::Closed;
         }
@@ -301,12 +359,35 @@ void Fan::readMode()
 void Fan::readState()
 {
 
-  //For dynamic rows change
-  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+   //For dynamic rows change
+  if(alarmCounter == 0)
+    alarmRemoved = false;
+    
+  if(newAlarmAdded && this->alarmRow > 0)
   {
-    --this->alarmRow;
+    ++this->alarmRow;
+    ++updatedAlarmRows;
+    if(updatedAlarmRows == (alarmCounter - 1))
+      newAlarmAdded = false;
     dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
   }
+    
+  if(alarmRemoved && this->alarmRow > 0)
+  {
+    if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+    {
+      --updatedAlarmRows2;
+      --this->alarmRow;
+      if(updatedAlarmRows2 == 0)
+      {
+        alarmRemoved = false;
+        alarmIndex = 1000;
+      }
+        
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+    }
+  }
+    
 
   //Read state
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
@@ -323,7 +404,10 @@ void Fan::readState()
       this->fanState = eFanState::Failure;
       incrementAlarmCounter(*this->alarmDisps);
       this->fanAlarm1.time = rtcTime2String(*this->rtc);
-      this->alarmRow = alarmCounter;
+      this->alarmRow = 1;
+      if(alarmCounter > 1)
+        newAlarmAdded = true;
+      updatedAlarmRows = 0;
     }
         
   }
@@ -350,8 +434,13 @@ void Fan::readState()
         }
         if (stop && (this->fanPrevState == eFanState::Failure))
         {
-          decrementAlarmCounter(*this->alarmDisps);
           alarmIndex = this->alarmRow;
+          if(alarmCounter > 1 && alarmIndex < alarmCounter)
+          {
+            alarmRemoved = true;
+            updatedAlarmRows2 = alarmCounter - alarmIndex;
+          }
+          decrementAlarmCounter(*this->alarmDisps);
           this->alarmRow = 0;
           this->fanState = eFanState::Stopped;
           
