@@ -439,10 +439,32 @@ void Pump::readState()
 {
 
   //For dynamic rows change
-  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+  if(alarmCounter == 0)
+    alarmRemoved = false;
+    
+  if(newAlarmAdded && this->alarmRow > 0)
   {
-    --this->alarmRow;
+    ++this->alarmRow;
+    ++updatedAlarmRows;
+    if(updatedAlarmRows == (alarmCounter - 1))
+      newAlarmAdded = false;
     dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+  }
+    
+  if(alarmRemoved && this->alarmRow > 0)
+  {
+    if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+    {
+      --updatedAlarmRows2;
+      --this->alarmRow;
+      if(updatedAlarmRows2 == 0)
+      {
+        alarmRemoved = false;
+        alarmIndex = 1000;
+      }
+        
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+    }
   }
 
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
@@ -455,7 +477,10 @@ void Pump::readState()
       this->pumpState = Failure;
       incrementAlarmCounter(*this->alarmDisps);
       this->pumpAlarm1.time = rtcTime2String(*this->rtc);
-      this->alarmRow = alarmCounter;
+      this->alarmRow = 1;
+      if(alarmCounter > 1)
+        newAlarmAdded = true;
+      updatedAlarmRows = 0;
     }
         
   }
@@ -473,8 +498,13 @@ void Pump::readState()
             this->pumpState = Stopping;
         if (stop && (this->pumpPrevState == Failure))
         {
-          decrementAlarmCounter(*this->alarmDisps);
           alarmIndex = this->alarmRow;
+          if(alarmCounter > 1 && alarmIndex < alarmCounter)
+          {
+            alarmRemoved = true;
+            updatedAlarmRows2 = alarmCounter - alarmIndex;
+          }
+          decrementAlarmCounter(*this->alarmDisps);
           this->alarmRow = 0;
           this->pumpState = Stopped;
           
@@ -569,6 +599,9 @@ void Breaker::readMode()
 void Breaker::readState()
 {
    //For dynamic rows change
+  if(alarmCounter == 0)
+    alarmRemoved = false;
+
   if(newAlarmAdded && this->alarmRow > 0)
   {
     ++this->alarmRow;
@@ -580,7 +613,6 @@ void Breaker::readState()
     
   if(alarmRemoved && this->alarmRow > 0)
   {
-    Serial.println(alarmIndex);
     if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
     {
       --updatedAlarmRows2;
@@ -591,7 +623,6 @@ void Breaker::readState()
         alarmIndex = 1000;
       }
         
-      Serial.println(updatedAlarmRows2);
       dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
     }
   }
@@ -613,11 +644,12 @@ void Breaker::readState()
       this->breakerAlarm1.time = rtcTime2String(*this->rtc);
       this->alarmRow = 1;
       if(alarmCounter > 1)
-      {
         newAlarmAdded = true;
-        dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
-      }
       updatedAlarmRows = 0;
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+      
+
+      
     }
       
   }
@@ -677,6 +709,8 @@ void Breaker::writeCmd()
   uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
   if(this->breakerState == Failure)
   {
+    if(newAlarmAdded)
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
     dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->breakerAlarm1, this->alarmRow);
     RGBLedColor(firstPin, 255, 0, 0, pwm);
   }

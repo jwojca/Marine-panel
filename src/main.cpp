@@ -465,6 +465,7 @@ void loop()
   RGBLedTest(4, pwm3);*/
 
   Serial.println("Alarm removed" + String(alarmRemoved));
+  Serial.println("Alarm added" + String(newAlarmAdded));
 
 
   
