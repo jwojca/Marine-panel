@@ -464,11 +464,13 @@ void loop()
   RGBLedTest(5, pwm2);
   RGBLedTest(4, pwm3);*/
 
+  Serial.println("Alarm removed" + String(alarmRemoved));
+
 
   
 
-  resetAlarmIndex();
-
+  //resetAlarmIndex();
+  //newAlarmAdded = false;
  
   
   

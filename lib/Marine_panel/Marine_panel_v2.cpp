@@ -4,6 +4,10 @@ int task = 50;
 int16_t alarmCounter = 0;
 int16_t alarmIndex = 1000;
 
+bool newAlarmAdded = false;
+bool alarmRemoved = false;
+int16_t updatedAlarmRows = 0;
+int16_t updatedAlarmRows2 = 0;
 
 
 color Red{255, 0, 0};
@@ -565,11 +569,33 @@ void Breaker::readMode()
 void Breaker::readState()
 {
    //For dynamic rows change
-  if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+  if(newAlarmAdded && this->alarmRow > 0)
   {
-    --this->alarmRow;
+    ++this->alarmRow;
+    ++updatedAlarmRows;
+    if(updatedAlarmRows == (alarmCounter - 1))
+      newAlarmAdded = false;
     dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
   }
+    
+  if(alarmRemoved && this->alarmRow > 0)
+  {
+    Serial.println(alarmIndex);
+    if(this->alarmRow > alarmIndex || this->alarmRow > alarmCounter)
+    {
+      --updatedAlarmRows2;
+      --this->alarmRow;
+      if(updatedAlarmRows2 == 0)
+      {
+        alarmRemoved = false;
+        alarmIndex = 1000;
+      }
+        
+      Serial.println(updatedAlarmRows2);
+      dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+    }
+  }
+  
   
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
   if(state == 1)
@@ -585,7 +611,13 @@ void Breaker::readState()
       this->breakerState = Failure;
       incrementAlarmCounter(*this->alarmDisps);
       this->breakerAlarm1.time = rtcTime2String(*this->rtc);
-      this->alarmRow = alarmCounter;
+      this->alarmRow = 1;
+      if(alarmCounter > 1)
+      {
+        newAlarmAdded = true;
+        dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
+      }
+      updatedAlarmRows = 0;
     }
       
   }
@@ -616,8 +648,14 @@ void Breaker::readState()
             
         if(closeCmd && (this->breakerPrevState == Failure))
         {
-          decrementAlarmCounter(*this->alarmDisps);
           alarmIndex = this->alarmRow;
+          if(alarmCounter > 1 && alarmIndex < alarmCounter)
+          {
+            alarmRemoved = true;
+            updatedAlarmRows2 = alarmCounter - alarmIndex;
+          }
+            
+          decrementAlarmCounter(*this->alarmDisps);
           this->alarmRow = 0;
           this->breakerState = Closed;
         }

@@ -512,34 +512,6 @@ void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan)
   dispStringALigned(tempActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 2 * rowSpace);
   dispStringALigned(pressRefStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 3 * rowSpace);
   dispStringALigned(pressActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 4 * rowSpace);
-  
- /*
-  String fanSpeedStr = "Fan speed:     rpm";
-  String tempRefStr =  "Temp. ref:       C";
-  String tempActStr =  "Temp. act:       C";
-  String pressRefStr = "Press.ref:      Pa";
-  String pressActStr = "Press.act:      Pa";
-
-  String fanSpeedValStr = String(fan.speed, 0);
-  String tempRefValStr =  "0";
-  String tempActValStr =  String(hvacSimVars.temp, 1);
-  String pressRefValStr = "0";
-  String pressActValStr = String(hvacSimVars.pressure, 0);
-
-  uint8_t rowSpace = 13;
-
-  dispStringALigned(fanSpeedStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
-  dispStringALigned(tempRefStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, rowSpace);
-  dispStringALigned(tempActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 2 * rowSpace);
-  dispStringALigned(pressRefStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 3 * rowSpace);
-  dispStringALigned(pressActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 4 * rowSpace);
-
-  uint8_t valXPos = 100, xValOffset = 3;
-  dispStringALigned(fanSpeedValStr, display, DejaVu_Sans_Mono_10, RightBottom, valXPos, rowSpace - xValOffset);
-  dispStringALigned(tempRefValStr, display, DejaVu_Sans_Mono_10, RightBottom, valXPos, 2* rowSpace -xValOffset);
-  dispStringALigned(tempActValStr, display, DejaVu_Sans_Mono_10, RightBottom, valXPos, 3 * rowSpace - xValOffset);
-  dispStringALigned(pressRefValStr, display, DejaVu_Sans_Mono_10, RightBottom, valXPos, 4 * rowSpace - xValOffset);
-  dispStringALigned(pressActValStr, display, DejaVu_Sans_Mono_10, RightBottom, valXPos, 5 * rowSpace - xValOffset);*/
 
   display.display();
 }

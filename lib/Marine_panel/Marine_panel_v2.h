@@ -92,6 +92,8 @@
 extern int task; 
 extern int16_t alarmCounter;
 extern int16_t alarmIndex;
+extern bool newAlarmAdded;
+extern bool alarmRemoved;
 
 
 
