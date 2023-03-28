@@ -5,6 +5,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include "../lib/Marine_panel/Marine_panel_v2.h"
 #include "../lib/HVAC/HVAC.h"
+#include "../lib/PEMS/PEMS.h"
 
 
 #include <SPI.h> 
@@ -370,6 +371,15 @@ void loop()
   //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE
+  gFan1.readMode();
+
+  if(gFan1.fanMode == Auto)
+    simulationLoop = false;
+  else if(gFan1.fanMode == Local && !simulationLoop)
+  {
+    simulationLoop = true;
+    simState = Init;
+  }
 
   //Simulation loop for demonstration
   if(simulationLoop)
@@ -378,7 +388,11 @@ void loop()
     {
     case Init:
       gBreaker1.breakerState = Closed;
+      gBreaker2.breakerState = Closed;
+      gBreaker3.breakerState = Closed;
+      gBreaker4.breakerState = Closed;
       gBreaker5.breakerState = Closed;
+      gBreaker6.breakerState = Closed;
 
       gBreaker1.writeCmd();
       gBreaker2.writeCmd();
@@ -487,6 +501,11 @@ void loop()
     }
 
   }
+
+
+ 
+    
+
 
 
     
