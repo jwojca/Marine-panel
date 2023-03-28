@@ -2,11 +2,13 @@
 
 #include "../Marine_panel/Marine_panel_v2.h"
 
+enum class eBreakerState{Opened, Closed, Opening, Closing, Failure, OpeningF};
+
 class Breaker
 {
   public:
-    mpState breakerState = Closed;
-    mpState breakerPrevState = Closed;
+    eBreakerState breakerState = eBreakerState::Opened;
+    eBreakerState breakerPrevState = eBreakerState::Opened;
     mpMode breakerMode = Local;
     uint8_t rgbNumber;
     Adafruit_PWMServoDriver pwm;

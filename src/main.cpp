@@ -342,11 +342,11 @@ void loop()
     gBreaker6.readState();
 
     gGenerator1.readMode();
-    gGenerator1.readBreakersState(gBreaker1.breakerState == Opened, gBreaker5.breakerState == Opened);
+    gGenerator1.readBreakersState(gBreaker1.breakerState == eBreakerState::Opened, gBreaker5.breakerState == eBreakerState::Opened);
     gGenerator1.readState();
     
     gGenerator2.readMode();
-    gGenerator2.readBreakersState(gBreaker2.breakerState == Opened, gBreaker6.breakerState == Opened);
+    gGenerator2.readBreakersState(gBreaker2.breakerState == eBreakerState::Opened, gBreaker6.breakerState == eBreakerState::Opened);
     gGenerator2.readState();
 
 
@@ -387,12 +387,12 @@ void loop()
     switch (simState)
     {
     case Init:
-      gBreaker1.breakerState = Closed;
-      gBreaker2.breakerState = Closed;
-      gBreaker3.breakerState = Closed;
-      gBreaker4.breakerState = Closed;
-      gBreaker5.breakerState = Closed;
-      gBreaker6.breakerState = Closed;
+      gBreaker1.breakerState = eBreakerState::Closed;
+      gBreaker2.breakerState = eBreakerState::Closed;
+      gBreaker3.breakerState = eBreakerState::Closed;
+      gBreaker4.breakerState = eBreakerState::Closed;
+      gBreaker5.breakerState = eBreakerState::Closed;
+      gBreaker6.breakerState = eBreakerState::Closed;
 
       gBreaker1.writeCmd();
       gBreaker2.writeCmd();
@@ -406,14 +406,14 @@ void loop()
     
     case fBreakersOpenCmd:
       gBreaker1.timer = millis();
-      gBreaker1.breakerState = Opening;
+      gBreaker1.breakerState = eBreakerState::Opening;
       gBreaker5.timer = millis();
-      gBreaker5.breakerState = Opening;
+      gBreaker5.breakerState = eBreakerState::Opening;
       simState = fBreakersOpening;
       break;
     
     case fBreakersOpening:
-      if(gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)
+      if(gBreaker1.breakerState == eBreakerState::Opened && gBreaker5.breakerState == eBreakerState::Opened)
         simState = fGenStartCmd;
       break;
     
@@ -440,7 +440,7 @@ void loop()
     
     case cb5TripCmd:
       gBreaker5.timer = millis();
-      gBreaker5.breakerState = Closing;
+      gBreaker5.breakerState = eBreakerState::Closing;
       gGenerator1.failure = true;
       gGenerator1.generatorState = StoppingF;
       simState = cb5Tripped;
@@ -475,12 +475,12 @@ void loop()
     
     case cb5CloseCmd:
       gBreaker5.timer = millis();
-      gBreaker5.breakerState = Opening;
+      gBreaker5.breakerState = eBreakerState::Opening;
       simState = cb5Closing;
       break;
 
     case cb5Closing:
-      if(gBreaker5.breakerState == Opened)
+      if(gBreaker5.breakerState == eBreakerState::Opened)
       {
         gGenerator1.generatorState = Starting;
         simState = fGenStarting2;
