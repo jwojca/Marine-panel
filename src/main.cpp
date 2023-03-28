@@ -290,6 +290,12 @@ uint32_t showLast = 0;
 int dispRefreshTime = 500;
 unsigned long timeNow = 0;
 
+bool simulationLoop = true;
+bool simulationInit = true;
+unsigned long simTimer = 0;
+enum simStateEnum{Init, fBreakersOpenCmd, fBreakersOpening, fGenStartCmd, fGenStarting, fGenRunning5s, cb5TripCmd, cb5Tripped, cb5Tripped5s, fGenRst};
+simStateEnum simState = Init;
+
 void loop()
 {
 
@@ -306,59 +312,195 @@ void loop()
   5. SAVE PREV STATE
   */
 
-  // 1. READ
-  //---------- VMS -----------
-  gValve1.readMode();
-  gValve1.readState();
-  gValve2.readMode();
-  gValve2.readState();
-  gPump1.readMode();
-  gPump1.readState();
-  gPump2.readMode();
-  gPump2.readState();
+  if(!simulationLoop)
+  {
+    // 1. READ
+    //---------- VMS -----------
+    gValve1.readMode();
+    gValve1.readState();
+    gValve2.readMode();
+    gValve2.readState();
+    gPump1.readMode();
+    gPump1.readState();
+    gPump2.readMode();
+    gPump2.readState();
 
-  //---------- PEMS -----------
-  gBreaker1.readMode();
-  gBreaker1.readState();
-  gBreaker2.readMode();
-  gBreaker2.readState();
-  gBreaker3.readMode();
-  gBreaker3.readState();
-  gBreaker4.readMode();
-  gBreaker4.readState();
-  gBreaker5.readMode();
-  gBreaker5.readState();
-  gBreaker6.readMode();
-  gBreaker6.readState();
+    //---------- PEMS -----------
+    gBreaker1.readMode();
+    gBreaker1.readState();
+    gBreaker2.readMode();
+    gBreaker2.readState();
+    gBreaker3.readMode();
+    gBreaker3.readState();
+    gBreaker4.readMode();
+    gBreaker4.readState();
+    gBreaker5.readMode();
+    gBreaker5.readState();
+    gBreaker6.readMode();
+    gBreaker6.readState();
 
-  gGenerator1.readMode();
-  gGenerator1.readBreakersState(gBreaker1.breakerState == Opened, gBreaker5.breakerState == Opened);
-  gGenerator1.readState();
-  
-  gGenerator2.readMode();
-  gGenerator2.readBreakersState(gBreaker2.breakerState == Opened, gBreaker6.breakerState == Opened);
-  gGenerator2.readState();
+    gGenerator1.readMode();
+    gGenerator1.readBreakersState(gBreaker1.breakerState == Opened, gBreaker5.breakerState == Opened);
+    gGenerator1.readState();
+    
+    gGenerator2.readMode();
+    gGenerator2.readBreakersState(gBreaker2.breakerState == Opened, gBreaker6.breakerState == Opened);
+    gGenerator2.readState();
 
 
-  //RCS
-  rcsAzipodReadData(grcsVars, task);
-  rcsBowThrustersReadData(grcsVars, task);
+    //RCS
+    rcsAzipodReadData(grcsVars, task);
+    rcsBowThrustersReadData(grcsVars, task);
 
-  //HVAC
-  gDamper1.readMode();
-  gDamper1.readState();
-  gDamper2.readMode();
-  gDamper2.readState();
-  gValve3.readMode();
-  gValve3.readState();
-  gFan1.readMode();
-  gFan1.readState();
+    //HVAC
+    gDamper1.readMode();
+    gDamper1.readState();
+    gDamper2.readMode();
+    gDamper2.readState();
+    gValve3.readMode();
+    gValve3.readState();
+    gFan1.readMode();
+    gFan1.readState();
+  }
+ 
 
 
 
   //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE
+  if(simulationInit)
+  {
+    
+  }
+
+  //Simulation loop for demonstration
+  /*
+  if(gBreaker1.breakerState == Closed)
+  {
+    gBreaker1.timer = millis();
+    gBreaker1.breakerState = Opening;
+  }
+  if(gBreaker5.breakerState == Closed)
+  {
+    gBreaker5.timer = millis();
+    gBreaker5.breakerState = Opening;
+  }
+    
+  
+  if(gGenerator1.generatorState == Stopped && gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)
+  {
+    gGenerator1.nomPower = 500.0;
+    gGenerator1.generatorState = Starting;
+    simTimer = millis();
+  }
+
+  if(TOff(3000, &simTimer) && gGenerator1.generatorState == Running)
+  {
+    gBreaker5.timer = millis();
+    gBreaker5.breakerState = Closing;
+    gBreaker5.writeCmd();
+  }*/
+
+  if(simulationLoop)
+  {
+    switch (simState)
+    {
+    case Init:
+      gBreaker1.breakerState = Closed;
+      gBreaker5.breakerState = Closed;
+
+      gBreaker1.writeCmd();
+      gBreaker2.writeCmd();
+      gBreaker3.writeCmd();
+      gBreaker4.writeCmd();
+      gBreaker5.writeCmd();
+      gBreaker6.writeCmd();
+      delay(5000);
+      simState = fBreakersOpenCmd;
+      break;
+    
+    case fBreakersOpenCmd:
+      gBreaker1.timer = millis();
+      gBreaker1.breakerState = Opening;
+      gBreaker5.timer = millis();
+      gBreaker5.breakerState = Opening;
+      simState = fBreakersOpening;
+      break;
+    
+    case fBreakersOpening:
+      if(gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)
+        simState = fGenStartCmd;
+      break;
+    
+    case fGenStartCmd:
+      gGenerator1.nomPower = 500.0;
+      gGenerator1.generatorState = Starting;
+      simTimer = millis();
+      simState = fGenStarting;
+      break;  
+
+    case fGenStarting:
+      if(gGenerator1.generatorState == Running)
+      {
+        simTimer = millis();
+        simState = fGenRunning5s;
+      }
+        
+      break;
+    
+    case fGenRunning5s:
+        if(millis() - simTimer > 5000)
+          simState = cb5TripCmd;
+      break;  
+    
+    case cb5TripCmd:
+      gBreaker5.timer = millis();
+      gBreaker5.breakerState = Closing;
+      gGenerator1.failure = true;
+      gGenerator1.generatorState = StoppingF;
+      simState = cb5Tripped;
+      break;
+    
+    case cb5Tripped:
+      if(gGenerator1.power == 0.0)
+      {
+        gGenerator1.generatorState = Failure2;
+        dispShowAlarm(*gGenerator1.alarmDisps->d1, *gGenerator1.alarmDisps->d2, *gGenerator1.alarmDisps->d3, *gGenerator1.alarmDisps->d4, gGenerator1.generatorAlarm2, 1);
+        simState = cb5Tripped5s;
+        simTimer = millis();
+      }      
+      break;
+    
+    case cb5Tripped5s:
+      if(TOff(5000, &simTimer))
+        simState = fGenRst;
+      break;
+    
+    case fGenRst:
+      gGenerator1.generatorState = Stopped;
+      dispClearAlarms(display1, display2, display3, display4);
+      break;
+
+
+    default:
+      break;
+    }
+
+  }
+
+
+    
+
+
+
+
+
+
+    
+  
+
+
   //---------- VMS -----------
   vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
 
@@ -413,11 +555,7 @@ void loop()
   dispRCSAzipodVisualize(display5, display6, display7, grcsVars);
   dispRCSBowThrustersVisualize(display13, display14, display15, grcsVars);
 
-  
 
-
-
- 
   // 5. SAVE PREV STATE
   //---------- VMS -----------
   gPump1.savePrevState();
