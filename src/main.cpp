@@ -293,7 +293,8 @@ unsigned long timeNow = 0;
 bool simulationLoop = true;
 bool simulationInit = true;
 unsigned long simTimer = 0;
-enum simStateEnum{Init, fBreakersOpenCmd, fBreakersOpening, fGenStartCmd, fGenStarting, fGenRunning5s, cb5TripCmd, cb5Tripped, cb5Tripped5s, fGenRst};
+enum simStateEnum{Init, fBreakersOpenCmd, fBreakersOpening, fGenStartCmd, fGenStarting, fGenRunning5s, cb5TripCmd, cb5Tripped, cb5Tripped5s, fGenRst, fGenRst5s,
+                  cb5CloseCmd, cb5Closing, fGenStartCmd2, fGenStarting2, fGenRunning5s2};
 simStateEnum simState = Init;
 
 void loop()
@@ -369,39 +370,8 @@ void loop()
   //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE
-  if(simulationInit)
-  {
-    
-  }
 
   //Simulation loop for demonstration
-  /*
-  if(gBreaker1.breakerState == Closed)
-  {
-    gBreaker1.timer = millis();
-    gBreaker1.breakerState = Opening;
-  }
-  if(gBreaker5.breakerState == Closed)
-  {
-    gBreaker5.timer = millis();
-    gBreaker5.breakerState = Opening;
-  }
-    
-  
-  if(gGenerator1.generatorState == Stopped && gBreaker1.breakerState == Opened && gBreaker5.breakerState == Opened)
-  {
-    gGenerator1.nomPower = 500.0;
-    gGenerator1.generatorState = Starting;
-    simTimer = millis();
-  }
-
-  if(TOff(3000, &simTimer) && gGenerator1.generatorState == Running)
-  {
-    gBreaker5.timer = millis();
-    gBreaker5.breakerState = Closing;
-    gBreaker5.writeCmd();
-  }*/
-
   if(simulationLoop)
   {
     switch (simState)
@@ -480,6 +450,35 @@ void loop()
     case fGenRst:
       gGenerator1.generatorState = Stopped;
       dispClearAlarms(display1, display2, display3, display4);
+      simTimer = millis();
+      simState = fGenRst5s;
+      break;
+    
+    case fGenRst5s:
+      if(TOff(5000, &simTimer))
+        simState = cb5CloseCmd;
+      break;
+    
+    case cb5CloseCmd:
+      gBreaker5.timer = millis();
+      gBreaker5.breakerState = Opening;
+      simState = cb5Closing;
+      break;
+
+    case cb5Closing:
+      if(gBreaker5.breakerState == Opened)
+      {
+        gGenerator1.generatorState = Starting;
+        simState = fGenStarting2;
+      }
+      break;
+    
+    case fGenStarting2:
+      if(gGenerator1.generatorState == Running)
+      {
+        simTimer = millis();
+        simState = fGenRunning5s2;
+      }
       break;
 
 
