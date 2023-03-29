@@ -116,9 +116,9 @@ struct vmsSimVarsStruct
 struct rcsVarsStruct
 {
   float actRPM = 0.0, refRPM = 0.0, minRPM = -180.0, maxRPM = 180.0;
-  float refPower = 8, actPower = 0, minPower = -2.0, maxPower = 10.0;
+  float refPower = 0.0, actPower = 0.0, minPower = -2.0, maxPower = 4.0;
   float refAngle = 0, actAngle = 0; 
-  float refAngleSTBD = 0.0, refAnglePORT = 0.0; 
+  float refAngleSTBD = 0.0, refAnglePORT = 0.0, actAngleSTBD = 0.0, actAnglePORT = 0.0; 
 
   float refRpmBt = 0.0, actRpmBT = 0.0, minRpmBT = 0.0, maxRpmBT = 100.0;
   float refRpmStbdBT = 0.0, refRpmPortBT = 0.0;
@@ -135,6 +135,8 @@ struct color
 extern color Red;
 extern color Green;
 extern color Blue;
+
+extern float pemsAvailiblePower;
 
 struct alarmDispsStruct
 {
@@ -276,7 +278,7 @@ void dispShowAlarm(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafr
 void dispClearAlarms(Adafruit_SSD1306 &display1, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, Adafruit_SSD1306 &display4);
 void dispProgBarHorizontal(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, uint8_t progress);
 void dispProgBarHorizontal2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, int16_t progress, int16_t minVal, int16_t maxVal);
-void dispProgBarVertical2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, int16_t progress, int16_t minVal, int16_t maxVal);
+void dispProgBarVertical2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, float progress, float minVal, float maxVal);
 void dispStringALigned(String text, Adafruit_SSD1306 &display, GFXfont font, fontAligment aligment, int16_t x, int16_t y);
 
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
@@ -287,6 +289,7 @@ void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &di
 void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
 
 void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task);
+void rcsAzipodSimulate(rcsVarsStruct &rcsVars);
 void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task);
 void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVarsStruct);
 void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVars);
@@ -301,6 +304,9 @@ void W5500Reset();
 
 void rtcPrintTime(RTC_DS1307 &rtc);
 String rtcTime2String(RTC_DS1307 &rtc);
+
+
+
 
 
 

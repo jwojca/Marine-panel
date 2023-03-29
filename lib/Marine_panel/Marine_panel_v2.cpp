@@ -9,6 +9,8 @@ bool alarmRemoved = false;
 int16_t updatedAlarmRows = 0;
 int16_t updatedAlarmRows2 = 0;
 
+float pemsAvailiblePower = 0.0;
+
 
 color Red{255, 0, 0};
 color Green{0, 255, 0};
@@ -1044,7 +1046,7 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
   display.clearDisplay();
   uint8_t rpmPct = map(rcsVars.actRPM, rcsVars.minRPM, rcsVars.maxRPM, 0, 100);
   //dispProgBarVertical(display, 118, 0, 10, 64, rpmPct);
-  dispProgBarVertical2(display, 118,  0, 10, 64, int16_t(rcsVars.refRPM), int16_t(rcsVars.minRPM), int16_t(rcsVars.maxRPM));
+  dispProgBarVertical2(display, 118,  0, 10, 64, rcsVars.actRPM, rcsVars.minRPM, rcsVars.maxRPM);
   dispStringALigned(String(int32_t(rcsVars.maxRPM)), display, DejaVu_Sans_Mono_10, RightTop, 110, 0);
   dispStringALigned("0", display, DejaVu_Sans_Mono_10, RightBottom, 110, 36);
   dispStringALigned(String(int32_t(rcsVars.minRPM)), display, DejaVu_Sans_Mono_10, RightBottom, 110, 64);
@@ -1058,7 +1060,7 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
 
   //Angle
   display2.clearDisplay();
-  dispDrawThrustBitmap(display2, rcsVars.refAngle);
+  dispDrawThrustBitmap(display2, rcsVars.actAngle);
 
   String refAngleStr1 = "Ref ang.";
   String refAngleStr2;
@@ -1071,7 +1073,14 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
     refAngleStr2 = "   " + String(rcsVars.refAnglePORT, 1);
   
   String actualAngleStr1 = "Act ang. ";
-  String actualAngleStr2 = "   " + String(rcsVars.actAngle);
+  String actualAngleStr2;
+
+  if(rcsVars.actAngleSTBD > 0.0)
+    actualAngleStr2 = "SB " + String(rcsVars.actAngleSTBD, 1);
+  else if(rcsVars.actAnglePORT > 0.0)
+    actualAngleStr2 = "PO " + String(rcsVars.actAnglePORT, 1);
+  else
+    actualAngleStr2 = "   " + String(rcsVars.actAnglePORT, 1);
 
 
   dispStringALigned(refAngleStr1, display2, DejaVu_Sans_Mono_10, LeftTop, 70, 0);
@@ -1083,14 +1092,14 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
 
   //POWER
   display3.clearDisplay();
-  dispProgBarVertical2(display3, 0, 0, 10, 64, int16_t(rcsVars.refPower), int16_t(rcsVars.minPower), int16_t(rcsVars.maxPower));
-  dispStringALigned(String(int(rcsVars.maxPower)), display3, DejaVu_Sans_Mono_10, LeftTop, 20, 0);
-  dispStringALigned("0", display3, DejaVu_Sans_Mono_10, LeftBottom, 25, 54);
-  dispStringALigned(String(int(rcsVars.minPower)), display3, DejaVu_Sans_Mono_10, LeftBottom, 20, 64);
+  dispProgBarVertical2(display3, 0, 0, 10, 64, rcsVars.refPower, rcsVars.minPower, rcsVars.maxPower);
+  dispStringALigned(String(int(rcsVars.maxPower)), display3, DejaVu_Sans_Mono_10, RightBottom, 22, 10);
+  dispStringALigned("0", display3, DejaVu_Sans_Mono_10, RightBottom, 22, 44);
+  dispStringALigned(String(int(rcsVars.minPower)), display3, DejaVu_Sans_Mono_10, RightBottom, 22, 64);
 
   dispStringALigned("Ref.", display3, DejaVu_Sans_Mono_10, LeftTop, 55, 0);
   dispStringALigned(String(rcsVars.refPower) + " MW", display3, DejaVu_Sans_Mono_10, LeftTop, 55, 13);
-  dispStringALigned("Actual", display3, DejaVu_Sans_Mono_10, LeftTop, 55, 30);
+  dispStringALigned("Available", display3, DejaVu_Sans_Mono_10, LeftTop, 55, 30);
   dispStringALigned(String(rcsVars.actPower) + " MW", display3, DejaVu_Sans_Mono_10, LeftTop, 55, 43);
   display3.display();
   
@@ -1144,6 +1153,117 @@ void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task)
   rcsVars.refRPM += (float)(rpm) * (rpmIncrSpeed/task);
   rcsVars.refRPM = constrain(rcsVars.refRPM, rcsVars.minRPM, rcsVars.maxRPM);
 
+}
+
+void rcsAzipodSimulate(rcsVarsStruct &rcsVars)
+{
+  float angleDif;
+  if(rcsVars.refAnglePORT > 0.0)
+    angleDif = rcsVars.refAnglePORT - rcsVars.actAnglePORT;
+  else if(rcsVars.refAngleSTBD > 0.0)
+    angleDif = rcsVars.refAngleSTBD - rcsVars.actAngleSTBD;
+    
+  float rmpDif = abs(rcsVars.refRPM - rcsVars.actRPM);
+  float minPowRequiered = 0.4;
+  float powRequieredSteer = map(angleDif, 0, 360, 0, (rcsVars.maxPower/2.0) * 1000.0);
+  float powRequieredRpm = map(rmpDif, 0, abs(rcsVars.maxRPM - rcsVars.minRPM), 0, (rcsVars.maxPower/2.0) * 1000.0);
+
+  float rpmPct = map(abs(rcsVars.actRPM), 0, rcsVars.maxRPM, 0, 100);
+
+  bool boatMoving = bool(rcsVars.actRPM || rcsVars.actAnglePORT || rcsVars.actAngleSTBD);
+
+  rcsVars.refPower = (powRequieredSteer + powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
+
+    
+  //Accelerating
+  if(rcsVars.refRPM > rcsVars.actRPM)
+  {
+    if(rcsVars.actPower > rcsVars.refPower)
+    {
+      float rpmIncrease = 5;
+      rcsVars.actRPM += rpmIncrease * task/1000.0;
+      if(rcsVars.actRPM  > rcsVars.refRPM)
+        rcsVars.actRPM  = rcsVars.refRPM;
+    }
+  }
+  //Decelerating
+  else if(rcsVars.refRPM < rcsVars.actRPM)
+  {
+  
+    if(rcsVars.actPower > rcsVars.refPower)
+    {
+      float rpmDecrease = 5;
+      rcsVars.actRPM -= rpmDecrease * task/1000.0;
+      if(rcsVars.actRPM  < rcsVars.refRPM)
+        rcsVars.actRPM  = rcsVars.refRPM;
+    }
+  }
+
+
+  float degIncrease = 1.0;
+  if(rcsVars.actPower > rcsVars.refPower)
+  {
+     //Turning PORT+
+    if(rcsVars.refAnglePORT > rcsVars.actAnglePORT)
+    {
+      if(rcsVars.actAngleSTBD > 0.0)
+      {
+        rcsVars.actAngleSTBD -= degIncrease * task/1000.0;
+        if(rcsVars.actAngleSTBD < 0.0)
+          rcsVars.actAngleSTBD = 0.0;
+      }
+
+      else
+      {
+        rcsVars.actAnglePORT += degIncrease * task/1000.0;
+        if(rcsVars.actAnglePORT > rcsVars.refAnglePORT)
+          rcsVars.actAnglePORT = rcsVars.refAnglePORT;
+      }
+        
+    }
+    //Turning PORT-
+    else if(rcsVars.refAnglePORT < rcsVars.actAnglePORT)
+    {
+        rcsVars.actAnglePORT -= degIncrease * task/1000.0;
+        if(rcsVars.actAnglePORT < rcsVars.refAnglePORT)
+          rcsVars.actAnglePORT = rcsVars.refAnglePORT;
+    }
+
+    //Turning STBD+
+    else if(rcsVars.refAngleSTBD > rcsVars.actAngleSTBD)
+    {
+        if(rcsVars.actAnglePORT > 0.0)
+        {
+        rcsVars.actAnglePORT -= degIncrease * task/1000.0;
+        if(rcsVars.actAnglePORT < 0.0)
+          rcsVars.actAnglePORT = 0.0;
+        }
+        else
+        {
+          rcsVars.actAngleSTBD += degIncrease * task/1000.0;
+          if(rcsVars.actAngleSTBD > rcsVars.refAngleSTBD)
+            rcsVars.actAngleSTBD = rcsVars.refAngleSTBD;
+        }
+    }
+
+    //Turning STBD-
+    else if(rcsVars.refAngleSTBD < rcsVars.actAngleSTBD)
+    {
+    
+        rcsVars.actAngleSTBD -= degIncrease * task/1000.0;
+        if(rcsVars.actAngleSTBD < rcsVars.refAngleSTBD)
+          rcsVars.actAngleSTBD = rcsVars.refAngleSTBD;
+
+    }
+  }
+
+  if(rcsVars.actAngleSTBD == 0)
+     rcsVars.actAngle = rcsVars.actAnglePORT;
+  else
+    rcsVars.actAngle = rcsVars.actAnglePORT + (360.0 - rcsVars.actAngleSTBD);
+  
+
+ 
 }
 
 void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task)
@@ -1288,7 +1408,7 @@ void dispProgBarHorizontal2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int
 
 
 
-void dispProgBarVertical2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, int16_t progress, int16_t minVal, int16_t maxVal)
+void dispProgBarVertical2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16_t width, int16_t height, float progress, float minVal, float maxVal)
 {
   
   uint16_t posZero = 0;
@@ -1296,7 +1416,7 @@ void dispProgBarVertical2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16
 
   if(progress > 0)
   {
-    int16_t progressPct = map(progress, 0, maxVal, 0, 100);
+    int16_t progressPct = map(progress * 100, 0, maxVal * 100, 0, 100);
     int16_t progressHeight = map(progressPct, 0, 100, height - posZero, height);
     
     display.fillRect(x, y, width, posZero, WHITE);
@@ -1304,7 +1424,7 @@ void dispProgBarVertical2(Adafruit_SSD1306 &display, int16_t x, uint8_t y, int16
   }
   else if(progress < 0)
   {
-    int16_t progressPct = map(progress, 0, minVal, 0, 100);
+    int16_t progressPct = map(progress * 100, 0, minVal * 100, 0, 100);
     int16_t progressHeight = map(progressPct, 0, 100, posZero, height);
     
     display.fillRect(x, posZero, width, height, WHITE);
@@ -1450,3 +1570,5 @@ int joyReadData(uint8_t pin, bool verticalAxis)
     value = 0;
   return value;
 }
+
+

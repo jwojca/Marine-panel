@@ -85,6 +85,7 @@ Damper gDamper1(&rtc, &alarmDisps, hvacD1Alarm1, pwm3, RGB11, P0, P4, &pcf6, &pc
 ValveLinear gValve3(&rtc, &alarmDisps, hvacV3Alarm1, pwm3, RGB12, P4, &pcf6, P6, &pcf5);
 Fan gFan1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm3, RGB13, P6, &pcf6, P7, &pcf5);
 
+
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
 static const unsigned char PROGMEM logo_bmp[] =
@@ -294,8 +295,8 @@ unsigned long timeNow = 0;
 bool simulationLoop = true;
 bool simulationInit = true;
 unsigned long simTimer = 0;
-enum simStateEnum{Init, fBreakersOpenCmd, fBreakersOpening, fGenStartCmd, fGenStarting, fGenRunning5s, cb5TripCmd, cb5Tripped, cb5Tripped5s, fGenRst, fGenRst5s,
-                  cb5CloseCmd, cb5Closing, fGenStartCmd2, fGenStarting2, fGenRunning5s2};
+enum simStateEnum{Init, fBreakersCloseCmd, fBreakersClosing, fGenStartCmd, fGenStarting, fGenRunning5s, cb5TripCmd, cb5Tripped, cb5Tripped5s, fGenRst, fGenRst5s,
+                  cb5CloseCmd, cb5Closing, fGenStartCmd2, fGenStarting2, fGenRunning5s2, setAzipodRpm, shipAccelerating, shipOnRefRpm, shipTurning};
 simStateEnum simState = Init;
 
 void loop()
@@ -342,12 +343,16 @@ void loop()
     gBreaker6.readState();
 
     gGenerator1.readMode();
-    gGenerator1.readBreakersState(gBreaker1.breakerState == eBreakerState::Opened, gBreaker5.breakerState == eBreakerState::Opened);
+    gGenerator1.readBreakersState(gBreaker1.breakerState == eBreakerState::Closed, gBreaker5.breakerState == eBreakerState::Closed);
     gGenerator1.readState();
     
     gGenerator2.readMode();
-    gGenerator2.readBreakersState(gBreaker2.breakerState == eBreakerState::Opened, gBreaker6.breakerState == eBreakerState::Opened);
+    gGenerator2.readBreakersState(gBreaker2.breakerState == eBreakerState::Closed, gBreaker6.breakerState == eBreakerState::Closed);
     gGenerator2.readState();
+
+    grcsVars.actPower = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
+    grcsVars.actPowerBT = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
+
 
 
     //RCS
@@ -387,12 +392,12 @@ void loop()
     switch (simState)
     {
     case Init:
-      gBreaker1.breakerState = eBreakerState::Closed;
-      gBreaker2.breakerState = eBreakerState::Closed;
-      gBreaker3.breakerState = eBreakerState::Closed;
-      gBreaker4.breakerState = eBreakerState::Closed;
-      gBreaker5.breakerState = eBreakerState::Closed;
-      gBreaker6.breakerState = eBreakerState::Closed;
+      gBreaker1.breakerState = eBreakerState::Opened;
+      gBreaker2.breakerState = eBreakerState::Opened;
+      gBreaker3.breakerState = eBreakerState::Opened;
+      gBreaker4.breakerState = eBreakerState::Opened;
+      gBreaker5.breakerState = eBreakerState::Opened;
+      gBreaker6.breakerState = eBreakerState::Opened;
 
       gBreaker1.writeCmd();
       gBreaker2.writeCmd();
@@ -401,19 +406,19 @@ void loop()
       gBreaker5.writeCmd();
       gBreaker6.writeCmd();
       delay(5000);
-      simState = fBreakersOpenCmd;
+      simState = fBreakersCloseCmd;
       break;
     
-    case fBreakersOpenCmd:
+    case fBreakersCloseCmd:
       gBreaker1.timer = millis();
-      gBreaker1.breakerState = eBreakerState::Opening;
+      gBreaker1.breakerState = eBreakerState::Closing;
       gBreaker5.timer = millis();
-      gBreaker5.breakerState = eBreakerState::Opening;
-      simState = fBreakersOpening;
+      gBreaker5.breakerState = eBreakerState::Closing;
+      simState = fBreakersClosing;
       break;
     
-    case fBreakersOpening:
-      if(gBreaker1.breakerState == eBreakerState::Opened && gBreaker5.breakerState == eBreakerState::Opened)
+    case fBreakersClosing:
+      if(gBreaker1.breakerState == eBreakerState::Closed && gBreaker5.breakerState == eBreakerState::Closed)
         simState = fGenStartCmd;
       break;
     
@@ -440,7 +445,7 @@ void loop()
     
     case cb5TripCmd:
       gBreaker5.timer = millis();
-      gBreaker5.breakerState = eBreakerState::Closing;
+      gBreaker5.breakerState = eBreakerState::Opening;
       gGenerator1.failure = true;
       gGenerator1.generatorState = StoppingF;
       simState = cb5Tripped;
@@ -475,12 +480,12 @@ void loop()
     
     case cb5CloseCmd:
       gBreaker5.timer = millis();
-      gBreaker5.breakerState = eBreakerState::Opening;
+      gBreaker5.breakerState = eBreakerState::Closing;
       simState = cb5Closing;
       break;
 
     case cb5Closing:
-      if(gBreaker5.breakerState == eBreakerState::Opened)
+      if(gBreaker5.breakerState == eBreakerState::Closed)
       {
         gGenerator1.generatorState = Starting;
         simState = fGenStarting2;
@@ -494,11 +499,43 @@ void loop()
         simState = fGenRunning5s2;
       }
       break;
+    
+     case fGenRunning5s2:
+        if(TOff(5000, &simTimer))
+          simState = setAzipodRpm;        
+        break;
+      
+      case setAzipodRpm:
+        grcsVars.refRPM = 150;
+        gGenerator1.nomPower = 2000.0;
+        gGenerator1.generatorState = Starting;
+        simState = shipAccelerating;       
+        break;
+
+      case shipAccelerating:
+        
+        if(grcsVars.actRPM >= 150.0)
+        {
+          simState = shipOnRefRpm;
+          simTimer = millis();
+        }
+        break;
+          
+      case shipOnRefRpm:
+        if(TOff(5000, &simTimer))
+        {
+          grcsVars.refAnglePORT = 20.0;
+          simState = shipTurning;
+        }
+        break;
 
 
     default:
       break;
     }
+
+    grcsVars.actPower = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
+    grcsVars.actPowerBT = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
 
   }
 
@@ -524,6 +561,9 @@ void loop()
 
   //---------- HVAC -----------
   hvacSimulation(gDamper1, gDamper2, gValve3, gFan1);
+
+  //---------- RCS ------------
+  rcsAzipodSimulate(grcsVars);
 
 
 
@@ -620,8 +660,9 @@ void loop()
   RGBLedTest(5, pwm2);
   RGBLedTest(4, pwm3);*/
 
-  Serial.println("Alarm removed" + String(alarmRemoved));
-  Serial.println("Alarm added" + String(newAlarmAdded));
+  //Serial.println("Alarm removed" + String(alarmRemoved));
+  //Serial.println("Alarm added" + String(newAlarmAdded));
+
 
 
   

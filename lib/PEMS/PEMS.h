@@ -7,8 +7,8 @@ enum class eBreakerState{Opened, Closed, Opening, Closing, Failure, OpeningF};
 class Breaker
 {
   public:
-    eBreakerState breakerState = eBreakerState::Opened;
-    eBreakerState breakerPrevState = eBreakerState::Opened;
+    eBreakerState breakerState = eBreakerState::Closed;
+    eBreakerState breakerPrevState = eBreakerState::Closed;
     mpMode breakerMode = Local;
     uint8_t rgbNumber;
     Adafruit_PWMServoDriver pwm;
@@ -53,7 +53,7 @@ class Breaker
 class Generator
 {
   public:
-    float power = 0.0, nomPower = 1500.0 , minPower = 0.0, maxPower = 2000.0;
+    float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 3000.0;
     float speed = 0.0, nomSpeed = 850.0, maxSpeed = 1500.0, minSpeed = 0.0;
     float voltage;
     float nomVoltage;

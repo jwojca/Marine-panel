@@ -46,13 +46,13 @@ void Breaker::readState()
   uint8_t state = read3State(pcf1Pin, false, *pcf1);
   if(state == 1)
   {
-    if(this->breakerPrevState == eBreakerState::Opened || this->breakerState == eBreakerState::Opening)
+    if(this->breakerPrevState == eBreakerState::Closed || this->breakerState == eBreakerState::Closing)
     {
       this->timer = millis();
       this->breakerState = eBreakerState::OpeningF;
     }
 
-    if(this->breakerPrevState == eBreakerState::Closed)    
+    if(this->breakerPrevState == eBreakerState::Opened)    
     {
       this->breakerState = eBreakerState::Failure;
       incrementAlarmCounter(*this->alarmDisps);
@@ -77,20 +77,20 @@ void Breaker::readState()
         bool openCmd = read2State(pcf2Pin, false, *pcf2);
         bool closeCmd = !openCmd;
 
-        if(openCmd && (this->breakerState == eBreakerState::Closed || this->breakerState == eBreakerState::Closing))
+        if(openCmd && (this->breakerState == eBreakerState::Opened || this->breakerState == eBreakerState::Opening))
+        {
+          this->timer = millis(); //reset timer
+          this->breakerState = eBreakerState::Closing;
+        }
+        if(closeCmd && (this->breakerPrevState == eBreakerState::Closed || this->breakerState == eBreakerState::Closing))
         {
           this->timer = millis(); //reset timer
           this->breakerState = eBreakerState::Opening;
         }
-        if(closeCmd && (this->breakerPrevState == eBreakerState::Opened || this->breakerState == eBreakerState::Opening))
+        if(closeCmd && (this->breakerPrevState == eBreakerState::Closed || this->breakerState == eBreakerState::Closing))
         {
           this->timer = millis(); //reset timer
-          this->breakerState = eBreakerState::Closing;
-        }
-        if(closeCmd && (this->breakerPrevState == eBreakerState::Opened || this->breakerState == eBreakerState::Opening))
-        {
-          this->timer = millis(); //reset timer
-          this->breakerState = eBreakerState::Closing;
+          this->breakerState = eBreakerState::Opening;
         }
             
         if(closeCmd && (this->breakerPrevState == eBreakerState::Failure))
@@ -104,7 +104,7 @@ void Breaker::readState()
             
           decrementAlarmCounter(*this->alarmDisps);
           this->alarmRow = 0;
-          this->breakerState = eBreakerState::Closed;
+          this->breakerState = eBreakerState::Opened;
         }
           
     }
@@ -131,16 +131,16 @@ void Breaker::writeCmd()
   }
   else
   {
-    if(this->breakerState == eBreakerState::Opened)
-        RGBLedColor(firstPin, 0, 255, 0, pwm);
     if(this->breakerState == eBreakerState::Closed)
+        RGBLedColor(firstPin, 0, 255, 0, pwm);
+    if(this->breakerState == eBreakerState::Opened)
         RGBLedColor(firstPin, 0, 0, 0, pwm);
-    if(this->breakerState == eBreakerState::Opening)
+    if(this->breakerState == eBreakerState::Closing)
     {
       this->opening(loadTime);
       RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
     }
-    if(this->breakerState == eBreakerState::Closing)
+    if(this->breakerState == eBreakerState::Opening)
     {
       this->closing(loadTime);
       RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
@@ -164,13 +164,13 @@ void Breaker::savePrevState()
 void Breaker::opening(uint32_t loadTime)
 {
   if(TOff(loadTime, &this->timer))
-    this->breakerState = eBreakerState::Opened;
+    this->breakerState = eBreakerState::Closed;
 }
 
 void Breaker::closing(uint32_t loadTime)
 {
   if(TOff(loadTime, &this->timer))
-    this->breakerState = eBreakerState::Closed;
+    this->breakerState = eBreakerState::Opened;
 }
 
 // ---------------------------- GENERATOR CLASS FUNCTIONS -------------------------------------------------
