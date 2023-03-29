@@ -100,7 +100,7 @@ extern int16_t updatedAlarmRows2;
 
 
 enum mpMode{Local, Auto};
-enum mpState{Closed, Opened, Failure, Failure2, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running}; //states for valves and pumps 
+enum mpState{Closed, Opened, Failure, Failure2, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running, SlowingDown}; //states for valves and pumps 
 
 
 //TODO split states for valves, pumps, breakers, DGs
@@ -204,7 +204,7 @@ class Pump
     float maxPressure;
     float speed;
     float maxSpeed;
-    float refSpeed;
+    float refSpeed, prevRefSpeed;
     int maxInflow;
     int actInflow;
     mpState pumpState = Stopped;
@@ -248,6 +248,7 @@ class Pump
     void savePrevState();
     void stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
     void starting(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
+    void slowingDown();
 
 };
 

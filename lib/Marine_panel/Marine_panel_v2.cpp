@@ -540,6 +540,8 @@ void Pump::readState()
           this->pumpState = Stopped;
           
         }
+        if(run && (this->prevRefSpeed < this->refSpeed))
+          this->pumpState = SlowingDown;
             
     
     }
@@ -575,6 +577,8 @@ void Pump::writeCmd()
             RGBLedColor(firstPin, 0, 0, 0, pwm);
         if(this->pumpState == StoppingF)
             RGBLedBlink(pwm, firstPin, 500, 250, Red, &this->timer);
+        if(this->pumpState == SlowingDown)
+          this->slowingDown();
     }
   
 }
@@ -582,6 +586,7 @@ void Pump::writeCmd()
 void Pump::savePrevState()
 {
     this->pumpPrevState = this->pumpState;
+    this->prevRefSpeed = this->refSpeed;
 }
 
 void Pump::starting(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars)
@@ -617,6 +622,17 @@ void Pump::stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars)
         this->pumpState = Stopped;
 }
 
+ void Pump::slowingDown()
+ {
+  float speedDecr = 50.0;
+  this->speed -= speedDecr * task/1000.0;
+  if(this->speed < this->refSpeed)
+  {
+    this->speed = refSpeed;
+    this->pumpState = Running;
+  }
+    
+ }
 
 
 
@@ -710,7 +726,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
     }
     else if(Pump1.pumpState == Stopping || Pump1.pumpState == StoppingF)
         Pump1.stopping(3, dt, vmsSimVars);
-    else
+    else if(Pump1.pumpState == Stopped)
     {
         Pump1.pressure = 0;
         Pump1.actInflow = 0;

@@ -574,6 +574,7 @@ void loop()
       case pump1Starting:
           if(gVmsSimVars.PressureAct >= 6.5)
           {
+            gPump1.pumpState = SlowingDown;
             gPump1.refSpeed = 200;
             simState = pump1SlowingDown;
           }
