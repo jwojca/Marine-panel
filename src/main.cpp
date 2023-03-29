@@ -296,8 +296,9 @@ bool simulationLoop = true;
 bool simulationInit = true;
 unsigned long simTimer = 0;
 enum simStateEnum{Init, fBreakersCloseCmd, fBreakersClosing, fGenStartCmd, fGenStarting, fGenRunning5s, cb5TripCmd, cb5Tripped, cb5Tripped5s, fGenRst, fGenRst5s,
-                  cb5CloseCmd, cb5Closing, fGenStartCmd2, fGenStarting2, fGenRunning5s2, setAzipodRpm, shipAccelerating, shipOnRefRpm, shipTurning};
-simStateEnum simState = Init;
+                  cb5CloseCmd, cb5Closing, fGenStartCmd2, fGenStarting2, fGenRunning5s2, setAzipodRpm, shipAccelerating, shipOnRefRpm, shipTurning, shipOnRefAngle,
+                  fireAlarmAct, valve2OpenCmd, pump2Starting, pump2Running10s, pump1Starting, pump1SlowingDown, pump1Stopping};
+simStateEnum simState = fireAlarmAct;
 
 void loop()
 {
@@ -455,6 +456,7 @@ void loop()
       if(gGenerator1.power == 0.0)
       {
         gGenerator1.generatorState = Failure2;
+        gGenerator1.generatorAlarm2.time = rtcTime2String(rtc);
         dispShowAlarm(*gGenerator1.alarmDisps->d1, *gGenerator1.alarmDisps->d2, *gGenerator1.alarmDisps->d3, *gGenerator1.alarmDisps->d4, gGenerator1.generatorAlarm2, 1);
         simState = cb5Tripped5s;
         simTimer = millis();
@@ -528,6 +530,63 @@ void loop()
           simState = shipTurning;
         }
         break;
+      
+      case shipTurning:
+        if(grcsVars.actAnglePORT >= 20.0)
+        {
+          simState = shipOnRefAngle;
+          simTimer = millis();
+        }
+          
+        break;
+      
+      case shipOnRefAngle:
+        if(TOff(5000, &simTimer))
+          simState = fireAlarmAct;
+        break;
+      
+      case fireAlarmAct:
+        fireAlarm.time = rtcTime2String(rtc);
+        dispShowAlarm(*gGenerator1.alarmDisps->d1, *gGenerator1.alarmDisps->d2, *gGenerator1.alarmDisps->d3, *gGenerator1.alarmDisps->d4, fireAlarm, 1);
+        gValve2.valveState = Opening;
+        simState = valve2OpenCmd;
+        break;
+      
+      case valve2OpenCmd:
+        if(gValve2.valveState == Opened)
+        {
+          gPump2.pumpState = Starting;
+          simState = pump2Starting;
+          simTimer = millis();
+        }
+        break;
+      
+       case pump2Starting:
+          if(TOff(10000, &simTimer))
+          {
+            gPump1.pumpState = Starting;
+            gPump1.refSpeed = 950;
+            gValve1.valveState = Opening;
+            simState = pump1Starting;
+          }
+          break;
+
+      case pump1Starting:
+          if(gVmsSimVars.PressureAct >= 6.5)
+          {
+            gPump1.refSpeed = 200;
+            simState = pump1SlowingDown;
+          }
+        break;
+      
+      case pump1SlowingDown:
+
+        break;
+      
+      case pump1Stopping:
+
+        break;
+
 
 
     default:
@@ -543,7 +602,8 @@ void loop()
  
     
 
-
+/*shipOnRefAngle,
+                  fireAlarm, valve2OpenCmd*/
 
     
 

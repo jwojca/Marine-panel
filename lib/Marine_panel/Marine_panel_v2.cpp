@@ -705,7 +705,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
         Pump1.pressure = addNoise(Pump1.pressure, -0.15, 0.15);
         float dp = (Pump1.pressure - vmsSimVars.PressureAct) * 0.1;
         Pump1.actInflow = Pump1.maxInflow * dp;  
-        Pump1.speed = 955;
+        Pump1.speed = Pump1.refSpeed;
         Pump1.speed += random(-10, 10);
     }
     else if(Pump1.pumpState == Stopping || Pump1.pumpState == StoppingF)
@@ -743,7 +743,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
     float v1On = float(Valve1.valveState == Opened || Valve1.valveState == Opening || Valve1.valveState == Closing);
     float v2On = float(Valve2.valveState == Opened || Valve2.valveState == Opening || Valve2.valveState == Closing);
 
-    vmsSimVars.Inflow = dt * v1On * (Pump1.actInflow + Pump2.actInflow);
+    vmsSimVars.Inflow = dt * ((v1On * Pump1.actInflow) + Pump2.actInflow);
 
     //TODO define v2 outflow
     vmsSimVars.Outflow = dt * v2On * 100;
@@ -1032,8 +1032,8 @@ String rtcTime2String(RTC_DS1307 &rtc)
   DateTime now = rtc.now();
 
   //26-10-2022 08:47
-  String value;
-  value = now.day() + String("-") + now.month() + String("-") + now.year() + String(" ") + now.hour() + String(":") + now.minute();
+  char value[30];
+  sprintf(value,"%02u-%02u-%02u %02u:%02u", now.day(), now.month(), now.year(), now.hour(), now.minute());
   return value;
 }
 

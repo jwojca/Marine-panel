@@ -204,6 +204,7 @@ class Pump
     float maxPressure;
     float speed;
     float maxSpeed;
+    float refSpeed;
     int maxInflow;
     int actInflow;
     mpState pumpState = Stopped;

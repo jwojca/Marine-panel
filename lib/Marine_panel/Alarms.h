@@ -37,5 +37,8 @@ static mpAlarm hvacD2Alarm1 {"26-10-2022 08:47", "HVAC Damper 1", "Med priority"
 static mpAlarm hvacV3Alarm1 {"26-10-2022 08:47", "HVAC Valve 3", "Med priority", "Connect fail"};
 static mpAlarm hvacF1Alarm1 {"26-10-2022 08:47", "HVAC Fan 2", "Med priority", "Tripped"};
 
+//------------------------------------Fire alarm -----------------------------------------------------
+static mpAlarm fireAlarm {"26-10-2022 08:47", "Fire alarm", "High priority", ""};
+
 
 #endif
