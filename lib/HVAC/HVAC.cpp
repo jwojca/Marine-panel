@@ -6,7 +6,7 @@ float gSlope, gOffset;
 
 hvacSimVarsStruct hvacSimVars
 {
-  .pressureRef = 1600.0, .pressure = 1000.0, .pressMin = 0.0, .pressMax = 2000.0,      //Pa
+  .pressureRef = 1600.0, .pressure = 1500.0, .pressMin = 0.0, .pressMax = 2000.0,      //Pa
   .tempRef = 21.0, .temp = 21.0, .tempMin = 18.0, .tempMax = 30.0,                     //°C
   .roomVolume = 10000.0, .airInRoom = 0.0                                              //m3
 };
