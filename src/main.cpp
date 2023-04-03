@@ -297,8 +297,8 @@ bool simulationInit = true;
 unsigned long simTimer = 0;
 enum simStateEnum{Init, fBreakersCloseCmd, fBreakersClosing, fGenStartCmd, fGenStarting, fGenRunning5s, cb5TripCmd, cb5Tripped, cb5Tripped5s, fGenRst, fGenRst5s,
                   cb5CloseCmd, cb5Closing, fGenStartCmd2, fGenStarting2, fGenRunning5s2, setAzipodRpm, shipAccelerating, shipOnRefRpm, shipTurning, shipOnRefAngle,
-                  fireAlarmAct, valve2OpenCmd, pump2Starting, pump2Running10s, pump1Starting, pump1SlowingDown, pump1Stopping};
-simStateEnum simState = fireAlarmAct;
+                  fireAlarmAct, valve2OpenCmd, pump2Starting, pump2Running10s, pump1Starting, pump1SlowingDown, pump1Stopping, v3On, v3Cooling};
+simStateEnum simState = Init;
 
 void loop()
 {
@@ -415,6 +415,11 @@ void loop()
       gBreaker1.breakerState = eBreakerState::Closing;
       gBreaker5.timer = millis();
       gBreaker5.breakerState = eBreakerState::Closing;
+
+      gFan1.fanState = eFanState::Starting;
+      gDamper1.damperState = eDamperState::Opening;
+      gDamper2.damperState = eDamperState::Opening;
+
       simState = fBreakersClosing;
       break;
     
@@ -472,6 +477,11 @@ void loop()
       gGenerator1.generatorState = Stopped;
       dispClearAlarms(display1, display2, display3, display4);
       simTimer = millis();
+
+      gBreaker6.timer = millis();
+      gBreaker6.breakerState = eBreakerState::Opening;
+      gBreaker2.timer = millis();
+      gBreaker2.breakerState = eBreakerState::Opening;
       simState = fGenRst5s;
       break;
     
@@ -511,6 +521,9 @@ void loop()
         grcsVars.refRPM = 150;
         gGenerator1.nomPower = 2000.0;
         gGenerator1.generatorState = Starting;
+
+        gGenerator2.nomPower = 500.0;
+        gGenerator2.generatorState = Starting;
         simState = shipAccelerating;       
         break;
 
@@ -542,10 +555,18 @@ void loop()
       
       case shipOnRefAngle:
         if(TOff(5000, &simTimer))
+          gDamper1.timer = millis();
+          gDamper2.timer = millis();
           simState = fireAlarmAct;
         break;
       
       case fireAlarmAct:
+        //HVAC
+        gDamper1.timer = millis();
+        gDamper2.timer = millis();
+        gDamper1.damperState = eDamperState::Closing;
+        gDamper2.damperState = eDamperState::Closing;
+        //VMS
         fireAlarm.time = rtcTime2String(rtc);
         dispShowAlarm(*gGenerator1.alarmDisps->d1, *gGenerator1.alarmDisps->d2, *gGenerator1.alarmDisps->d3, *gGenerator1.alarmDisps->d4, fireAlarm, 1);
         gValve2.valveState = Opening;
@@ -572,20 +593,54 @@ void loop()
           break;
 
       case pump1Starting:
-          if(gVmsSimVars.PressureAct >= 6.5)
+          if(gVmsSimVars.PressureAct > 5.0 && gValve2.valveState != Closed)
           {
-            gPump1.pumpState = SlowingDown;
-            gPump1.refSpeed = 200;
-            simState = pump1SlowingDown;
+            gValve2.timer = millis();
+            gValve2.valveState = Closed;
+            dispClearAlarms(display1, display2, display3, display4);
+            //HVAC
+            gDamper1.timer = millis();
+            gDamper2.timer = millis();
+            gDamper1.damperState = eDamperState::Opening;
+            gDamper2.damperState = eDamperState::Opening;
+          }
+          if(gVmsSimVars.PressureAct >= 7.2)
+          {
+            gPump1.pumpState = Stopping;
+            gValve1.valveState = Closing;
+            simState = pump1Stopping;
+            gPump2.pumpState = Stopping;
+            simState = pump1Stopping;
           }
         break;
       
-      case pump1SlowingDown:
-
-        break;
       
       case pump1Stopping:
 
+        if(gPump1.pumpState == Stopped)
+        {
+          simTimer = millis();
+          simState = v3On;
+        }
+        break;
+
+      case v3On:
+        if(TOff(3000, &simTimer))
+        {
+          gValve3.timer = millis();
+          gValve3.valveState = eValveLinState::Opening;
+          simTimer = millis();
+          simState = v3Cooling;
+        }
+
+        break;
+      
+      case v3Cooling:
+        if(TOff(20000, &simTimer))
+        {
+          ESP.restart();
+        }
+        
         break;
 
 
