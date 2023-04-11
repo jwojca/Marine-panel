@@ -4,12 +4,12 @@
 bool gRegressionCalculated = false;
 float gSlope, gOffset;
 
-hvacSimVarsStruct hvacSimVars
+/*hvacSimVarsStruct hvacSimVars
 {
   .pressureRef = 1600.0, .pressure = 1500.0, .pressMin = 0.0, .pressMax = 2000.0,      //Pa
   .tempRef = 21.0, .temp = 21.0, .tempMin = 18.0, .tempMax = 30.0,                     //°C
   .roomVolume = 10000.0, .airInRoom = 0.0                                              //m3
-};
+};*/
 
 
 void Damper::readMode()
@@ -533,9 +533,9 @@ void Fan::stopping(uint32_t loadTime)
   }
 }
 
-void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan)
+void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan, hvacSimVarsStruct &aHvacSimVars)
 {
-  
+
   if(!gRegressionCalculated)
   {
     float Data_X[] = {0.0, fan.maxAirFlow};
@@ -551,7 +551,7 @@ void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &f
   
   float fanSpeedPct = map(fan.speed, fan.minSpeed, fan.maxSpeed, 0, 100);
   float maxPresIncrease = 500.0; 
-  float pressDiffPct = map(fan.maxStaticPressure - hvacSimVars.pressure, 0, fan.maxStaticPressure, 0, 100);
+  float pressDiffPct = map(fan.maxStaticPressure - aHvacSimVars.pressure, 0, fan.maxStaticPressure, 0, 100);
   float pressInrease = map(fanSpeedPct, 0, 100, 0, maxPresIncrease) * pressDiffPct/100.0 * (task/1000.0);
   float maxPressDecrease = maxPresIncrease/10.0;
   float pressDecrease = maxPressDecrease * (1.0 - pressDiffPct/100.0) * (task/1000.0);
@@ -560,8 +560,8 @@ void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &f
   //Active State
   if(damper1.damperState == eDamperState::Opened && damper2.damperState == eDamperState::Opened)
   {
-    hvacSimVars.pressure += fanSpeedPct/100.0 * pressInrease;
-    hvacSimVars.pressure = constrain(hvacSimVars.pressure, hvacSimVars.pressMin, fan.maxStaticPressure);
+    aHvacSimVars.pressure += fanSpeedPct/100.0 * pressInrease;
+    aHvacSimVars.pressure = constrain(aHvacSimVars.pressure, aHvacSimVars.pressMin, fan.maxStaticPressure);
 
     //Cooling temperature
     if(valve.valveState == eValveLinState::Opened)
@@ -569,30 +569,29 @@ void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &f
       float airIncrease = fanSpeedPct/100.0 * pressInrease; //Lets say that airvolume increase is proportional to pressIncrease and fans rpm
       float tempDecreaseFactor = 0.2;
       float tempDecrease = airIncrease * 0.001;
-      hvacSimVars.temp -= tempDecrease;
-      hvacSimVars.temp = constrain(hvacSimVars.temp, hvacSimVars.tempMin, hvacSimVars.tempMax);
+      aHvacSimVars.temp -= tempDecrease;
+      aHvacSimVars.temp = constrain(aHvacSimVars.temp, aHvacSimVars.tempMin, aHvacSimVars.tempMax);
     }
   }
 
   //Air leakage 
-  hvacSimVars.pressure -= pressDecrease;
+  aHvacSimVars.pressure -= pressDecrease;
 
   /*Debug
   Serial.println("Pressure incr: " + String((fanSpeedPct/100.0 * pressInrease)));
   Serial.println("Pressure decr: " + String(pressDecrease));*/
 
-
 }
 
-void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan)
+void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan, hvacSimVarsStruct &aHvacSimVars)
 {
   display.clearDisplay();
   
   String fanSpeedStr = "Fan speed: " + String(fan.speed, 0) + " rpm";
-  String tempRefStr = "Temp. ref:  " + String(hvacSimVars.tempRef, 1) + " C";
-  String tempActStr = "Temp. act:  " + String(hvacSimVars.temp, 1) + " C";
-  String pressRefStr = "Press.ref: " + String(hvacSimVars.pressureRef, 0) + " Pa";
-  String pressActStr = "Press.act: " + String(hvacSimVars.pressure, 0) + " Pa";
+  String tempRefStr = "Temp. ref:  " + String(aHvacSimVars.tempRef, 1) + " C";
+  String tempActStr = "Temp. act:  " + String(aHvacSimVars.temp, 1) + " C";
+  String pressRefStr = "Press.ref: " + String(aHvacSimVars.pressureRef, 0) + " Pa";
+  String pressActStr = "Press.act: " + String(aHvacSimVars.pressure, 0) + " Pa";
 
   uint8_t rowSpace = 13;
 

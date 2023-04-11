@@ -49,12 +49,12 @@ Adafruit_SSD1306 display6(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET
 Adafruit_SSD1306 display7(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP7_CS);
 Adafruit_SSD1306 display8(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP8_CS);
 Adafruit_SSD1306 display9(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP9_CS);
-Adafruit_SSD1306 display10(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP10_CS);
-Adafruit_SSD1306 display11(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP11_CS);
-Adafruit_SSD1306 display12(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP12_CS);
-Adafruit_SSD1306 display13(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP13_CS);
-Adafruit_SSD1306 display14(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP14_CS);
-Adafruit_SSD1306 display15(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, DISP_DC, DISP_RESET, DISP15_CS);
+Adafruit_SSD1306 display10(SCREEN_WIDTH, SCREEN_HEIGHT, SPI_MOSI2, SPI_CLK2, DISP_DC2,  DISP_RESET, DISP10_CS);
+Adafruit_SSD1306 display11(SCREEN_WIDTH, SCREEN_HEIGHT, SPI_MOSI2, SPI_CLK2, DISP_DC2,  DISP_RESET, DISP11_CS);
+Adafruit_SSD1306 display12(SCREEN_WIDTH, SCREEN_HEIGHT, SPI_MOSI2, SPI_CLK2, DISP_DC2,  DISP_RESET, DISP12_CS);
+Adafruit_SSD1306 display13(SCREEN_WIDTH, SCREEN_HEIGHT, SPI_MOSI2, SPI_CLK2, DISP_DC2,  DISP_RESET, DISP13_CS);
+Adafruit_SSD1306 display14(SCREEN_WIDTH, SCREEN_HEIGHT, SPI_MOSI2, SPI_CLK2, DISP_DC2, DISP_RESET, DISP14_CS);
+Adafruit_SSD1306 display15(SCREEN_WIDTH, SCREEN_HEIGHT, SPI_MOSI2, SPI_CLK2, DISP_DC2, DISP_RESET, DISP15_CS);
 
 alarmDispsStruct alarmDisps{&display1, &display2, &display3, &display4};
 
@@ -71,10 +71,16 @@ float gVmsPressureAct = 0.0; //Bar*/
 
 vmsSimVarsStruct gVmsSimVars;
 rcsVarsStruct grcsVars;
+hvacSimVarsStruct gHvacSimVars
+{
+  .pressureRef = 1600.0, .pressure = 1500.0, .pressMin = 0.0, .pressMax = 2000.0,      //Pa
+  .tempRef = 21.0, .temp = 21.0, .tempMin = 18.0, .tempMax = 30.0,                     //°C
+  .roomVolume = 10000.0, .airInRoom = 0.0                                              //m3
+};
 
 uint16_t gVmsPump1Speed = 566;
-Valve gValve1(&rtc, &alarmDisps, vmsV1Alarm1, pwm2, RGB7, P0, P0, &pcf4, &pcf5), gValve2(&rtc, &alarmDisps, vmsV2Alarm1, pwm2, RGB10, P2, P1, &pcf4, &pcf5);
-Pump gPump1(&rtc, &alarmDisps, vmsP1Alarm1, pwm2, RGB9, P4, P2, &pcf4, &pcf5), gPump2(&rtc, &alarmDisps, vmsP2Alarm1, pwm2, RGB8, P6, P3, &pcf4, &pcf5);
+Valve gValve1(&rtc, &alarmDisps, vmsV1Alarm1, pwm2, RGB8, P0, P0, &pcf4, &pcf5), gValve2(&rtc, &alarmDisps, vmsV2Alarm1, pwm2, RGB10, P2, P1, &pcf4, &pcf5);
+Pump gPump1(&rtc, &alarmDisps, vmsP1Alarm1, pwm2, RGB9, P4, P2, &pcf4, &pcf5), gPump2(&rtc, &alarmDisps, vmsP2Alarm1, pwm2, RGB7, P6, P3, &pcf4, &pcf5);
 
 Breaker gBreaker1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm1, RGB2, P4, P2, &pcf1, &pcf3), gBreaker2(&rtc, &alarmDisps, pemsCB2Alarm1, pwm1, RGB5, P6, P3, &pcf1, &pcf3);
 Breaker gBreaker3(&rtc, &alarmDisps, pemsCB3Alarm1, pwm1, RGB3, P0, P4, &pcf2, &pcf3), gBreaker4(&rtc, &alarmDisps, pemsCB4Alarm1, pwm1, RGB4, P2, P5, &pcf2, &pcf3);
@@ -133,7 +139,9 @@ void setup()
   pwmInit(pwm2);
   pwmInit(pwm3);
 
+
   delay(1000);
+
   
   dispInit(display1, true);
   dispInit(display2, false);
@@ -151,6 +159,8 @@ void setup()
   dispInit(display14, false);
   dispInit(display15, false);
 
+  delay(1000);
+
   //rotate by 180 deg
   display1.setRotation(2);
   display2.setRotation(2);
@@ -160,6 +170,9 @@ void setup()
   display5.setRotation(2);
   display6.setRotation(2);
   display7.setRotation(2);
+
+  display12.setRotation(2);
+
 
   // Show initial display buffer contents on the screen --
   // the library initializes this with an Adafruit splash screen.
@@ -178,7 +191,7 @@ void setup()
   display13.display();
   display14.display();
   display15.display();
-  delay(2000); // Pause for 2 seconds
+  
 
   // Clear the buffer
   display1.clearDisplay();
@@ -196,6 +209,8 @@ void setup()
   display13.clearDisplay();
   display14.clearDisplay();
   display15.clearDisplay();
+
+  
 
   delay(1000);
   W5500Reset(); //needed?
@@ -263,6 +278,7 @@ void setup()
   gPump1.maxInflow = 160;
   gPump1.actInflow = 0;
   gPump1.maxSpeed = 900;
+  gPump1.refSpeed = 900;
   gPump1.speed = 0;
   gPump2.maxPressure = 13.5;
   gPump2.nomPressure = 12.0;
@@ -273,7 +289,12 @@ void setup()
   //pemsCB1Alarm1.time = pemsCB2Alarm1.time = pemsCB3Alarm1.time = pemsCB4Alarm1.time = pemsCB5Alarm1.time = pemsCB6Alarm1.time = rtcTime2String(rtc);
   //vmsP1Alarm1.time = rtcTime2String(rtc);
   
-;
+
+  display1.display();
+  display2.display();
+  display3.display();
+  display4.display();
+  display15.display();
 
 }
   
@@ -297,7 +318,7 @@ bool simulationInit = true;
 unsigned long simTimer = 0;
 enum simStateEnum{Init, fBreakersCloseCmd, fBreakersClosing, fGenStartCmd, fGenStarting, fGenRunning5s, cb5TripCmd, cb5Tripped, cb5Tripped5s, fGenRst, fGenRst5s,
                   cb5CloseCmd, cb5Closing, fGenStartCmd2, fGenStarting2, fGenRunning5s2, setAzipodRpm, shipAccelerating, shipOnRefRpm, shipTurning, shipOnRefAngle,
-                  fireAlarmAct, valve2OpenCmd, pump2Starting, pump2Running10s, pump1Starting, pump1SlowingDown, pump1Stopping, v3On, v3Cooling};
+                  fireAlarmAct, valve2OpenCmd, pump2Starting, pump2Running10s, pump1Starting, pump1SlowingDown, pump1Stopping, v3On, v3Cooling, Restart};
 simStateEnum simState = Init;
 
 void loop()
@@ -476,12 +497,17 @@ void loop()
     case fGenRst:
       gGenerator1.generatorState = Stopped;
       dispClearAlarms(display1, display2, display3, display4);
-      simTimer = millis();
+      
 
       gBreaker6.timer = millis();
-      gBreaker6.breakerState = eBreakerState::Opening;
+      gBreaker6.breakerState = eBreakerState::Closing;
       gBreaker2.timer = millis();
-      gBreaker2.breakerState = eBreakerState::Opening;
+      gBreaker2.breakerState = eBreakerState::Closing;
+
+      gGenerator2.nomPower = 500.0;
+      gGenerator2.timer = millis();
+      gGenerator2.generatorState = Starting;
+      simTimer = millis();
       simState = fGenRst5s;
       break;
     
@@ -499,6 +525,7 @@ void loop()
     case cb5Closing:
       if(gBreaker5.breakerState == eBreakerState::Closed)
       {
+        gGenerator1.nomPower = 2000;
         gGenerator1.generatorState = Starting;
         simState = fGenStarting2;
       }
@@ -518,12 +545,7 @@ void loop()
         break;
       
       case setAzipodRpm:
-        grcsVars.refRPM = 150;
-        gGenerator1.nomPower = 2000.0;
-        gGenerator1.generatorState = Starting;
-
-        gGenerator2.nomPower = 500.0;
-        gGenerator2.generatorState = Starting;
+        grcsVars.refRPM = 150;       
         simState = shipAccelerating;       
         break;
 
@@ -629,6 +651,7 @@ void loop()
         {
           gValve3.timer = millis();
           gValve3.valveState = eValveLinState::Opening;
+          gHvacSimVars.tempRef = 19.5;
           simTimer = millis();
           simState = v3Cooling;
         }
@@ -636,13 +659,23 @@ void loop()
         break;
       
       case v3Cooling:
-        if(TOff(20000, &simTimer))
+        if(gHvacSimVars.temp <= 20.0)
         {
-          ESP.restart();
+          gValve3.timer = millis();
+          gValve3.valveState = eValveLinState::Closing;
+          simTimer = millis();
+          simState = Restart;
         }
         
         break;
 
+      case Restart:
+          if(TOff(5000, &simTimer))
+          {
+            ESP.restart();
+          }
+        
+        break;
 
 
     default:
@@ -676,7 +709,7 @@ void loop()
   vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
 
   //---------- HVAC -----------
-  hvacSimulation(gDamper1, gDamper2, gValve3, gFan1);
+  hvacSimulation(gDamper1, gDamper2, gValve3, gFan1, gHvacSimVars);
 
   //---------- RCS ------------
   rcsAzipodSimulate(grcsVars);
@@ -716,7 +749,7 @@ void loop()
     vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
 
     //---------- HVAC -----------
-    hvacVisualization(display12, gFan1);
+    hvacVisualization(display12, gFan1, gHvacSimVars);
     timeNow = millis();
 
   }
@@ -758,6 +791,8 @@ void loop()
 
   //Serial.println(gPump1.timer);
  // Serial.println(gPump2.timer);
+ 
+ /*
   String voltageX1 = "X1 " + String(analogReadMilliVolts(JOY1_X)) + "mV";
   String voltageY1 = "Y1 " + String(analogReadMilliVolts(JOY1_Y)) + "mV";
   String voltageX2 = "X2 " + String(analogReadMilliVolts(JOY2_X)) + "mV";
@@ -767,7 +802,7 @@ void loop()
   dispStringALigned(voltageY1, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 10);
   dispStringALigned(voltageX2, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 20);
   dispStringALigned(voltageY2, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 30);
-  display15.display();
+  display15.display();*/
 
  
   delay(task);
@@ -776,7 +811,7 @@ void loop()
   RGBLedTest(5, pwm2);
   RGBLedTest(4, pwm3);*/
 
-  //Serial.println("Alarm removed" + String(alarmRemoved));
+  Serial.println("Alarm removed" + String(alarmRemoved));
   //Serial.println("Alarm added" + String(newAlarmAdded));
 
 

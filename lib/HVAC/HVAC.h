@@ -163,6 +163,6 @@ class Fan
 };
 
 
-void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan);
-void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan);
+void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan, hvacSimVarsStruct &aHvacSimVars);
+void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan, hvacSimVarsStruct &aHvacSimVars);
 

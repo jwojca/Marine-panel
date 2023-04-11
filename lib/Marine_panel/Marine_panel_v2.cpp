@@ -233,7 +233,6 @@ void W5500Reset()
         for(;;); // Don't proceed, loop forever
       }
     }
-    
   }
 
   void dispShowID(Adafruit_SSD1306 &display, String ID)
