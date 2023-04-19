@@ -115,12 +115,14 @@ static const unsigned char PROGMEM logo_bmp[] =
 
 //modbus
 class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
-IPAddress server(169, 254, 198, 12);  // Address of Modbus Slave device - need to define!!
+//IPAddress server(169, 254, 198, 12);  // Address of Modbus Slave device - need to define!!
+IPAddress server(169, 254, 7, 87);  // Address of Modbus Slave device - need to define!!
 const int32_t showDelay = 1000;   // Show result every n'th mellisecond
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE }; // MAC address for your controller
-IPAddress ip(169, 254, 198, 200); // The IP address will be dependent on your local network
+//IPAddress ip(169, 254, 198, 201); // The IP address will be dependent on your local network
+IPAddress ip(169, 254, 7, 100); // The IP address will be dependent on your local network
 ModbusEthernet mb;               // Declare ModbusTCP instance
-boolean mbOn = false;
+boolean mbOn = true;
 
 void setup()
 {
@@ -237,6 +239,7 @@ void setup()
 
   if(mbOn)
   {
+    Serial.print("Starting modbus tcp ... ");
     //Modbus
     Ethernet.init(34);
     Ethernet.begin(mac, ip);
@@ -303,6 +306,7 @@ boolean test1 = 0;
 uint16_t test2 = 0;
 uint16_t test3 = 0;
 uint16_t test4 = 0;
+bool boolWrite = false;
 uint16_t progress = 0;
 uint16_t progressDG1 = 0;
 uint16_t progressDG2 = 0;
@@ -811,12 +815,12 @@ void loop()
   RGBLedTest(5, pwm2);
   RGBLedTest(4, pwm3);*/
 
-  Serial.println("Alarm removed" + String(alarmRemoved));
+  //Serial.println("Alarm removed" + String(alarmRemoved));
   //Serial.println("Alarm added" + String(newAlarmAdded));
 
 
 
-  
+  boolWrite = !boolWrite;
 
   //resetAlarmIndex();
   //newAlarmAdded = false;
@@ -826,39 +830,43 @@ void loop()
 
   if(mbOn)
   {
-    while (Ethernet.linkStatus() == LinkOFF) 
+    if(Ethernet.linkStatus() == LinkOFF) 
     {
       Serial.println("The Ethernet cable is unplugged...");
-      delay(1000);
+    }
+    else
+    {
+       if (mb.isConnected(server)) 
+      {  
+          mb.readCoil(server, 1, &test1);
+          mb.readHreg(server, 1, &test2); 
+          mb.readHreg(server, 2, &test3); 
+          mb.readHreg(server, 100, &test4); 
+          mb.writeCoil(server, 1, boolWrite);
+      } 
+      else 
+      {
+          mb.connect(server);           // Try to connect if not connected
+      }
+      //delay(100);                     // Pulling interval
+                          // Common local Modbus task
+      if (millis() - showLast > showDelay)
+      { // Display register value every x seconds (with default settings)
+        mb.task(); 
+        showLast = millis();
+        Serial.print("Test1: ");
+        Serial.println(test1);
+        Serial.print("Test2: ");
+        Serial.println(test2);
+        Serial.print("Test3: ");
+        Serial.println(test3);
+        Serial.print("Test4: ");
+        Serial.println(test4);
+      }
+
     }
 
-    if (mb.isConnected(server)) 
-    {  
-        if(mb.readCoil(server, 0, &test1) == 0)
-          Serial.print("Transaction 0");
-        mb.readHreg(server, 0, &test2); 
-        mb.readHreg(server, 1, &test3); 
-        mb.readHreg(server, 100, &test4); 
-        
-      } 
-    else 
-    {
-        mb.connect(server);           // Try to connect if not connected
-    }
-    delay(100);                     // Pulling interval
-    mb.task();                      // Common local Modbus task
-    if (millis() - showLast > showDelay)
-    { // Display register value every x seconds (with default settings)
-      showLast = millis();
-      Serial.print("Test1: ");
-      Serial.println(test1);
-      Serial.print("Test2: ");
-      Serial.println(test2);
-      Serial.print("Test3: ");
-      Serial.println(test3);
-      Serial.print("Test4: ");
-      Serial.println(test4);
-    }
+   
   }
   
 }

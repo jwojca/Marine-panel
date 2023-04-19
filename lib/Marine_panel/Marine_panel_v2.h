@@ -24,9 +24,9 @@
 
 // Declaration for SSD1306 display connected using software SPI (default case):
 #define DISP_DC     33
-#define DISP_RESET  44
+#define DISP_RESET  40
 
-#define DISP_DC2    43
+#define DISP_DC2    39
 #define SPI_MOSI2   42
 #define SPI_CLK2    41 
 
