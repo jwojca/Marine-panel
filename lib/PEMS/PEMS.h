@@ -2,6 +2,10 @@
 
 #include "../Marine_panel/Marine_panel_v2.h"
 
+
+
+
+
 enum class eBreakerState{Opened, Closed, Opening, Closing, Failure, OpeningF};
 
 class Breaker
@@ -20,6 +24,13 @@ class Breaker
 
     unsigned long timer = 0;
     unsigned long blinkTimer = 0;
+    unsigned long mbTimer = 0;
+
+    bool mbRead = true;
+    bool mbTask = false;
+    bool mbOpenCmd = false;
+
+    bool openCmd = false;
 
     alarmDispsStruct *alarmDisps;
     mpAlarm breakerAlarm1;
@@ -43,11 +54,12 @@ class Breaker
     }
     
     void readMode();
-    void readState();
+    void readState(ModbusEthernet &mb, uint16_t mbAdr);
     void writeCmd();
     void savePrevState();
-    void closing(uint32_t loadTime);
     void opening(uint32_t loadTime);
+    void closing(uint32_t loadTime);
+    
 };
 
 class Generator

@@ -1,5 +1,7 @@
 #include "PEMS.h"
 
+IPAddress server(169, 254, 29, 218);  // Address of Modbus Slave device - need to define!!
+
 
 void Breaker::readMode()
 {
@@ -11,7 +13,7 @@ void Breaker::readMode()
     this->breakerMode = Auto;
 }
 
-void Breaker::readState()
+void Breaker::readState(ModbusEthernet &mb, uint16_t mbAdr)
 {
    //For dynamic rows change
   if(alarmCounter == 0)
@@ -72,10 +74,39 @@ void Breaker::readState()
         
   else
   {
+    
     if(this->breakerMode == Local)
     {
-        bool openCmd = read2State(pcf2Pin, false, *pcf2);
-        bool closeCmd = !openCmd;
+        openCmd = read2State(pcf2Pin, false, *pcf2);         
+    }
+    else    //Auto - read from modbus
+    {
+      
+      if (mb.isConnected(server)) 
+      {  
+        if(mbRead)
+        {
+          mb.readCoil(server, mbAdr, &openCmd);
+          mbRead = false;
+          mbTask = true;
+          this->mbTimer = millis(); //reset timer
+        }
+          
+        if(TOff(100, &this->mbTimer) && mbTask)
+        {
+          mb.task();
+          mbTask = false;
+          mbRead = true;
+        }
+      } 
+      else
+        Serial.println("Connection not established, cannot read data.");
+
+    }
+
+    
+
+    bool closeCmd = !openCmd;
 
         if(openCmd && (this->breakerState == eBreakerState::Opened || this->breakerState == eBreakerState::Opening))
         {
@@ -106,12 +137,6 @@ void Breaker::readState()
           this->alarmRow = 0;
           this->breakerState = eBreakerState::Opened;
         }
-          
-    }
-    else    //Auto - read from modbus
-    {
-
-    }
     
   }
 }
@@ -161,10 +186,12 @@ void Breaker::savePrevState()
     this->breakerPrevState = this->breakerState;
 }
 
+
 void Breaker::opening(uint32_t loadTime)
 {
   if(TOff(loadTime, &this->timer))
     this->breakerState = eBreakerState::Closed;
+    
 }
 
 void Breaker::closing(uint32_t loadTime)

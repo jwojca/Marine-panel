@@ -114,13 +114,13 @@ static const unsigned char PROGMEM logo_bmp[] =
 
 
 //modbus
-class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
+//class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
 //IPAddress server(169, 254, 198, 12);  // Address of Modbus Slave device - need to define!!
-IPAddress server(169, 254, 7, 87);  // Address of Modbus Slave device - need to define!!
+
 const int32_t showDelay = 1000;   // Show result every n'th mellisecond
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE }; // MAC address for your controller
 //IPAddress ip(169, 254, 198, 201); // The IP address will be dependent on your local network
-IPAddress ip(169, 254, 7, 100); // The IP address will be dependent on your local network
+IPAddress ip(169, 254, 29, 100); // The IP address will be dependent on your local network
 ModbusEthernet mb;               // Declare ModbusTCP instance
 boolean mbOn = true;
 
@@ -356,17 +356,18 @@ void loop()
 
     //---------- PEMS -----------
     gBreaker1.readMode();
-    gBreaker1.readState();
+    gBreaker1.readState(mb, Brkr1CmdClsAut_ADR);
     gBreaker2.readMode();
-    gBreaker2.readState();
+    //TODO add adresses
+    gBreaker2.readState(mb, Brkr2CmdClsAut_ADR);
     gBreaker3.readMode();
-    gBreaker3.readState();
+    gBreaker3.readState(mb, Brkr3CmdClsAut_ADR);
     gBreaker4.readMode();
-    gBreaker4.readState();
+    gBreaker4.readState(mb, Brkr4CmdClsAut_ADR);
     gBreaker5.readMode();
-    gBreaker5.readState();
+    gBreaker5.readState(mb, Brkr5CmdClsAut_ADR);
     gBreaker6.readMode();
-    gBreaker6.readState();
+    gBreaker6.readState(mb, Brkr6CmdClsAut_ADR);
 
     gGenerator1.readMode();
     gGenerator1.readBreakersState(gBreaker1.breakerState == eBreakerState::Closed, gBreaker5.breakerState == eBreakerState::Closed);
@@ -404,13 +405,16 @@ void loop()
   // 2. SIMULATE
   gFan1.readMode();
 
+  /*
   if(gFan1.fanMode == Auto)
     simulationLoop = false;
   else if(gFan1.fanMode == Local && !simulationLoop)
   {
     simulationLoop = true;
     simState = Init;
-  }
+  }\
+  */
+  simulationLoop = false;
 
   //Simulation loop for demonstration
   if(simulationLoop)
@@ -739,6 +743,7 @@ void loop()
   gGenerator2.writeCmd();
 
   //---------- HVAC -----------
+  hvacWrite(mb, gHvacSimVars);
   gDamper1.writeCmd();
   gDamper2.writeCmd();
   gValve3.writeCmd();
@@ -817,6 +822,8 @@ void loop()
 
   //Serial.println("Alarm removed" + String(alarmRemoved));
   //Serial.println("Alarm added" + String(newAlarmAdded));
+ 
+  
 
 
 
@@ -830,6 +837,8 @@ void loop()
 
   if(mbOn)
   {
+    Serial.println(gBreaker1.breakerMode);
+    
     if(Ethernet.linkStatus() == LinkOFF) 
     {
       Serial.println("The Ethernet cable is unplugged...");

@@ -14,6 +14,14 @@ struct hvacSimVarsStruct
     float airInRoom;
 };
 
+struct mbHvacSimVarsStruct
+{
+    uint16_t pressureRef, pressure, pressMin, pressMax;
+    uint16_t tempRef, temp, tempMin, tempMax;
+    uint16_t roomVolume;
+    uint16_t airInRoom;
+};
+
 class Damper
 {
   public:
@@ -165,4 +173,4 @@ class Fan
 
 void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan, hvacSimVarsStruct &aHvacSimVars);
 void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan, hvacSimVarsStruct &aHvacSimVars);
-
+void hvacWrite(ModbusEthernet &mb, hvacSimVarsStruct &aHvacSimVars);

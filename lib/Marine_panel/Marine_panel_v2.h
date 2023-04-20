@@ -74,6 +74,7 @@
 
 
 
+
 #include <Wire.h>
 #include <Arduino.h>
 #include <PCF8574.h>
@@ -83,15 +84,24 @@
 #include <Adafruit_GFX.h>
 #include <RTClib.h>
 
+
+
 //#include <SSD1306Spi.h>
 
 #include "../Marine_panel/Fonts/DejavuSansMono15.h"
 #include "../Marine_panel/Fonts/DejavuSansMono10.h"
 #include "../Marine_panel/Fonts/DejavuSansMono8.h"
 #include "Alarms.h"
+#include "mbAdresses.h"
 //#include "../lib/Marine_panel_VMS.h"
 
 #include "../Marine_panel/Images/Images.h"
+
+#include <Ethernet.h>       // Ethernet library v2 is required
+#include <ModbusAPI.h>
+#include <ModbusTCPTemplate.h>
+extern IPAddress server;  // Address of Modbus Slave device - need to define!!
+class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
 
 extern int task; 
 extern int16_t alarmCounter;
@@ -100,6 +110,9 @@ extern bool newAlarmAdded;
 extern bool alarmRemoved;
 extern int16_t updatedAlarmRows;
 extern int16_t updatedAlarmRows2;
+
+
+
 
 
 

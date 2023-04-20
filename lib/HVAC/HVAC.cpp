@@ -4,12 +4,16 @@
 bool gRegressionCalculated = false;
 float gSlope, gOffset;
 
-/*hvacSimVarsStruct hvacSimVars
+bool gMbRead = true;
+bool gMbTask = false;
+unsigned long gMbTimer = 0;
+
+mbHvacSimVarsStruct mbHvacSimVars
 {
-  .pressureRef = 1600.0, .pressure = 1500.0, .pressMin = 0.0, .pressMax = 2000.0,      //Pa
-  .tempRef = 21.0, .temp = 21.0, .tempMin = 18.0, .tempMax = 30.0,                     //°C
-  .roomVolume = 10000.0, .airInRoom = 0.0                                              //m3
-};*/
+  .pressureRef = 1600, .pressure = 1500, .pressMin = 0, .pressMax = 2000,      //Pa
+  .tempRef = 21, .temp = 21, .tempMin = 18, .tempMax = 30,                     //°C
+  .roomVolume = 10000, .airInRoom = 0                                              //m3
+};
 
 
 void Damper::readMode()
@@ -602,4 +606,40 @@ void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan, hvacSimVarsStruct &a
   dispStringALigned(pressActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 4 * rowSpace);
 
   display.display();
+}
+
+void hvacWrite(ModbusEthernet &mb, hvacSimVarsStruct &aHvacSimVars)
+{
+  uint16_t mbDelay = 100;
+  if (mb.isConnected(server)) 
+        {  
+
+          if(gMbRead)
+          {
+            mb.readHreg(server, SnsrPressRef_ADR, &mbHvacSimVars.pressureRef);
+            mb.readHreg(server, SnsrTempRef_ADR, &mbHvacSimVars.tempRef);
+
+
+            mbHvacSimVars.pressure = uint16_t(aHvacSimVars.pressure);
+            mbHvacSimVars.temp = uint16_t(aHvacSimVars.temp);
+            mb.writeHreg(server, SnsrPressAct_ADR, &mbHvacSimVars.pressure);
+            mb.writeHreg(server, SnsrTempAct_ADR, &mbHvacSimVars.temp);
+
+            gMbRead = false;
+            gMbTask = true;
+            gMbTimer = millis(); //reset timer
+          }
+            
+          if(TOff(mbDelay, &gMbTimer) && gMbTask)
+          {
+            mb.task();
+            aHvacSimVars.pressureRef = mbHvacSimVars.pressureRef;
+            aHvacSimVars.tempRef = mbHvacSimVars.tempRef;
+            
+            gMbTask = false;
+            gMbRead = true;
+          }
+        } 
+        else
+          Serial.println("Connection not established, cannot read data.");
 }
