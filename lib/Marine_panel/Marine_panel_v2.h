@@ -270,8 +270,8 @@ class Pump
     
     
     void readMode();
-    void readState(ModbusEthernet &mb, uint16_t mbAdr);
-    void writeCmd(ModbusEthernet &mb, uint16_t mbAdr);
+    void readState(ModbusEthernet &mb, uint16_t mbAdr,uint16_t mbAdr2);
+    void writeCmd();
     void savePrevState();
     void stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
     void starting(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);

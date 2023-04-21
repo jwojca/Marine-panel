@@ -367,9 +367,9 @@ void loop()
     gValve2.readMode();
     gValve2.readState(mb, Vlv2CmdOpAut_ADR);
     gPump1.readMode();
-    gPump1.readState(mb, Pmp1CmdStrtAut_ADR);
+    gPump1.readState(mb, Pmp1CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
     gPump2.readMode();
-    gPump2.readState(mb, Pmp2CmdStrtAut_ADR);
+    gPump2.readState(mb, Pmp2CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
     vmsMbRead(mb, gVmsSimVars);
   
     //---------- PEMS -----------
@@ -471,8 +471,8 @@ void loop()
   //---------- VMS -----------
   gValve1.writeCmd();
   gValve2.writeCmd();
-  gPump1.writeCmd(mb, Pmp1SpeedRef_ADR);
-  gPump2.writeCmd(mb, Pmp1SpeedRef_ADR);
+  gPump1.writeCmd();
+  gPump2.writeCmd();
 
   //---------- PEMS -----------
   gBreaker1.writeCmd();

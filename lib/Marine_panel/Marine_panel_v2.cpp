@@ -490,7 +490,7 @@ void Pump::readMode()
     this->pumpMode = Auto;
 }
 
-void Pump::readState(ModbusEthernet &mb, uint16_t mbAdr)
+void Pump::readState(ModbusEthernet &mb, uint16_t mbAdr, uint16_t mbAdr2)
 {
 
   //For dynamic rows change
@@ -554,6 +554,7 @@ void Pump::readState(ModbusEthernet &mb, uint16_t mbAdr)
         if(mbRead)
         {
           mb.readCoil(server, mbAdr, &this->run);
+          mb.readHreg(server, mbAdr2, &this->mbSpeedRef);
           this->mbRead = false;
           this->mbTask = true;
           this->mbTimer = millis(); //reset timer
@@ -562,6 +563,7 @@ void Pump::readState(ModbusEthernet &mb, uint16_t mbAdr)
         if(TOff(mbReadDelay, &this->mbTimer) && this->mbTask)
         {
           mb.task();
+          this->refSpeed = this->mbSpeedRef;
           this->mbTask = false;
           this->mbRead = true;
         }
@@ -598,7 +600,7 @@ void Pump::readState(ModbusEthernet &mb, uint16_t mbAdr)
 
 }
 
-void Pump::writeCmd(ModbusEthernet &mb, uint16_t mbAdr)
+void Pump::writeCmd()
 {   
     int rgbBlinkDelay = 500;
     //calculate first pin of pwm channel based on RGB number
@@ -644,8 +646,12 @@ void Pump::starting(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars)
 
     this->speed += (this->maxSpeed/loadTime) * dt;;
 
-    if(this->pressure > this->nomPressure)
-        this->pumpState = Running;
+    if(this->pressure > this->nomPressure || this->speed > this->refSpeed)
+    {
+      //this->nomPressure = this->pressure;
+      this->pumpState = Running;
+    }
+        
 }
 
 void Pump::stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars)
@@ -761,7 +767,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
     }
     else if(Pump1.pumpState == Running)
     {
-        Pump1.pressure = Pump1.nomPressure;
+        Pump1.pressure = Pump1.nomPressure * map(Pump1.speed, 0, Pump1.maxSpeed, 0, 100)/100.0;
         Pump1.pressure = addNoise(Pump1.pressure, -0.15, 0.15);
         float dp = (Pump1.pressure - vmsSimVars.PressureAct) * 0.1;
         Pump1.actInflow = Pump1.maxInflow * dp;  
@@ -840,7 +846,6 @@ void vmsMbRead(ModbusEthernet &mb, vmsSimVarsStruct &aVmsSimVars)
       aVmsSimVars.PressureRef = mbVmsPressRef;          
       gMbVmsTask = false;
       gMbVmsRead = true;
-      
     }
   } 
   else
