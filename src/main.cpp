@@ -344,13 +344,8 @@ simStateEnum simState = Init;
 void loop()
 {
 
-  //printAlarmIndex();
-
- 
   /*
   1. READ
-
-  
   2. SIMULATE
   3. WRITE
   4. VISUALIZE
@@ -374,7 +369,6 @@ void loop()
     gBreaker1.readMode();
     gBreaker1.readState(mb, Brkr1CmdClsAut_ADR);
     gBreaker2.readMode();
-    //TODO add adresses
     gBreaker2.readState(mb, Brkr2CmdClsAut_ADR);
     gBreaker3.readMode();
     gBreaker3.readState(mb, Brkr3CmdClsAut_ADR);
@@ -387,11 +381,11 @@ void loop()
 
     gGenerator1.readMode();
     gGenerator1.readBreakersState(gBreaker1.breakerState == eBreakerState::Closed, gBreaker5.breakerState == eBreakerState::Closed);
-    gGenerator1.readState();
+    gGenerator1.readState(mb, Gen1StartAuto_ADR);
     
     gGenerator2.readMode();
     gGenerator2.readBreakersState(gBreaker2.breakerState == eBreakerState::Closed, gBreaker6.breakerState == eBreakerState::Closed);
-    gGenerator2.readState();
+    gGenerator2.readState(mb, Gen2StartAuto_ADR);
 
     grcsVars.actPower = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
     grcsVars.actPowerBT = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
@@ -577,7 +571,7 @@ void loop()
   
   
 
-  if(mbOn)
+  if(false)
   {
     Serial.println(gBreaker1.breakerMode);
     
@@ -589,11 +583,13 @@ void loop()
     {
        if (mb.isConnected(server)) 
       {  
+        
           mb.readCoil(server, 1, &test1);
           mb.readHreg(server, 1, &test2); 
           mb.readHreg(server, 2, &test3); 
           mb.readHreg(server, 100, &test4); 
           mb.writeCoil(server, 1, boolWrite);
+          
       } 
       else 
       {
@@ -605,6 +601,7 @@ void loop()
       { // Display register value every x seconds (with default settings)
         mb.task(); 
         showLast = millis();
+        
         Serial.print("Test1: ");
         Serial.println(test1);
         Serial.print("Test2: ");
@@ -613,6 +610,7 @@ void loop()
         Serial.println(test3);
         Serial.print("Test4: ");
         Serial.println(test4);
+        
       }
 
     }

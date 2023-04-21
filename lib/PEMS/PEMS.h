@@ -29,7 +29,6 @@ class Breaker
     bool mbRead = true;
     bool mbTask = false;
     bool mbOpenCmd = false;
-
     bool openCmd = false;
 
     alarmDispsStruct *alarmDisps;
@@ -82,6 +81,7 @@ class Generator
     Adafruit_SSD1306 *display;
 
     unsigned long timer = 0;
+    unsigned long mbTimer = 0;
 
     alarmDispsStruct *alarmDisps;
     mpAlarm generatorAlarm1;
@@ -90,6 +90,10 @@ class Generator
 
     bool breakersClosed = false;
     bool failure = false;
+
+    bool mbRead = true;
+    bool mbTask = false;
+    bool run = false;
 
     RTC_DS1307 *rtc;
 
@@ -108,7 +112,7 @@ class Generator
     
     
     void readMode();
-    void readState();
+    void readState(ModbusEthernet &mb, uint16_t mbAdr);
     void writeCmd();
     void savePrevState();
     void stopping(uint32_t loadTime);

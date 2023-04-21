@@ -77,7 +77,7 @@ void Breaker::readState(ModbusEthernet &mb, uint16_t mbAdr)
     
     if(this->breakerMode == Local)
     {
-        openCmd = read2State(pcf2Pin, false, *pcf2);         
+        this->openCmd = read2State(pcf2Pin, false, *pcf2);         
     }
     else    //Auto - read from modbus
     {
@@ -86,17 +86,17 @@ void Breaker::readState(ModbusEthernet &mb, uint16_t mbAdr)
       {  
         if(mbRead)
         {
-          mb.readCoil(server, mbAdr, &openCmd);
-          mbRead = false;
-          mbTask = true;
+          mb.readCoil(server, mbAdr, &this->openCmd);
+          this->mbRead = false;
+          this->mbTask = true;
           this->mbTimer = millis(); //reset timer
         }
           
-        if(TOff(100, &this->mbTimer) && mbTask)
+        if(TOff(100, &this->mbTimer) && this->mbTask)
         {
           mb.task();
-          mbTask = false;
-          mbRead = true;
+          this->mbTask = false;
+          this->mbRead = true;
         }
       } 
       else
@@ -211,7 +211,7 @@ void Generator::readMode()
     this->generatorMode = Auto;
 }
 
-void Generator::readState()
+void Generator::readState(ModbusEthernet &mb, uint16_t mbAdr)
 {
   //For dynamic rows change
   if(alarmCounter == 0)
@@ -281,49 +281,68 @@ void Generator::readState()
   {
     if(this->generatorMode == Local)
     {
-        bool run = read2State(pcf2Pin, false, *pcf2);
-        bool stop = !run;
+        this->run = read2State(pcf2Pin, false, *pcf2);
 
-        if(run && (this->generatorPrevState == Stopped || this->generatorPrevState == Stopping) && this->breakersClosed)
-        {
-          this->timer = millis(); //reset timer
-          this->generatorState = Starting;
-        }
-            
-        if ((this->generatorPrevState == Running || this->generatorPrevState == Starting))
-        {
-          if(stop)
-          {
-            this->timer = millis(); //reset timer
-            this->generatorState = Stopping;
-          }
-          else if(!this->breakersClosed)
-          {
-            this->generatorState = StoppingF;
-          }
-           
-        }
-        if (stop && (this->generatorPrevState == Failure || this->generatorPrevState == Failure2))
-        {
-          alarmIndex = this->alarmRow;
-          if(alarmCounter > 1 && alarmIndex < alarmCounter)
-          {
-            alarmRemoved = true;
-            updatedAlarmRows2 = alarmCounter - alarmIndex;
-          }
-          decrementAlarmCounter(*this->alarmDisps);
-          this->alarmRow = 0;
-          this->generatorState = Stopped;
-          
-        }
-            
-    
     }
 
     else    //Auto - read from modbus
     {
+       if (mb.isConnected(server)) 
+      {  
+        if(mbRead)
+        {
+          mb.readCoil(server, mbAdr, &this->run);
+          this->mbRead = false;
+          this->mbTask = true;
+          this->mbTimer = millis(); //reset timer
+        }
+          
+        if(TOff(100, &this->mbTimer) && this->mbTask)
+        {
+          mb.task();
+          this->mbTask = false;
+          this->mbRead = true;
+        }
+      } 
+      else
+        Serial.println("Connection not established, cannot read data.");
 
     }
+
+    bool stop = !run;
+
+    if(run && (this->generatorPrevState == Stopped || this->generatorPrevState == Stopping) && this->breakersClosed)
+      {
+        this->timer = millis(); //reset timer
+        this->generatorState = Starting;
+      }
+          
+      if ((this->generatorPrevState == Running || this->generatorPrevState == Starting))
+      {
+        if(stop)
+        {
+          this->timer = millis(); //reset timer
+          this->generatorState = Stopping;
+        }
+        else if(!this->breakersClosed)
+        {
+          this->generatorState = StoppingF;
+        }
+          
+      }
+      if (stop && (this->generatorPrevState == Failure || this->generatorPrevState == Failure2))
+      {
+        alarmIndex = this->alarmRow;
+        if(alarmCounter > 1 && alarmIndex < alarmCounter)
+        {
+          alarmRemoved = true;
+          updatedAlarmRows2 = alarmCounter - alarmIndex;
+        }
+        decrementAlarmCounter(*this->alarmDisps);
+        this->alarmRow = 0;
+        this->generatorState = Stopped;
+        
+      }
     
   }
 
