@@ -70,7 +70,12 @@ float gVmsPump2MaxInflow = 1600.0; //l/s
 float gVmsTankMaxVol = 10000.0; //l
 float gVmsPressureAct = 0.0; //Bar*/
 
-vmsSimVarsStruct gVmsSimVars;
+vmsSimVarsStruct gVmsSimVars
+{
+    .PressureRef = 8.0, .MaxPressure = 15.0, .PressureAct = 0.0, //Bar
+    .TankWater = 5000.0, .TankMaxVol = 10000.0,                 //l
+    .Inflow = 0.0, .Outflow = 0.0                              //l/s
+};
 rcsVarsStruct grcsVars;
 hvacSimVarsStruct gHvacSimVars
 {
@@ -305,6 +310,7 @@ void setup()
   gPump2.actInflow = 0;
   gPump2.maxSpeed = 900;
 
+
   //pemsCB1Alarm1.time = pemsCB2Alarm1.time = pemsCB3Alarm1.time = pemsCB4Alarm1.time = pemsCB5Alarm1.time = pemsCB6Alarm1.time = rtcTime2String(rtc);
   //vmsP1Alarm1.time = rtcTime2String(rtc);
   
@@ -357,14 +363,15 @@ void loop()
     // 1. READ
     //---------- VMS -----------
     gValve1.readMode();
-    gValve1.readState();
+    gValve1.readState(mb, Vlv1CmdOpAut_ADR);
     gValve2.readMode();
-    gValve2.readState();
+    gValve2.readState(mb, Vlv2CmdOpAut_ADR);
     gPump1.readMode();
-    gPump1.readState();
+    gPump1.readState(mb, Pmp1CmdStrtAut_ADR);
     gPump2.readMode();
-    gPump2.readState();
-
+    gPump2.readState(mb, Pmp2CmdStrtAut_ADR);
+    vmsMbRead(mb, gVmsSimVars);
+  
     //---------- PEMS -----------
     gBreaker1.readMode();
     gBreaker1.readState(mb, Brkr1CmdClsAut_ADR);
@@ -405,6 +412,7 @@ void loop()
     gValve3.readState();
     gFan1.readMode();
     gFan1.readState();
+    
 
     //Buttons
     if(read2State(P0, false, pcf7))
@@ -463,8 +471,8 @@ void loop()
   //---------- VMS -----------
   gValve1.writeCmd();
   gValve2.writeCmd();
-  gPump1.writeCmd();
-  gPump2.writeCmd();
+  gPump1.writeCmd(mb, Pmp1SpeedRef_ADR);
+  gPump2.writeCmd(mb, Pmp1SpeedRef_ADR);
 
   //---------- PEMS -----------
   gBreaker1.writeCmd();

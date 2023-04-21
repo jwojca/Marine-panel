@@ -4,9 +4,9 @@
 bool gRegressionCalculated = false;
 float gSlope, gOffset;
 
-bool gMbRead = true;
-bool gMbTask = false;
-unsigned long gMbTimer = 0;
+bool gMbHvacRead = true;
+bool gMbHvacTask = false;
+unsigned long gMbHvacTimer = 0;
 
 mbHvacSimVarsStruct mbHvacSimVars
 {
@@ -610,11 +610,10 @@ void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan, hvacSimVarsStruct &a
 
 void hvacWrite(ModbusEthernet &mb, hvacSimVarsStruct &aHvacSimVars)
 {
-  uint16_t mbDelay = 100;
   if (mb.isConnected(server)) 
         {  
 
-          if(gMbRead)
+          if(gMbHvacRead)
           {
             mb.readHreg(server, SnsrPressRef_ADR, &mbHvacSimVars.pressureRef);
             mb.readHreg(server, SnsrTempRef_ADR, &mbHvacSimVars.tempRef);
@@ -625,19 +624,19 @@ void hvacWrite(ModbusEthernet &mb, hvacSimVarsStruct &aHvacSimVars)
             mb.writeHreg(server, SnsrPressAct_ADR, &mbHvacSimVars.pressure);
             mb.writeHreg(server, SnsrTempAct_ADR, &mbHvacSimVars.temp);
 
-            gMbRead = false;
-            gMbTask = true;
-            gMbTimer = millis(); //reset timer
+            gMbHvacRead = false;
+            gMbHvacTask = true;
+            gMbHvacTimer = millis(); //reset timer
           }
             
-          if(TOff(mbDelay, &gMbTimer) && gMbTask)
+          if(TOff(mbReadDelay, &gMbHvacTimer) && gMbHvacTask)
           {
             mb.task();
             aHvacSimVars.pressureRef = mbHvacSimVars.pressureRef;
             aHvacSimVars.tempRef = mbHvacSimVars.tempRef;
             
-            gMbTask = false;
-            gMbRead = true;
+            gMbHvacTask = false;
+            gMbHvacRead = true;
           }
         } 
         else

@@ -92,7 +92,7 @@ void Breaker::readState(ModbusEthernet &mb, uint16_t mbAdr)
           this->mbTimer = millis(); //reset timer
         }
           
-        if(TOff(100, &this->mbTimer) && this->mbTask)
+        if(TOff(mbReadDelay, &this->mbTimer) && this->mbTask)
         {
           mb.task();
           this->mbTask = false;
@@ -287,7 +287,7 @@ void Generator::readState(ModbusEthernet &mb, uint16_t mbAdr)
 
     else    //Auto - read from modbus
     {
-       if (mb.isConnected(server)) 
+      if (mb.isConnected(server)) 
       {  
         if(mbRead)
         {
@@ -297,7 +297,7 @@ void Generator::readState(ModbusEthernet &mb, uint16_t mbAdr)
           this->mbTimer = millis(); //reset timer
         }
           
-        if(TOff(100, &this->mbTimer) && this->mbTask)
+        if(TOff(mbReadDelay, &this->mbTimer) && this->mbTask)
         {
           mb.task();
           this->mbTask = false;

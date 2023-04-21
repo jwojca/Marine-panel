@@ -6,6 +6,8 @@
 extern IPAddress server;  // Address of Modbus Slave device - need to define!!
 class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
 
+extern uint16_t mbReadDelay;
+
 #define Gen1StartAuto_ADR 1
 #define Gen1StopAuto_ADR 2
 #define Gen1Running_ADR 3

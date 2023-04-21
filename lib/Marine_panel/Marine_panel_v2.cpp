@@ -11,6 +11,10 @@ int16_t updatedAlarmRows2 = 0;
 
 float pemsAvailiblePower = 0.0;
 
+bool gMbVmsRead = true;
+bool gMbVmsTask = false;
+unsigned long gMbVmsTimer = 0;
+
 
 color Red{255, 0, 0};
 color Green{0, 255, 0};
@@ -18,6 +22,8 @@ color Blue{0, 0, 255};
 
 //static int16_t alarmCounter = 0;
 //static int16_t alarmIndex = 1000;
+
+uint16_t mbVmsPressRef = 0; //Bars
 
 
 
@@ -294,7 +300,7 @@ void Valve::readMode()
   
 }
 
-void Valve::readState()
+void Valve::readState(ModbusEthernet &mb, uint16_t mbAdr)
 {
 
   //For dynamic rows change
@@ -348,48 +354,67 @@ void Valve::readState()
     } 
       
   }
-    
-        
+      
   else
   {
     if(this->valveMode == Local)
     {
-        bool openCmd = read2State(pcf2Pin, false, *pcf2);
-        bool closeCmd = !openCmd;
-
-        if(openCmd && (this->valveState == Closed || this->valveState == Closing))
-        {
-          this->timer = millis(); //reset timer
-          this->valveState = Opening;
-        }
-        if(closeCmd && (this->valvePrevState == Opened || this->valveState == Opening))
-        {
-          this->timer = millis(); //reset timer
-          this->valveState = Closing;
-        }
-        if(closeCmd && (this->valvePrevState == Opened || this->valveState == Opening))
-        {
-          this->timer = millis(); //reset timer
-          this->valveState = Closing;
-        }
-            
-        if(closeCmd && (this->valvePrevState == Failure))
-        {
-          alarmIndex = this->alarmRow;
-          if(alarmCounter > 1 && alarmIndex < alarmCounter)
-          {
-            alarmRemoved = true;
-            updatedAlarmRows2 = alarmCounter - alarmIndex;
-          }
-          decrementAlarmCounter(*this->alarmDisps);
-          this->alarmRow = 0;
-          this->valveState = Closed;
-        }
-          
+       this->openCmd = read2State(pcf2Pin, false, *pcf2);   
     }
     else    //Auto - read from modbus
     {
+      if (mb.isConnected(server)) 
+      {  
+        if(mbRead)
+        {
+          mb.readCoil(server, mbAdr, &this->openCmd);
+          this->mbRead = false;
+          this->mbTask = true;
+          this->mbTimer = millis(); //reset timer
+        }
+          
+        if(TOff(mbReadDelay, &this->mbTimer) && this->mbTask)
+        {
+          mb.task();
+          this->mbTask = false;
+          this->mbRead = true;
+        }
+      } 
+      else
+        Serial.println("Connection not established, cannot read data.");
 
+    }
+
+    
+    bool closeCmd = !this->openCmd;
+
+    if(openCmd && (this->valveState == Closed || this->valveState == Closing))
+    {
+      this->timer = millis(); //reset timer
+      this->valveState = Opening;
+    }
+    if(closeCmd && (this->valvePrevState == Opened || this->valveState == Opening))
+    {
+      this->timer = millis(); //reset timer
+      this->valveState = Closing;
+    }
+    if(closeCmd && (this->valvePrevState == Opened || this->valveState == Opening))
+    {
+      this->timer = millis(); //reset timer
+      this->valveState = Closing;
+    }
+        
+    if(closeCmd && (this->valvePrevState == Failure))
+    {
+      alarmIndex = this->alarmRow;
+      if(alarmCounter > 1 && alarmIndex < alarmCounter)
+      {
+        alarmRemoved = true;
+        updatedAlarmRows2 = alarmCounter - alarmIndex;
+      }
+      decrementAlarmCounter(*this->alarmDisps);
+      this->alarmRow = 0;
+      this->valveState = Closed;
     }
     
     
@@ -465,7 +490,7 @@ void Pump::readMode()
     this->pumpMode = Auto;
 }
 
-void Pump::readState()
+void Pump::readState(ModbusEthernet &mb, uint16_t mbAdr)
 {
 
   //For dynamic rows change
@@ -519,41 +544,61 @@ void Pump::readState()
   {
     if(this->pumpMode == Local)
     {
-        bool run = read2State(pcf2Pin, false, *pcf2);
-        bool stop = !run;
-
-        if(run && (this->pumpPrevState == Stopped || this->pumpPrevState == Stopping))
-            this->pumpState = Starting;
-        if (stop && (this->pumpPrevState == Running || this->pumpPrevState == Starting))
-            this->pumpState = Stopping;
-        if (stop && (this->pumpPrevState == Failure))
-        {
-          alarmIndex = this->alarmRow;
-          if(alarmCounter > 1 && alarmIndex < alarmCounter)
-          {
-            alarmRemoved = true;
-            updatedAlarmRows2 = alarmCounter - alarmIndex;
-          }
-          decrementAlarmCounter(*this->alarmDisps);
-          this->alarmRow = 0;
-          this->pumpState = Stopped;
-          
-        }
-        if(run && (this->prevRefSpeed < this->refSpeed))
-          this->pumpState = SlowingDown;
-            
-    
+      this->run = read2State(pcf2Pin, false, *pcf2);
     }
     else    //Auto - read from modbus
     {
+      
+      if (mb.isConnected(server)) 
+      {  
+        if(mbRead)
+        {
+          mb.readCoil(server, mbAdr, &this->run);
+          this->mbRead = false;
+          this->mbTask = true;
+          this->mbTimer = millis(); //reset timer
+        }
+          
+        if(TOff(mbReadDelay, &this->mbTimer) && this->mbTask)
+        {
+          mb.task();
+          this->mbTask = false;
+          this->mbRead = true;
+        }
+      } 
+      else
+        Serial.println("Connection not established, cannot read data.");
 
     }
+
+    
+    bool stop = !this->run;
+
+    if(run && (this->pumpPrevState == Stopped || this->pumpPrevState == Stopping))
+        this->pumpState = Starting;
+    if (stop && (this->pumpPrevState == Running || this->pumpPrevState == Starting))
+        this->pumpState = Stopping;
+    if (stop && (this->pumpPrevState == Failure))
+    {
+      alarmIndex = this->alarmRow;
+      if(alarmCounter > 1 && alarmIndex < alarmCounter)
+      {
+        alarmRemoved = true;
+        updatedAlarmRows2 = alarmCounter - alarmIndex;
+      }
+      decrementAlarmCounter(*this->alarmDisps);
+      this->alarmRow = 0;
+      this->pumpState = Stopped;
+      
+    }
+    if(run && (this->prevRefSpeed < this->refSpeed))
+      this->pumpState = SlowingDown;
     
   }
 
 }
 
-void Pump::writeCmd()
+void Pump::writeCmd(ModbusEthernet &mb, uint16_t mbAdr)
 {   
     int rgbBlinkDelay = 500;
     //calculate first pin of pwm channel based on RGB number
@@ -579,7 +624,7 @@ void Pump::writeCmd()
         if(this->pumpState == SlowingDown)
           this->slowingDown();
     }
-  
+
 }
 
 void Pump::savePrevState()
@@ -776,6 +821,30 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
     //pressure equation
     vmsSimVars.PressureAct = (vmsSimVars.MaxPressure * 1000.0) / (vmsSimVars.TankMaxVol - vmsSimVars.TankWater);  //TODO revise equation
 
+}
+
+void vmsMbRead(ModbusEthernet &mb, vmsSimVarsStruct &aVmsSimVars)
+{
+  if (mb.isConnected(server)) 
+  {  
+    if(gMbVmsRead)
+    {
+      mb.readHreg(server, VmsPressRef_ADR, &mbVmsPressRef);
+      gMbVmsRead = false;
+      gMbVmsTask = true;
+      gMbVmsTimer = millis(); //reset timer
+    }
+    if(TOff(500, &gMbVmsTimer) && gMbVmsTask)
+    {
+      mb.task();
+      aVmsSimVars.PressureRef = mbVmsPressRef;          
+      gMbVmsTask = false;
+      gMbVmsRead = true;
+      
+    }
+  } 
+  else
+    Serial.println("Connection not established, cannot read data.");
 }
 
 float addNoise(float value, float min, float max)

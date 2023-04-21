@@ -121,10 +121,12 @@ enum mpState{Closed, Opened, Failure, Failure2, Stopped, Starting, Stopping, Sto
 
 struct vmsSimVarsStruct
 {
-    float PressureRef = 7.0, MaxPressure = 15.0, PressureAct = 0.0; //Bar
-    float TankWater = 5000.0, TankMaxVol = 10000.0;                 //l
-    float Inflow = 0.0, Outflow = 0.0;                              //l/s
+    float PressureRef, MaxPressure, PressureAct; //Bar
+    float TankWater, TankMaxVol;                 //l
+    float Inflow, Outflow;                              //l/s
 };
+
+
 
 struct rcsVarsStruct
 {
@@ -180,12 +182,18 @@ class Valve
 
     unsigned long timer = 0;
     unsigned long blinkTimer = 0;
+    unsigned long mbTimer = 0;
 
     alarmDispsStruct *alarmDisps;
     mpAlarm valveAlarm1;
     uint16_t alarmRow = 0;
 
     RTC_DS1307 *rtc;
+
+    bool mbRead = true;
+    bool mbTask = false;
+    bool openCmd = false;
+
 
     Valve(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _valveAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
@@ -202,7 +210,7 @@ class Valve
     }
     
     void readMode();
-    void readState();
+    void readState(ModbusEthernet &mb, uint16_t mbAdr);
     void writeCmd();
     void savePrevState();
     void closing(uint32_t loadTime);
@@ -232,12 +240,18 @@ class Pump
     uint8_t pcf2Pin;
 
     unsigned long timer = 0;
+    unsigned long mbTimer = 0;
 
     alarmDispsStruct *alarmDisps;
     mpAlarm pumpAlarm1;
     uint16_t alarmRow = 0;
 
     RTC_DS1307 *rtc;
+
+    bool mbRead = true;
+    bool mbTask = false;
+    bool run = false;
+    uint16_t mbSpeedRef = 0;
 
     Pump(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _pumpAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
@@ -256,8 +270,8 @@ class Pump
     
     
     void readMode();
-    void readState();
-    void writeCmd();
+    void readState(ModbusEthernet &mb, uint16_t mbAdr);
+    void writeCmd(ModbusEthernet &mb, uint16_t mbAdr);
     void savePrevState();
     void stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
     void starting(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
@@ -299,6 +313,7 @@ void dispStringALigned(String text, Adafruit_SSD1306 &display, GFXfont font, fon
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
 void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2);
 void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSimVarsStruct &vmsSimVars, int task);
+void vmsMbRead(ModbusEthernet &mb, vmsSimVarsStruct &aVmsSimVars);
 
 void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &display, uint8_t progress, bool innerCircle = false);
 void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
