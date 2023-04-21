@@ -97,11 +97,7 @@
 
 #include "../Marine_panel/Images/Images.h"
 
-#include <Ethernet.h>       // Ethernet library v2 is required
-#include <ModbusAPI.h>
-#include <ModbusTCPTemplate.h>
-extern IPAddress server;  // Address of Modbus Slave device - need to define!!
-class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
+
 
 extern int task; 
 extern int16_t alarmCounter;

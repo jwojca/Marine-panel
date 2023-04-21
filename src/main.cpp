@@ -30,6 +30,7 @@ PCF8574 pcf3(PCF3_ADRESS);
 PCF8574 pcf4(PCF4_ADRESS); 
 PCF8574 pcf5(PCF5_ADRESS);
 PCF8574 pcf6(PCF6_ADRESS);
+PCF8574 pcf7(PCF7_ADRESS);
 
 
 // Declaration for SSD1306 display connected using software SPI (default case):
@@ -114,15 +115,15 @@ static const unsigned char PROGMEM logo_bmp[] =
 
 
 //modbus
-//class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
-//IPAddress server(169, 254, 198, 12);  // Address of Modbus Slave device - need to define!!
-
 const int32_t showDelay = 1000;   // Show result every n'th mellisecond
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE }; // MAC address for your controller
-//IPAddress ip(169, 254, 198, 201); // The IP address will be dependent on your local network
-IPAddress ip(169, 254, 29, 100); // The IP address will be dependent on your local network
+IPAddress ip(169, 254, 73, 100); // The IP address will be dependent on your local network
 ModbusEthernet mb;               // Declare ModbusTCP instance
 boolean mbOn = true;
+
+bool gDpOn = false;
+
+void simulationFnc();
 
 void setup()
 {
@@ -136,6 +137,7 @@ void setup()
   pcfAllInInit(pcf4);
   pcfAllInInit(pcf5);
   pcfAllInInit(pcf6);
+  pcfAllInInit(pcf7);
 	
   pwmInit(pwm1);
   pwmInit(pwm2);
@@ -409,6 +411,22 @@ void loop()
     gValve3.readState();
     gFan1.readMode();
     gFan1.readState();
+
+    //Buttons
+    if(read2State(P0, false, pcf7))
+      Serial.println("azi L");
+    if(read2State(P1, false, pcf7))
+      Serial.println("azi R");
+    if(read2State(P2, false, pcf7))
+      Serial.println("Emer");
+    if(read2State(P3, false, pcf7))
+      Serial.println("bt strt");
+    if(read2State(P4, false, pcf7))
+      Serial.println("bt stop");
+    if(gDpOn = read2State(P5, false, pcf7))
+      Serial.println("DP1");
+    if(read2State(P6, false, pcf7))
+      Serial.println("Fire al");
   }
  
 
@@ -419,21 +437,195 @@ void loop()
   // 2. SIMULATE
   gFan1.readMode();
 
-  /*
-  if(gFan1.fanMode == Auto)
+  
+  if(!gDpOn)
     simulationLoop = false;
-  else if(gFan1.fanMode == Local && !simulationLoop)
+  else if(gDpOn && !simulationLoop)
   {
     simulationLoop = true;
     simState = Init;
-  }\
-  */
-  simulationLoop = false;
+  }
+  
+  //simulationLoop = false;
 
   //Simulation loop for demonstration
   if(simulationLoop)
+    simulationFnc();
+
+
+
+  //---------- VMS -----------
+  vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
+
+  //---------- HVAC -----------
+  hvacSimulation(gDamper1, gDamper2, gValve3, gFan1, gHvacSimVars);
+
+  //---------- RCS ------------
+  rcsAzipodSimulate(grcsVars);
+
+
+
+  //3. WRITE
+  //---------- VMS -----------
+  gValve1.writeCmd();
+  gValve2.writeCmd();
+  gPump1.writeCmd();
+  gPump2.writeCmd();
+
+  //---------- PEMS -----------
+  gBreaker1.writeCmd();
+  gBreaker2.writeCmd();
+  gBreaker3.writeCmd();
+  gBreaker4.writeCmd();
+  gBreaker5.writeCmd();
+  gBreaker6.writeCmd();
+
+  gGenerator1.writeCmd();
+  gGenerator2.writeCmd();
+
+  //---------- HVAC -----------
+  if(mbOn)
+    hvacWrite(mb, gHvacSimVars);
+  gDamper1.writeCmd();
+  gDamper2.writeCmd();
+  gValve3.writeCmd();
+  gFan1.writeCmd();
+
+  // 4. VISUALIZE
+ 
+  if(millis() - timeNow > dispRefreshTime)
   {
-    switch (simState)
+    //---------- VMS -----------
+    vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
+    vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
+
+    //---------- HVAC -----------
+    hvacVisualization(display12, gFan1, gHvacSimVars);
+    timeNow = millis();
+
+  }
+
+  //---------- PEMS -----------
+  gGenerator1.visualize();
+  gGenerator2.visualize();
+
+  //---------- RCS -----------
+  dispRCSAzipodVisualize(display5, display6, display7, grcsVars);
+  dispRCSBowThrustersVisualize(display13, display14, display15, grcsVars);
+
+
+  // 5. SAVE PREV STATE
+  //---------- VMS -----------
+  gPump1.savePrevState();
+  gPump2.savePrevState();
+  gValve1.savePrevState();
+  gValve2.savePrevState();
+
+  //---------- PEMS -----------
+  gBreaker1.savePrevState();
+  gBreaker2.savePrevState();
+  gBreaker3.savePrevState();
+  gBreaker4.savePrevState();
+  gBreaker5.savePrevState();
+  gBreaker6.savePrevState();
+
+  gGenerator1.savePrevState();
+  gGenerator2.savePrevState();
+
+  //---------- HVAC -----------
+  gDamper1.savePrevState();
+  gDamper2.savePrevState();
+  gValve3.savePrevState();
+  gFan1.savePrevState();
+
+  //6. DEBUG
+
+  //Serial.println(gPump1.timer);
+ // Serial.println(gPump2.timer);
+ 
+ /*
+  String voltageX1 = "X1 " + String(analogReadMilliVolts(JOY1_X)) + "mV";
+  String voltageY1 = "Y1 " + String(analogReadMilliVolts(JOY1_Y)) + "mV";
+  String voltageX2 = "X2 " + String(analogReadMilliVolts(JOY2_X)) + "mV";
+  String voltageY2 = "Y2 " + String(analogReadMilliVolts(JOY2_Y)) + "mV";
+  display15.clearDisplay();
+  dispStringALigned(voltageX1, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
+  dispStringALigned(voltageY1, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 10);
+  dispStringALigned(voltageX2, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 20);
+  dispStringALigned(voltageY2, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 30);
+  display15.display();*/
+
+ 
+  delay(task);
+
+  /*RGBLedTest(5, pwm1);
+  RGBLedTest(5, pwm2);
+  RGBLedTest(4, pwm3);*/
+
+  //Serial.println("Alarm removed" + String(alarmRemoved));
+  //Serial.println("Alarm added" + String(newAlarmAdded));
+ 
+  
+
+
+
+  boolWrite = !boolWrite;
+
+  //resetAlarmIndex();
+  //newAlarmAdded = false;
+ 
+  
+  
+
+  if(mbOn)
+  {
+    Serial.println(gBreaker1.breakerMode);
+    
+    if(Ethernet.linkStatus() == LinkOFF) 
+    {
+      Serial.println("The Ethernet cable is unplugged...");
+    }
+    else
+    {
+       if (mb.isConnected(server)) 
+      {  
+          mb.readCoil(server, 1, &test1);
+          mb.readHreg(server, 1, &test2); 
+          mb.readHreg(server, 2, &test3); 
+          mb.readHreg(server, 100, &test4); 
+          mb.writeCoil(server, 1, boolWrite);
+      } 
+      else 
+      {
+          mb.connect(server);           // Try to connect if not connected
+      }
+      //delay(100);                     // Pulling interval
+                          // Common local Modbus task
+      if (millis() - showLast > showDelay)
+      { // Display register value every x seconds (with default settings)
+        mb.task(); 
+        showLast = millis();
+        Serial.print("Test1: ");
+        Serial.println(test1);
+        Serial.print("Test2: ");
+        Serial.println(test2);
+        Serial.print("Test3: ");
+        Serial.println(test3);
+        Serial.print("Test4: ");
+        Serial.println(test4);
+      }
+
+    }
+
+   
+  }
+  
+}
+
+
+void simulationFnc()
+{
+  switch (simState)
     {
     case Init:
       gBreaker1.breakerState = eBreakerState::Opened;
@@ -703,196 +895,6 @@ void loop()
     default:
       break;
     }
-
-    grcsVars.actPower = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
-    grcsVars.actPowerBT = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
-
-  }
-
-
- 
-    
-
-/*shipOnRefAngle,
-                  fireAlarm, valve2OpenCmd*/
-
-    
-
-
-
-
-
-
-    
-  
-
-
-  //---------- VMS -----------
-  vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
-
-  //---------- HVAC -----------
-  hvacSimulation(gDamper1, gDamper2, gValve3, gFan1, gHvacSimVars);
-
-  //---------- RCS ------------
-  rcsAzipodSimulate(grcsVars);
-
-
-
-  //3. WRITE
-  //---------- VMS -----------
-  gValve1.writeCmd();
-  gValve2.writeCmd();
-  gPump1.writeCmd();
-  gPump2.writeCmd();
-
-  //---------- PEMS -----------
-  gBreaker1.writeCmd();
-  gBreaker2.writeCmd();
-  gBreaker3.writeCmd();
-  gBreaker4.writeCmd();
-  gBreaker5.writeCmd();
-  gBreaker6.writeCmd();
-
-  gGenerator1.writeCmd();
-  gGenerator2.writeCmd();
-
-  //---------- HVAC -----------
-  if(mbOn)
-    hvacWrite(mb, gHvacSimVars);
-  gDamper1.writeCmd();
-  gDamper2.writeCmd();
-  gValve3.writeCmd();
-  gFan1.writeCmd();
-
-  // 4. VISUALIZE
- 
-  if(millis() - timeNow > dispRefreshTime)
-  {
-    //---------- VMS -----------
-    vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
-    vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
-
-    //---------- HVAC -----------
-    hvacVisualization(display12, gFan1, gHvacSimVars);
-    timeNow = millis();
-
-  }
-
-  //---------- PEMS -----------
-  gGenerator1.visualize();
-  gGenerator2.visualize();
-
-  //---------- RCS -----------
-  dispRCSAzipodVisualize(display5, display6, display7, grcsVars);
-  dispRCSBowThrustersVisualize(display13, display14, display15, grcsVars);
-
-
-  // 5. SAVE PREV STATE
-  //---------- VMS -----------
-  gPump1.savePrevState();
-  gPump2.savePrevState();
-  gValve1.savePrevState();
-  gValve2.savePrevState();
-
-  //---------- PEMS -----------
-  gBreaker1.savePrevState();
-  gBreaker2.savePrevState();
-  gBreaker3.savePrevState();
-  gBreaker4.savePrevState();
-  gBreaker5.savePrevState();
-  gBreaker6.savePrevState();
-
-  gGenerator1.savePrevState();
-  gGenerator2.savePrevState();
-
-  //---------- HVAC -----------
-  gDamper1.savePrevState();
-  gDamper2.savePrevState();
-  gValve3.savePrevState();
-  gFan1.savePrevState();
-
-  //6. DEBUG
-
-  //Serial.println(gPump1.timer);
- // Serial.println(gPump2.timer);
- 
- /*
-  String voltageX1 = "X1 " + String(analogReadMilliVolts(JOY1_X)) + "mV";
-  String voltageY1 = "Y1 " + String(analogReadMilliVolts(JOY1_Y)) + "mV";
-  String voltageX2 = "X2 " + String(analogReadMilliVolts(JOY2_X)) + "mV";
-  String voltageY2 = "Y2 " + String(analogReadMilliVolts(JOY2_Y)) + "mV";
-  display15.clearDisplay();
-  dispStringALigned(voltageX1, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
-  dispStringALigned(voltageY1, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 10);
-  dispStringALigned(voltageX2, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 20);
-  dispStringALigned(voltageY2, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 30);
-  display15.display();*/
-
- 
-  delay(task);
-
-  /*RGBLedTest(5, pwm1);
-  RGBLedTest(5, pwm2);
-  RGBLedTest(4, pwm3);*/
-
-  //Serial.println("Alarm removed" + String(alarmRemoved));
-  //Serial.println("Alarm added" + String(newAlarmAdded));
- 
-  
-
-
-
-  boolWrite = !boolWrite;
-
-  //resetAlarmIndex();
-  //newAlarmAdded = false;
- 
-  
-  
-
-  if(mbOn)
-  {
-    Serial.println(gBreaker1.breakerMode);
-    
-    if(Ethernet.linkStatus() == LinkOFF) 
-    {
-      Serial.println("The Ethernet cable is unplugged...");
-    }
-    else
-    {
-       if (mb.isConnected(server)) 
-      {  
-          mb.readCoil(server, 1, &test1);
-          mb.readHreg(server, 1, &test2); 
-          mb.readHreg(server, 2, &test3); 
-          mb.readHreg(server, 100, &test4); 
-          mb.writeCoil(server, 1, boolWrite);
-      } 
-      else 
-      {
-          mb.connect(server);           // Try to connect if not connected
-      }
-      //delay(100);                     // Pulling interval
-                          // Common local Modbus task
-      if (millis() - showLast > showDelay)
-      { // Display register value every x seconds (with default settings)
-        mb.task(); 
-        showLast = millis();
-        Serial.print("Test1: ");
-        Serial.println(test1);
-        Serial.print("Test2: ");
-        Serial.println(test2);
-        Serial.print("Test3: ");
-        Serial.println(test3);
-        Serial.print("Test4: ");
-        Serial.println(test4);
-      }
-
-    }
-
-   
-  }
-  
+  grcsVars.actPower = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
+  grcsVars.actPowerBT = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
 }
-
-

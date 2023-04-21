@@ -1,6 +1,6 @@
 #include "PEMS.h"
 
-IPAddress server(169, 254, 29, 218);  // Address of Modbus Slave device - need to define!!
+
 
 
 void Breaker::readMode()
