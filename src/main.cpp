@@ -248,16 +248,22 @@ void setup()
 
     delay(1000); //second to initialize
 
+    uint16_t numOfTries = 0;
+
     // Make sure the physical link is up before continuing.
     while (Ethernet.linkStatus() == LinkOFF) {
         Serial.println("The Ethernet cable is unplugged...");
         delay(1000);
+        numOfTries++;
+        if(numOfTries > 5)
+          break;
     }
     Serial.println("The Ethernet cable is connected.");
     Serial.println("Client connecting to Server");
     mb.connect(server, PORT);
     delay(1000);
     
+    numOfTries = 0;
     while(1)
     {
       if (mb.isConnected(server))
@@ -269,9 +275,17 @@ void setup()
       {
         Serial.println("Connection failed, attempting to reconnect.");
         mb.connect(server, PORT);
+        numOfTries++;
       }
+      if(numOfTries > 5)
+      {
+        mbOn = false;
+        break;
+      }
+        
     }
-    mb.client();
+    if(mbOn)
+      mb.client();
   }
 
   //joystick test
@@ -743,7 +757,8 @@ void loop()
   gGenerator2.writeCmd();
 
   //---------- HVAC -----------
-  hvacWrite(mb, gHvacSimVars);
+  if(mbOn)
+    hvacWrite(mb, gHvacSimVars);
   gDamper1.writeCmd();
   gDamper2.writeCmd();
   gValve3.writeCmd();
