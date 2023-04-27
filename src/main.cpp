@@ -122,7 +122,7 @@ static const unsigned char PROGMEM logo_bmp[] =
 //modbus
 const int32_t showDelay = 1000;   // Show result every n'th mellisecond
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE }; // MAC address for your controller
-IPAddress ip(169, 254, 73, 100); // The IP address will be dependent on your local network
+IPAddress ip(172, 16, 80, 100); // The IP address will be dependent on your local network
 ModbusEthernet mb;               // Declare ModbusTCP instance
 boolean mbOn = true;
 
