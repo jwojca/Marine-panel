@@ -209,6 +209,7 @@ class Valve
     void readMode();
     void readState(ModbusEthernet &mb, bool mbRead, uint16_t mbAdr);
     void writeCmd();
+    void writeMb(ModbusEthernet &mb, bool mbWrite, uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut);
     void savePrevState();
     void closing(uint32_t loadTime);
     void opening(uint32_t loadTime);
@@ -266,6 +267,7 @@ class Pump
     void readMode();
     void readState(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, uint16_t mbAdr, uint16_t mbAdr2);
     void writeCmd();
+    void writeMb(ModbusEthernet &mb, bool mbWrite, uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uint16_t mbAdrAut);
     void savePrevState();
     void stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
     void starting(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
@@ -307,7 +309,7 @@ void dispStringALigned(String text, Adafruit_SSD1306 &display, GFXfont font, fon
 void vmsDispPump(Adafruit_SSD1306 &display, uint16_t speed, float pressure1, float pressure2);
 void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2);
 void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSimVarsStruct &vmsSimVars, int task);
-void vmsMbRead(ModbusEthernet &mb, vmsSimVarsStruct &aVmsSimVars);
+void vmsMbRead(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, vmsSimVarsStruct &aVmsSimVars);
 
 void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &display, uint8_t progress, bool innerCircle = false);
 void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);

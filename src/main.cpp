@@ -127,6 +127,7 @@ ModbusEthernet mb;               // Declare ModbusTCP instance
 boolean mbOn = true;
 unsigned long gMbTimer = 0;
 bool gMbRead = true;
+bool gMbWrite = true;
 bool gMbTaskDone = false;
 bool gDpOn = false;
 
@@ -372,7 +373,7 @@ void loop()
     gPump1.readState(mb, gMbRead, gMbTaskDone, Pmp1CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
     gPump2.readMode();
     gPump2.readState(mb, gMbRead, gMbTaskDone, Pmp2CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
-    vmsMbRead(mb, gVmsSimVars);
+    vmsMbRead(mb, gMbRead, gMbTaskDone, gVmsSimVars);
   
     //---------- PEMS -----------
     gBreaker1.readMode();
@@ -472,9 +473,13 @@ void loop()
   //3. WRITE
   //---------- VMS -----------
   gValve1.writeCmd();
+  gValve1.writeMb(mb, gMbWrite, Vlv1Opened_ADR, Vlv1Closed_ADR, Vlv1Failure_ADR, Vlv1Auto_ADR);
   gValve2.writeCmd();
+  gValve2.writeMb(mb, gMbWrite, Vlv2Opened_ADR, Vlv2Closed_ADR, Vlv2Failure_ADR, Vlv2Auto_ADR);
   gPump1.writeCmd();
+  gPump1.writeMb(mb, gMbWrite, Pmp1Running_ADR, Pmp1Stopped_ADR, Pmp1Failure_ADR, Pmp1Auto_ADR);
   gPump2.writeCmd();
+  gPump1.writeMb(mb, gMbWrite, Pmp2Running_ADR, Pmp2Stopped_ADR, Pmp2Failure_ADR, Pmp2Auto_ADR);
 
   //---------- PEMS -----------
   gBreaker1.writeCmd();
@@ -547,6 +552,7 @@ void loop()
   //Serial.println(gPump1.timer);
  // Serial.println(gPump2.timer);
  
+ 
  /*
   String voltageX1 = "X1 " + String(analogReadMilliVolts(JOY1_X)) + "mV";
   String voltageY1 = "Y1 " + String(analogReadMilliVolts(JOY1_Y)) + "mV";
@@ -562,12 +568,11 @@ void loop()
  
   delay(task);
 
-  gMbRead = false;
+  //gMbRead = false;
   gMbTaskDone = false;
   if(TOff(mbReadDelay, &gMbTimer))
   {
     mb.task();
-    gMbRead = true;
     gMbTaskDone = true;
   }
 

@@ -11,10 +11,6 @@ int16_t updatedAlarmRows2 = 0;
 
 float pemsAvailiblePower = 0.0;
 
-bool gMbVmsRead = true;
-bool gMbVmsTask = false;
-unsigned long gMbVmsTimer = 0;
-
 
 color Red{255, 0, 0};
 color Green{0, 255, 0};
@@ -452,6 +448,65 @@ void Valve::writeCmd()
 
 }
 
+void Valve::writeMb(ModbusEthernet &mb, bool mbWrite, uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut)
+{
+  if(this->valveMode == Auto)    //Auto - read from modbus
+  {
+    bool fbOpn = this->valveState == Opened;
+    bool fbCls = this->valveState == Closed;
+    bool fbAut = true;
+
+    if (mb.isConnected(server)) 
+    {  
+      if(mbWrite)
+      {
+        mb.writeCoil(server, mbAdrOpn, &fbOpn);
+        mb.writeCoil(server, mbAdrCls, &fbCls);
+        mb.writeCoil(server, mbAdrAut, &fbAut );
+      }
+
+    } 
+    else
+      Serial.println("Connection not established, cannot read data.");
+  }
+  bool valveFail = this->valveState == Failure || this->valveState == Failure2;
+
+  if(valveFail)
+  {
+    bool fbFail = (this->valveState == Failure) || (this->valveState == Failure2);
+    if (mb.isConnected(server)) 
+    {  
+      if(mbWrite)
+        mb.writeCoil(server, mbAdrFail, &fbFail);
+    } 
+    else
+      Serial.println("Connection not established, cannot read data.");
+
+  }
+  if(this->valveMode == Local && not valveFail)    //Local - null everything
+  {
+    bool fbOpn = false;
+    bool fbCls = false;
+    bool fbAut = false;
+    bool fbFail = false;
+
+    if (mb.isConnected(server)) 
+    {  
+      if(mbWrite)
+      {
+        mb.writeCoil(server, mbAdrOpn, &fbOpn);
+        mb.writeCoil(server, mbAdrCls, &fbCls);
+        mb.writeCoil(server, mbAdrAut, &fbAut );
+        mb.writeCoil(server, mbAdrFail, &fbFail);
+      }
+
+    } 
+    else
+      Serial.println("Connection not established, cannot read data.");
+  }
+}
+
+
 void Valve::savePrevState()
 {
     this->valvePrevState = this->valveState;
@@ -612,6 +667,65 @@ void Pump::writeCmd()
         if(this->pumpState == SlowingDown)
           this->slowingDown();
     }
+
+}
+
+void Pump::writeMb(ModbusEthernet &mb, bool mbWrite, uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uint16_t mbAdrAut)
+{
+  if(this->pumpMode == Auto)    //Auto - read from modbus
+  {
+    bool fbRun = this->pumpState == Running;
+    bool fbStp = this->pumpState == Stopped;
+    bool fbAut = true;
+
+    if (mb.isConnected(server)) 
+    {  
+      if(mbWrite)
+      {
+        mb.writeCoil(server, mbAdrRun, &fbRun);
+        mb.writeCoil(server, mbAdrStp, &fbStp);
+        mb.writeCoil(server, mbAdrAut, &fbAut );
+      }
+
+    } 
+    else
+      Serial.println("Connection not established, cannot read data.");
+  }
+  bool pumpFail = this->pumpState == Failure || this->pumpState == Failure2;
+
+  if(pumpFail)
+  {
+    bool fbFail = (this->pumpState == Failure) || (this->pumpState == Failure2);
+    if (mb.isConnected(server)) 
+    {  
+      if(mbWrite)
+        mb.writeCoil(server, mbAdrFail, &fbFail);
+    } 
+    else
+      Serial.println("Connection not established, cannot read data.");
+
+  }
+  if(this->pumpMode == Local && not pumpFail)    //Local - null everything
+  {
+    bool fbRun = false;
+    bool fbStp = false;
+    bool fbAut = false;
+    bool fbFail = false;
+
+    if (mb.isConnected(server)) 
+    {  
+      if(mbWrite)
+      {
+        mb.writeCoil(server, mbAdrRun, &fbRun);
+        mb.writeCoil(server, mbAdrStp, &fbStp);
+        mb.writeCoil(server, mbAdrAut, &fbAut );
+        mb.writeCoil(server, mbAdrFail, &fbFail);
+      }
+
+    } 
+    else
+      Serial.println("Connection not established, cannot read data.");
+  }
 
 }
 
@@ -815,23 +929,17 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
 
 }
 
-void vmsMbRead(ModbusEthernet &mb, vmsSimVarsStruct &aVmsSimVars)
+void vmsMbRead(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, vmsSimVarsStruct &aVmsSimVars)
 {
   if (mb.isConnected(server)) 
   {  
-    if(gMbVmsRead)
+    if(mbRead)
     {
       mb.readHreg(server, VmsPressRef_ADR, &mbVmsPressRef);
-      gMbVmsRead = false;
-      gMbVmsTask = true;
-      gMbVmsTimer = millis(); //reset timer
     }
-    if(TOff(500, &gMbVmsTimer) && gMbVmsTask)
+    if(mbTaskDone)
     {
-      mb.task();
       aVmsSimVars.PressureRef = mbVmsPressRef;          
-      gMbVmsTask = false;
-      gMbVmsRead = true;
     }
   } 
   else
