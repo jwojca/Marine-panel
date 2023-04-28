@@ -300,7 +300,7 @@ void Valve::readMode()
   
 }
 
-void Valve::readState(ModbusEthernet &mb, uint16_t mbAdr)
+void Valve::readState(ModbusEthernet &mb, bool mbRead, uint16_t mbAdr)
 {
 
   //For dynamic rows change
@@ -368,17 +368,8 @@ void Valve::readState(ModbusEthernet &mb, uint16_t mbAdr)
         if(mbRead)
         {
           mb.readCoil(server, mbAdr, &this->openCmd);
-          this->mbRead = false;
-          this->mbTask = true;
-          this->mbTimer = millis(); //reset timer
         }
-          
-        if(TOff(mbReadDelay, &this->mbTimer) && this->mbTask)
-        {
-          mb.task();
-          this->mbTask = false;
-          this->mbRead = true;
-        }
+
       } 
       else
         Serial.println("Connection not established, cannot read data.");
@@ -490,7 +481,7 @@ void Pump::readMode()
     this->pumpMode = Auto;
 }
 
-void Pump::readState(ModbusEthernet &mb, uint16_t mbAdr, uint16_t mbAdr2)
+void Pump::readState(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, uint16_t mbAdr, uint16_t mbAdr2)
 {
 
   //For dynamic rows change
@@ -555,18 +546,13 @@ void Pump::readState(ModbusEthernet &mb, uint16_t mbAdr, uint16_t mbAdr2)
         {
           mb.readCoil(server, mbAdr, &this->run);
           mb.readHreg(server, mbAdr2, &this->mbSpeedRef);
-          this->mbRead = false;
-          this->mbTask = true;
-          this->mbTimer = millis(); //reset timer
+        }
+
+        if(mbTaskDone)
+        {
+          this->refSpeed = this->mbSpeedRef;
         }
           
-        if(TOff(mbReadDelay, &this->mbTimer) && this->mbTask)
-        {
-          mb.task();
-          this->refSpeed = this->mbSpeedRef;
-          this->mbTask = false;
-          this->mbRead = true;
-        }
       } 
       else
         Serial.println("Connection not established, cannot read data.");

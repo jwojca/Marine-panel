@@ -182,7 +182,6 @@ class Valve
 
     unsigned long timer = 0;
     unsigned long blinkTimer = 0;
-    unsigned long mbTimer = 0;
 
     alarmDispsStruct *alarmDisps;
     mpAlarm valveAlarm1;
@@ -190,8 +189,6 @@ class Valve
 
     RTC_DS1307 *rtc;
 
-    bool mbRead = true;
-    bool mbTask = false;
     bool openCmd = false;
 
 
@@ -210,7 +207,7 @@ class Valve
     }
     
     void readMode();
-    void readState(ModbusEthernet &mb, uint16_t mbAdr);
+    void readState(ModbusEthernet &mb, bool mbRead, uint16_t mbAdr);
     void writeCmd();
     void savePrevState();
     void closing(uint32_t loadTime);
@@ -240,7 +237,6 @@ class Pump
     uint8_t pcf2Pin;
 
     unsigned long timer = 0;
-    unsigned long mbTimer = 0;
 
     alarmDispsStruct *alarmDisps;
     mpAlarm pumpAlarm1;
@@ -248,8 +244,6 @@ class Pump
 
     RTC_DS1307 *rtc;
 
-    bool mbRead = true;
-    bool mbTask = false;
     bool run = false;
     uint16_t mbSpeedRef = 0;
 
@@ -270,7 +264,7 @@ class Pump
     
     
     void readMode();
-    void readState(ModbusEthernet &mb, uint16_t mbAdr,uint16_t mbAdr2);
+    void readState(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, uint16_t mbAdr, uint16_t mbAdr2);
     void writeCmd();
     void savePrevState();
     void stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);

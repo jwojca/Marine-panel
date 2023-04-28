@@ -122,10 +122,12 @@ static const unsigned char PROGMEM logo_bmp[] =
 //modbus
 const int32_t showDelay = 1000;   // Show result every n'th mellisecond
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE }; // MAC address for your controller
-IPAddress ip(172, 16, 80, 100); // The IP address will be dependent on your local network
+IPAddress ip(169, 254, 73, 100); // The IP address will be dependent on your local network
 ModbusEthernet mb;               // Declare ModbusTCP instance
 boolean mbOn = true;
-
+unsigned long gMbTimer = 0;
+bool gMbRead = true;
+bool gMbTaskDone = false;
 bool gDpOn = false;
 
 void simulationFnc();
@@ -363,13 +365,13 @@ void loop()
     // 1. READ
     //---------- VMS -----------
     gValve1.readMode();
-    gValve1.readState(mb, Vlv1CmdOpAut_ADR);
+    gValve1.readState(mb, gMbRead, Vlv1CmdOpAut_ADR);
     gValve2.readMode();
-    gValve2.readState(mb, Vlv2CmdOpAut_ADR);
+    gValve2.readState(mb, gMbRead, Vlv2CmdOpAut_ADR);
     gPump1.readMode();
-    gPump1.readState(mb, Pmp1CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
+    gPump1.readState(mb, gMbRead, gMbTaskDone, Pmp1CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
     gPump2.readMode();
-    gPump2.readState(mb, Pmp2CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
+    gPump2.readState(mb, gMbRead, gMbTaskDone, Pmp2CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
     vmsMbRead(mb, gVmsSimVars);
   
     //---------- PEMS -----------
@@ -559,6 +561,15 @@ void loop()
 
  
   delay(task);
+
+  gMbRead = false;
+  gMbTaskDone = false;
+  if(TOff(mbReadDelay, &gMbTimer))
+  {
+    mb.task();
+    gMbRead = true;
+    gMbTaskDone = true;
+  }
 
   /*RGBLedTest(5, pwm1);
   RGBLedTest(5, pwm2);
