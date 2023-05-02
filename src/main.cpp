@@ -122,7 +122,7 @@ static const unsigned char PROGMEM logo_bmp[] =
 //modbus
 const int32_t showDelay = 1000;   // Show result every n'th mellisecond
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE }; // MAC address for your controller
-IPAddress ip(169, 254, 73, 100); // The IP address will be dependent on your local network
+IPAddress ip(172, 16, 80, 100); // The IP address will be dependent on your local network
 ModbusEthernet mb;               // Declare ModbusTCP instance
 boolean mbOn = true;
 unsigned long gMbTimer = 0;
@@ -296,6 +296,10 @@ void setup()
     }
     if(mbOn)
       mb.client();
+
+
+
+
   }
 
   //joystick test
@@ -407,10 +411,12 @@ void loop()
     rcsBowThrustersReadData(grcsVars, task);
 
     //HVAC
+    //hvacReadMb(mb, gMbRead, gMbTaskDone, gHvacSimVars);
+
     gDamper1.readMode();
-    gDamper1.readState();
+    gDamper1.readState(mb, gMbRead, Dmp1CmdOpAut_ADR);
     gDamper2.readMode();
-    gDamper2.readState();
+    gDamper2.readState(mb, gMbRead, Dmp2CmdOpAut_ADR);
     gValve3.readMode();
     gValve3.readState();
     gFan1.readMode();
@@ -493,10 +499,13 @@ void loop()
   gGenerator2.writeCmd();
 
   //---------- HVAC -----------
-  if(mbOn)
-    hvacWrite(mb, gHvacSimVars);
+  hvacWriteMb(mb, gMbWrite, gHvacSimVars);
+
+    
   gDamper1.writeCmd();
+ // gDamper1.writeMb(mb, gMbWrite, Dmp1OpLim_ADR, Dmp1ClLim_ADR, Dmp1Fail, Dmp1Aut);
   gDamper2.writeCmd();
+  //gDamper1.writeMb(mb, gMbWrite, Dmp2OpLim_ADR, Dmp2ClLim_ADR, Dmp2Fail, Dmp2Aut);
   gValve3.writeCmd();
   gFan1.writeCmd();
 
@@ -572,6 +581,7 @@ void loop()
   gMbTaskDone = false;
   if(TOff(mbReadDelay, &gMbTimer))
   {
+
     mb.task();
     gMbTaskDone = true;
   }

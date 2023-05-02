@@ -4,9 +4,7 @@
 bool gRegressionCalculated = false;
 float gSlope, gOffset;
 
-bool gMbHvacRead = true;
-bool gMbHvacTask = false;
-unsigned long gMbHvacTimer = 0;
+
 
 mbHvacSimVarsStruct mbHvacSimVars
 {
@@ -27,7 +25,7 @@ void Damper::readMode()
   
 }
 
-void Damper::readState()
+void Damper::readState(ModbusEthernet &mb, bool mbRead, uint16_t mbAdr)
 {
 
   //For dynamic rows change
@@ -87,42 +85,51 @@ void Damper::readState()
   {
     if(this->damperMode == Local)
     {
-        bool openCmd = read2State(pcf2Pin, false, *pcf2);
-        bool closeCmd = !openCmd;
-
-        if(openCmd && (this->damperState == eDamperState::Closed || this->damperState == eDamperState::Closing))
-        {
-          this->timer = millis(); //reset timer
-          this->damperState = eDamperState::Opening;
-        }
-        if(closeCmd && (this->damperPrevState == eDamperState::Opened || this->damperState == eDamperState::Opening))
-        {
-          this->timer = millis(); //reset timer
-          this->damperState = eDamperState::Closing;
-        }
-        if(closeCmd && (this->damperPrevState == eDamperState::Opened || this->damperState == eDamperState::Opening))
-        {
-          this->timer = millis(); //reset timer
-          this->damperState = eDamperState::Closing;
-        }
-            
-        if(closeCmd && (this->damperPrevState == eDamperState::Failure))
-        {
-          alarmIndex = this->alarmRow;
-          if(alarmCounter > 1 && alarmIndex < alarmCounter)
-          {
-            alarmRemoved = true;
-            updatedAlarmRows2 = alarmCounter - alarmIndex;
-          }
-          decrementAlarmCounter(*this->alarmDisps);
-          this->alarmRow = 0;
-          this->damperState = eDamperState::Closed;
-        }
-          
+      this->openCmd = read2State(pcf2Pin, false, *pcf2);
     }
     else    //Auto - read from modbus
     {
+      if (mb.isConnected(server)) 
+      {  
+        if(mbRead)
+        {
+          mb.readCoil(server, mbAdr, &this->openCmd);
+        }
 
+      } 
+      else
+        Serial.println("Connection not established, cannot read data.");
+    }
+
+    bool closeCmd = !this->openCmd;
+
+    if(openCmd && (this->damperState == eDamperState::Closed || this->damperState == eDamperState::Closing))
+    {
+      this->timer = millis(); //reset timer
+      this->damperState = eDamperState::Opening;
+    }
+    if(closeCmd && (this->damperPrevState == eDamperState::Opened || this->damperState == eDamperState::Opening))
+    {
+      this->timer = millis(); //reset timer
+      this->damperState = eDamperState::Closing;
+    }
+    if(closeCmd && (this->damperPrevState == eDamperState::Opened || this->damperState == eDamperState::Opening))
+    {
+      this->timer = millis(); //reset timer
+      this->damperState = eDamperState::Closing;
+    }
+        
+    if(closeCmd && (this->damperPrevState == eDamperState::Failure))
+    {
+      alarmIndex = this->alarmRow;
+      if(alarmCounter > 1 && alarmIndex < alarmCounter)
+      {
+        alarmRemoved = true;
+        updatedAlarmRows2 = alarmCounter - alarmIndex;
+      }
+      decrementAlarmCounter(*this->alarmDisps);
+      this->alarmRow = 0;
+      this->damperState = eDamperState::Closed;
     }
     
     
@@ -162,6 +169,65 @@ void Damper::writeCmd()
       RGBLedBlink(pwm, firstPin, 500, 250, Red, &this->blinkTimer);
     }
       
+  }
+
+}
+
+void Damper::writeMb(ModbusEthernet &mb, bool mbWrite, uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut)
+{
+  if(this->damperMode == Auto)    //Auto - read from modbus
+  {
+    bool fbOpn = this->damperState == eDamperState::Opened;
+    bool fbCls = this->damperState == eDamperState::Closed;
+    bool fbAut = true;
+
+    if (mb.isConnected(server)) 
+    {  
+      if(mbWrite)
+      {
+        mb.writeCoil(server, mbAdrOpn, &fbOpn);
+        mb.writeCoil(server, mbAdrCls, &fbCls);
+        mb.writeCoil(server, mbAdrAut, &fbAut );
+      }
+
+    } 
+    else
+      Serial.println("Connection not established, cannot read data.");
+  }
+  bool damperFail = this->damperState == eDamperState::Failure|| this->damperState == eDamperState::failClogged;
+
+  if(damperFail)
+  {
+    bool fbFail = true;
+    if (mb.isConnected(server)) 
+    {  
+      if(mbWrite)
+        mb.writeCoil(server, mbAdrFail, &fbFail);
+    } 
+    else
+      Serial.println("Connection not established, cannot read data.");
+
+  }
+  if(this->damperMode == Local && not damperFail)    //Local - null everything
+  {
+    bool fbOpn = false;
+    bool fbCls = false;
+    bool fbAut = false;
+    bool fbFail = false;
+
+    if (mb.isConnected(server)) 
+    {  
+      if(mbWrite)
+      {
+        mb.writeCoil(server, mbAdrOpn, &fbOpn);
+        mb.writeCoil(server, mbAdrCls, &fbCls);
+        mb.writeCoil(server, mbAdrAut, &fbAut );
+        mb.writeCoil(server, mbAdrFail, &fbFail);
+      }
+
+    } 
+    else
+      Serial.println("Connection not established, cannot read data.");
   }
 
 }
@@ -608,37 +674,58 @@ void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan, hvacSimVarsStruct &a
   display.display();
 }
 
-void hvacWrite(ModbusEthernet &mb, hvacSimVarsStruct &aHvacSimVars)
+void hvacWriteMb(ModbusEthernet &mb, bool mbWrite, hvacSimVarsStruct &aHvacSimVars)
 {
   if (mb.isConnected(server)) 
-        {  
+  {  
+    if(mbWrite)
+    {
+      mbHvacSimVars.pressure = uint16_t(aHvacSimVars.pressure);
+      mbHvacSimVars.temp = uint16_t(aHvacSimVars.temp);
+      //Serial.println(mbHvacSimVars.pressure);
+      //Serial.println(mbHvacSimVars.temp);
+      mb.writeHreg(server, SnsrPressAct_ADR, &mbHvacSimVars.pressure);
+      mb.writeHreg(server, SnsrTempAct_ADR, &mbHvacSimVars.temp);
 
-          if(gMbHvacRead)
-          {
-            mb.readHreg(server, SnsrPressRef_ADR, &mbHvacSimVars.pressureRef);
-            mb.readHreg(server, SnsrTempRef_ADR, &mbHvacSimVars.tempRef);
-
-
-            mbHvacSimVars.pressure = uint16_t(aHvacSimVars.pressure);
-            mbHvacSimVars.temp = uint16_t(aHvacSimVars.temp);
-            mb.writeHreg(server, SnsrPressAct_ADR, &mbHvacSimVars.pressure);
-            mb.writeHreg(server, SnsrTempAct_ADR, &mbHvacSimVars.temp);
-
-            gMbHvacRead = false;
-            gMbHvacTask = true;
-            gMbHvacTimer = millis(); //reset timer
-          }
-            
-          if(TOff(mbReadDelay, &gMbHvacTimer) && gMbHvacTask)
-          {
-            mb.task();
-            aHvacSimVars.pressureRef = mbHvacSimVars.pressureRef;
-            aHvacSimVars.tempRef = mbHvacSimVars.tempRef;
-            
-            gMbHvacTask = false;
-            gMbHvacRead = true;
-          }
-        } 
-        else
-          Serial.println("Connection not established, cannot read data.");
+    }
+      
+  } 
+  else
+    Serial.println("Connection not established, cannot read data.");
 }
+
+void hvacReadMb(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, hvacSimVarsStruct &aHvacSimVars)
+{
+  if (mb.isConnected(server)) 
+  {  
+
+    if(mbRead)
+    {
+      uint16_t trans1 = mb.readHreg(server, SnsrPressRef_ADR, &mbHvacSimVars.pressureRef);
+      while(mb.isTransaction(trans1))
+      { 
+        Serial.println("Transaction 1 active");
+        mb.task();
+        delay(10);
+      }
+
+      uint16_t trans2 = mb.readHreg(server, SnsrTempRef_ADR, &mbHvacSimVars.tempRef);
+      while(mb.isTransaction(trans2))
+      { 
+        Serial.println("Transaction 2 active");
+        mb.task();
+        delay(10);
+      }
+      
+     
+    }
+      
+    
+      aHvacSimVars.pressureRef = mbHvacSimVars.pressureRef;
+      aHvacSimVars.tempRef = mbHvacSimVars.tempRef;
+   
+  } 
+  else
+    Serial.println("Connection not established, cannot read data.");
+}
+

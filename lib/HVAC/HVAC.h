@@ -45,6 +45,8 @@ class Damper
 
     RTC_DS1307 *rtc;
 
+    bool openCmd;
+
   Damper(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _damperAlarm1, Adafruit_PWMServoDriver &_pwm, uint8_t _rgbNumber, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       rgbNumber = _rgbNumber;
@@ -60,8 +62,9 @@ class Damper
     }
     
     void readMode();
-    void readState();
+    void readState(ModbusEthernet &mb, bool mbRead, uint16_t mbAdr);
     void writeCmd();
+    void writeMb(ModbusEthernet &mb, bool mbWrite, uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut);
     void savePrevState();
     void closing(uint32_t loadTime);
     void opening(uint32_t loadTime);
@@ -173,4 +176,5 @@ class Fan
 
 void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan, hvacSimVarsStruct &aHvacSimVars);
 void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan, hvacSimVarsStruct &aHvacSimVars);
-void hvacWrite(ModbusEthernet &mb, hvacSimVarsStruct &aHvacSimVars);
+void hvacWriteMb(ModbusEthernet &mb, bool mbWrite, hvacSimVarsStruct &aHvacSimVars);
+void hvacReadMb(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, hvacSimVarsStruct &aHvacSimVars);

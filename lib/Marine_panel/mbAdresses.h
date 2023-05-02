@@ -143,3 +143,10 @@ extern uint16_t mbReadDelay;
 #define BtaActSpPORT_ADR 29
 #define EsdActive_ADR 104
 #define FireAlarmActive_ADR 105
+
+//Added to IO list revC
+#define Dmp1Fail 106
+#define Dmp1Aut 107
+#define Dmp2Fail 108
+#define Dmp2Aut 109
+
