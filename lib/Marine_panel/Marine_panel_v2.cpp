@@ -613,18 +613,23 @@ void Pump::writeCmd()
 
 }
 
-void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uint16_t mbAdrAut)
+void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbPresAdr, bool vds)
 {
   bool fbRun = false;
   bool fbStp = false;
   bool fbAut = false;
   bool fbFail = false;
+  uint16_t fbPressure = 0;
+  uint16_t fbSpeed = 0;
+  
 
   if(this->pumpMode == Auto)   
   {
     fbRun = this->pumpState == Running || this->pumpState == Starting || this->pumpState == Stopping || this->pumpState == StoppingF;
     fbStp = this->pumpState == Stopped;
     fbAut = true;
+    fbPressure = uint16_t(this->pressure);
+    fbSpeed = uint16_t(this->speed);
   }
   bool pumpFail = this->pumpState == Failure || this->pumpState == Failure2;
 
@@ -637,6 +642,10 @@ void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uin
   arrayCoilsW[mbAdrStp - coilsWrOffset] = fbStp;
   arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
   arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
+
+  arrayHregsW[mbPresAdr - HregsWrOffset] = fbPressure;
+  if(vds)
+    arrayHregsW[Pmp1SpeedAct_ADR - HregsWrOffset] = fbSpeed;
 
 }
 
@@ -840,21 +849,13 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
 
 }
 
-void vmsMbRead(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, vmsSimVarsStruct &aVmsSimVars)
+void vmsMbRead(vmsSimVarsStruct &aVmsSimVars)
 {
-  if (mb.isConnected(server)) 
-  {  
-    if(mbRead)
-    {
-      mb.readHreg(server, VmsPressRef_ADR, &mbVmsPressRef);
-    }
-    if(mbTaskDone)
-    {
-      aVmsSimVars.PressureRef = mbVmsPressRef;          
-    }
-  } 
-  else
-    Serial.println("Connection not established, cannot read data.");
+  aVmsSimVars.PressureRef = arrayHregsR[VmsPressRef_ADR];          
+}
+void vmsMbWrite(vmsSimVarsStruct &aVmsSimVars)
+{
+  arrayHregsW[VmsPressAct_ADR - HregsWrOffset] = aVmsSimVars.PressureAct;
 }
 
 float addNoise(float value, float min, float max)

@@ -396,7 +396,7 @@ void loop()
     gPump2.readMode();
     gPump2.readState(Pmp2CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
 
-    //vmsMbRead(mb, gMbRead, gMbTaskDone, gVmsSimVars);
+    vmsMbRead(gVmsSimVars);
     
   
     /*
@@ -510,9 +510,11 @@ void loop()
   
   
   gPump1.writeCmd();
-  gPump1.writeMb(Pmp1Running_ADR, Pmp1Stopped_ADR, Pmp1Failure_ADR, Pmp1Auto_ADR);
+  gPump1.writeMb(Pmp1Running_ADR, Pmp1Stopped_ADR, Pmp1Failure_ADR, Pmp1Auto_ADR, Pmp1Pressure_ADR, true);
   gPump2.writeCmd();
-  gPump2.writeMb(Pmp2Running_ADR, Pmp2Stopped_ADR, Pmp2Failure_ADR, Pmp2Auto_ADR);
+  gPump2.writeMb(Pmp2Running_ADR, Pmp2Stopped_ADR, Pmp2Failure_ADR, Pmp2Auto_ADR, Pmp2Pressure_ADR);
+
+  vmsMbWrite(gVmsSimVars);
   
 
   /*
