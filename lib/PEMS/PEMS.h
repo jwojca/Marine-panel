@@ -53,7 +53,7 @@ class Breaker
     }
     
     void readMode();
-    void readState(ModbusEthernet &mb, uint16_t mbAdr);
+    void readState(uint16_t mbAdr);
     void writeCmd();
     void savePrevState();
     void opening(uint32_t loadTime);
@@ -112,7 +112,7 @@ class Generator
     
     
     void readMode();
-    void readState(ModbusEthernet &mb, uint16_t mbAdr);
+    void readState(uint16_t mbAdr);
     void writeCmd();
     void savePrevState();
     void stopping(uint32_t loadTime);

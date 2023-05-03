@@ -13,7 +13,7 @@ void Breaker::readMode()
     this->breakerMode = Auto;
 }
 
-void Breaker::readState(ModbusEthernet &mb, uint16_t mbAdr)
+void Breaker::readState(uint16_t mbAdr)
 {
    //For dynamic rows change
   if(alarmCounter == 0)
@@ -81,27 +81,7 @@ void Breaker::readState(ModbusEthernet &mb, uint16_t mbAdr)
     }
     else    //Auto - read from modbus
     {
-      
-      if (mb.isConnected(server)) 
-      {  
-        if(mbRead)
-        {
-          mb.readCoil(server, mbAdr, &this->openCmd);
-          this->mbRead = false;
-          this->mbTask = true;
-          this->mbTimer = millis(); //reset timer
-        }
-          
-        if(TOff(mbReadDelay, &this->mbTimer) && this->mbTask)
-        {
-          mb.task();
-          this->mbTask = false;
-          this->mbRead = true;
-        }
-      } 
-      else
-        Serial.println("Connection not established, cannot read data.");
-
+      this->openCmd = arrayCoilsR[mbAdr];
     }
 
     
@@ -211,7 +191,7 @@ void Generator::readMode()
     this->generatorMode = Auto;
 }
 
-void Generator::readState(ModbusEthernet &mb, uint16_t mbAdr)
+void Generator::readState(uint16_t mbAdr)
 {
   //For dynamic rows change
   if(alarmCounter == 0)
@@ -282,31 +262,11 @@ void Generator::readState(ModbusEthernet &mb, uint16_t mbAdr)
     if(this->generatorMode == Local)
     {
         this->run = read2State(pcf2Pin, false, *pcf2);
-
     }
 
     else    //Auto - read from modbus
     {
-      if (mb.isConnected(server)) 
-      {  
-        if(mbRead)
-        {
-          mb.readCoil(server, mbAdr, &this->run);
-          this->mbRead = false;
-          this->mbTask = true;
-          this->mbTimer = millis(); //reset timer
-        }
-          
-        if(TOff(mbReadDelay, &this->mbTimer) && this->mbTask)
-        {
-          mb.task();
-          this->mbTask = false;
-          this->mbRead = true;
-        }
-      } 
-      else
-        Serial.println("Connection not established, cannot read data.");
-
+      this->run = arrayCoilsR[mbAdr];
     }
 
     bool stop = !run;
