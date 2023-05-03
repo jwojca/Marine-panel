@@ -6,15 +6,18 @@ uint16_t mbReadDelay = 300;
 const uint16_t HregsCount = 30;
 const uint16_t coilsCount = 200;
 
-uint16_t arrayInt[HregsCount];
-bool arrayRead[coilsCount];
+uint16_t arrayHregs[HregsCount];
+bool arrayCoilsR[coilsCount];
+bool arrayCoilsW[coilsCount];
+
+uint16_t coilsWrOffset = 200;
 
 uint16_t mbTaskDelay = 2;
 
 
 void readBools(ModbusEthernet &mb)
 {
-    uint16_t transRead = mb.readCoil(server, 0, arrayRead, coilsCount);
+    uint16_t transRead = mb.readCoil(server, 0, arrayCoilsR, coilsCount);
     while(mb.isTransaction(transRead))
     {
         mb.task();
@@ -25,7 +28,7 @@ void readBools(ModbusEthernet &mb)
 
 void writeBools(ModbusEthernet &mb)
 {
-    uint16_t transWrite = mb.writeCoil(server, 200, arrayRead, coilsCount);
+    uint16_t transWrite = mb.writeCoil(server, coilsWrOffset, arrayCoilsW, coilsCount);
     while(mb.isTransaction(transWrite))
     {
         mb.task();
@@ -35,7 +38,7 @@ void writeBools(ModbusEthernet &mb)
 }
 void readInts(ModbusEthernet &mb)
 {
-    uint16_t transReadH = mb.readHreg(server, 0, arrayInt, HregsCount);
+    uint16_t transReadH = mb.readHreg(server, 0, arrayHregs, HregsCount);
     while(mb.isTransaction(transReadH))
     {
         mb.task();
@@ -46,7 +49,7 @@ void readInts(ModbusEthernet &mb)
 }
 void writeInts(ModbusEthernet &mb)
 {
-    uint16_t transWriteH = mb.writeHreg(server, 100, arrayInt, HregsCount);
+    uint16_t transWriteH = mb.writeHreg(server, 30, arrayHregs, HregsCount);
     while(mb.isTransaction(transWriteH))
     {
         mb.task();

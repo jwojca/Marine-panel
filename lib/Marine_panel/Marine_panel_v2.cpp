@@ -296,7 +296,7 @@ void Valve::readMode()
   
 }
 
-void Valve::readState(ModbusEthernet &mb, bool mbRead, uint16_t mbAdr)
+void Valve::readState(uint16_t mbAdr)
 {
 
   //For dynamic rows change
@@ -355,21 +355,11 @@ void Valve::readState(ModbusEthernet &mb, bool mbRead, uint16_t mbAdr)
   {
     if(this->valveMode == Local)
     {
-       this->openCmd = read2State(pcf2Pin, false, *pcf2);   
+      this->openCmd = read2State(pcf2Pin, false, *pcf2);   
     }
     else    //Auto - read from modbus
     {
-      if (mb.isConnected(server)) 
-      {  
-        if(mbRead)
-        {
-          mb.readCoil(server, mbAdr, &this->openCmd);
-        }
-
-      } 
-      else
-        Serial.println("Connection not established, cannot read data.");
-
+      this->openCmd = arrayCoilsR[mbAdr];
     }
 
     
@@ -448,62 +438,31 @@ void Valve::writeCmd()
 
 }
 
-void Valve::writeMb(ModbusEthernet &mb, bool mbWrite, uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut)
+void Valve::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut)
 {
-  if(this->valveMode == Auto)    //Auto - read from modbus
+  bool fbOpn = false;
+  bool fbCls = false;
+  bool fbAut = false;
+  bool fbFail = false;
+
+  if(this->valveMode == Auto)   
   {
-    bool fbOpn = this->valveState == Opened;
-    bool fbCls = this->valveState == Closed;
-    bool fbAut = true;
+    fbOpn = this->valveState == Opened;
+    fbCls = this->valveState == Closed;
+    fbAut = true;
 
-    if (mb.isConnected(server)) 
-    {  
-      if(mbWrite)
-      {
-        mb.writeCoil(server, mbAdrOpn, &fbOpn);
-        mb.writeCoil(server, mbAdrCls, &fbCls);
-        mb.writeCoil(server, mbAdrAut, &fbAut );
-      }
-
-    } 
-    else
-      Serial.println("Connection not established, cannot read data.");
   }
   bool valveFail = this->valveState == Failure || this->valveState == Failure2;
 
   if(valveFail)
   {
-    bool fbFail = (this->valveState == Failure) || (this->valveState == Failure2);
-    if (mb.isConnected(server)) 
-    {  
-      if(mbWrite)
-        mb.writeCoil(server, mbAdrFail, &fbFail);
-    } 
-    else
-      Serial.println("Connection not established, cannot read data.");
-
+    fbFail = (this->valveState == Failure) || (this->valveState == Failure2);
   }
-  if(this->valveMode == Local && not valveFail)    //Local - null everything
-  {
-    bool fbOpn = false;
-    bool fbCls = false;
-    bool fbAut = false;
-    bool fbFail = false;
 
-    if (mb.isConnected(server)) 
-    {  
-      if(mbWrite)
-      {
-        mb.writeCoil(server, mbAdrOpn, &fbOpn);
-        mb.writeCoil(server, mbAdrCls, &fbCls);
-        mb.writeCoil(server, mbAdrAut, &fbAut );
-        mb.writeCoil(server, mbAdrFail, &fbFail);
-      }
-
-    } 
-    else
-      Serial.println("Connection not established, cannot read data.");
-  }
+  arrayCoilsW[mbAdrOpn - coilsWrOffset] = fbOpn;
+  arrayCoilsW[mbAdrCls - coilsWrOffset] = fbCls;
+  arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
+  arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
 }
 
 

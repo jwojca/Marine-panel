@@ -297,6 +297,7 @@ void setup()
     if(mbOn)
       mb.client();
 
+
   }
 
   //joystick test
@@ -367,21 +368,31 @@ void loop()
   5. SAVE PREV STATE
   */
 
-  /*
+  simulationLoop = false;
+  
   if(!simulationLoop)
   {
     // 1. READ
+    //Read command via modbus tcp
+    readBools(mb);
+    readInts(mb);
+
+
+
     //---------- VMS -----------
     gValve1.readMode();
-    gValve1.readState(mb, gMbRead, Vlv1CmdOpAut_ADR);
+    gValve1.readState(Vlv1CmdOpAut_ADR);
     gValve2.readMode();
-    gValve2.readState(mb, gMbRead, Vlv2CmdOpAut_ADR);
+    gValve2.readState(Vlv2CmdOpAut_ADR);
+    /*
     gPump1.readMode();
     gPump1.readState(mb, gMbRead, gMbTaskDone, Pmp1CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
     gPump2.readMode();
     gPump2.readState(mb, gMbRead, gMbTaskDone, Pmp2CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
     vmsMbRead(mb, gMbRead, gMbTaskDone, gVmsSimVars);
+    */
   
+    /*
     //---------- PEMS -----------
     gBreaker1.readMode();
     gBreaker1.readState(mb, Brkr1CmdClsAut_ADR);
@@ -441,7 +452,9 @@ void loop()
       Serial.println("DP1");
     if(read2State(P6, false, pcf7))
       Serial.println("Fire al");
+      */
   }
+    
  
 
 
@@ -449,6 +462,7 @@ void loop()
   //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE
+  /*
   gFan1.readMode();
 
   
@@ -466,30 +480,35 @@ void loop()
   if(simulationLoop)
     simulationFnc();
 
-
+  */
 
   //---------- VMS -----------
-  vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
+  //vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
 
+  /*
   //---------- HVAC -----------
   hvacSimulation(gDamper1, gDamper2, gValve3, gFan1, gHvacSimVars);
 
   //---------- RCS ------------
   rcsAzipodSimulate(grcsVars);
-
+  */
 
 
   //3. WRITE
   //---------- VMS -----------
   gValve1.writeCmd();
-  gValve1.writeMb(mb, gMbWrite, Vlv1Opened_ADR, Vlv1Closed_ADR, Vlv1Failure_ADR, Vlv1Auto_ADR);
+  gValve1.writeMb(Vlv1Opened_ADR, Vlv1Closed_ADR, Vlv1Failure_ADR, Vlv1Auto_ADR);
   gValve2.writeCmd();
-  gValve2.writeMb(mb, gMbWrite, Vlv2Opened_ADR, Vlv2Closed_ADR, Vlv2Failure_ADR, Vlv2Auto_ADR);
+  gValve2.writeMb(Vlv2Opened_ADR, Vlv2Closed_ADR, Vlv2Failure_ADR, Vlv2Auto_ADR);
+  
+  /*
   gPump1.writeCmd();
-  gPump1.writeMb(mb, gMbWrite, Pmp1Running_ADR, Pmp1Stopped_ADR, Pmp1Failure_ADR, Pmp1Auto_ADR);
+  gPump1.writeMb(Pmp1Running_ADR, Pmp1Stopped_ADR, Pmp1Failure_ADR, Pmp1Auto_ADR);
   gPump2.writeCmd();
-  gPump1.writeMb(mb, gMbWrite, Pmp2Running_ADR, Pmp2Stopped_ADR, Pmp2Failure_ADR, Pmp2Auto_ADR);
+  gPump1.writeMb( Pmp2Running_ADR, Pmp2Stopped_ADR, Pmp2Failure_ADR, Pmp2Auto_ADR);
+  */
 
+  /*
   //---------- PEMS -----------
   gBreaker1.writeCmd();
   gBreaker2.writeCmd();
@@ -511,6 +530,11 @@ void loop()
   //gDamper1.writeMb(mb, gMbWrite, Dmp2OpLim_ADR, Dmp2ClLim_ADR, Dmp2Fail, Dmp2Aut);
   gValve3.writeCmd();
   gFan1.writeCmd();
+  */
+
+  //Write feedbacks via modbus TCP
+  writeBools(mb);
+  writeInts(mb);
 
   // 4. VISUALIZE
  
@@ -562,26 +586,6 @@ void loop()
   //6. DEBUG
 
   delay(task);
-
-  //gMbRead = false;
-  gMbTaskDone = false;
-  if(TOff(mbReadDelay, &gMbTimer))
-  {
-
-    mb.task();
-    gMbTaskDone = true;
-  }
-  */
-
-  
-
-  //Writing booleans
-  readBools(mb);
-  writeBools(mb);
-
-  //Writing integers
-  readInts(mb);
-  writeInts(mb);
 
 
   if(!mb.isConnected(server))

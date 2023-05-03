@@ -207,9 +207,9 @@ class Valve
     }
     
     void readMode();
-    void readState(ModbusEthernet &mb, bool mbRead, uint16_t mbAdr);
+    void readState(uint16_t mbAdr);
     void writeCmd();
-    void writeMb(ModbusEthernet &mb, bool mbWrite, uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut);
+    void writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut);
     void savePrevState();
     void closing(uint32_t loadTime);
     void opening(uint32_t loadTime);
