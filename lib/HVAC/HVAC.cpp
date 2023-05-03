@@ -135,24 +135,24 @@ void Damper::writeCmd()
   uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
   if(this->damperState == eDamperState::Failure)
   {
-    RGBLedColor(firstPin, 255, 0, 0, pwm);
+    RGBLedColor(firstPin, Red, pwm);
     dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->damperAlarm1, this->alarmRow);
   }
   else
   {
     if(this->damperState == eDamperState::Opened)
-        RGBLedColor(firstPin, 0, 255, 0, pwm);
+        RGBLedColor(firstPin, Blue, pwm);
     if(this->damperState == eDamperState::Closed)
-        RGBLedColor(firstPin, 0, 0, 0, pwm);
+        RGBLedColor(firstPin, None, pwm);
     if(this->damperState == eDamperState::Opening)
     {
       this->opening(loadTime);
-      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->blinkTimer);
     }
     if(this->damperState == eDamperState::Closing)
     {
       this->closing(loadTime);
-      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->blinkTimer);
     }
     if(this->damperState == eDamperState::ClosingF)
     {
@@ -330,24 +330,24 @@ void ValveLinear::writeCmd()
   uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
   if(this->valveState == eValveLinState::Failure)
   {
-    RGBLedColor(firstPin, 255, 0, 0, pwm);
+    RGBLedColor(firstPin, Red, pwm);
     dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->valveAlarm1, this->alarmRow);
   }
   else
   {
     if(this->valveState == eValveLinState::Opened)
-        RGBLedColor(firstPin, 0, 255, 0, pwm);
+        RGBLedColor(firstPin, Blue, pwm);
     if(this->valveState == eValveLinState::Closed)
-        RGBLedColor(firstPin, 0, 0, 0, pwm);
+        RGBLedColor(firstPin, None, pwm);
     if(this->valveState == eValveLinState::Opening)
     {
       this->opening(loadTime);
-      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->blinkTimer);
     }
     if(this->valveState == eValveLinState::Closing)
     {
       this->closing(loadTime);
-      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->blinkTimer);
     }
     if(this->valveState == eValveLinState::ClosingF)
     {
@@ -531,23 +531,23 @@ void Fan::writeCmd()
         if(this->fanState == eFanState::Starting)
         {
           this->starting(loadTime);
-          RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+          RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->blinkTimer);
         }
         if(this->fanState == eFanState::Running)
         {
-          RGBLedColor(firstPin, 0, 255, 0, pwm);
+          RGBLedColor(firstPin, Blue, pwm);
           this->speed = addNoise(this->refSpeed, -5.0, 5.0);
         }
             //RGBLedColor(firstPin, 0, 255, 0, pwm);
         if(this->fanState == eFanState::Stopping)
         {
           this->stopping(loadTime);
-          RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+          RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->blinkTimer);
         }
             
         if(this->fanState == eFanState::Stopped)
         {
-          RGBLedColor(firstPin, 0, 0, 0, pwm);
+          RGBLedColor(firstPin, None, pwm);
         }
             
         if(this->fanState == eFanState::StoppingF)

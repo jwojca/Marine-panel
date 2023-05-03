@@ -132,23 +132,23 @@ void Breaker::writeCmd()
     if(newAlarmAdded)
       dispClearAlarms(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4);
     dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->breakerAlarm1, this->alarmRow);
-    RGBLedColor(firstPin, 255, 0, 0, pwm);
+    RGBLedColor(firstPin, Red, pwm);
   }
   else
   {
     if(this->breakerState == eBreakerState::Closed)
-        RGBLedColor(firstPin, 0, 255, 0, pwm);
+        RGBLedColor(firstPin, Blue, pwm);
     if(this->breakerState == eBreakerState::Opened)
-        RGBLedColor(firstPin, 0, 0, 0, pwm);
+        RGBLedColor(firstPin, None, pwm);
     if(this->breakerState == eBreakerState::Closing)
     {
       this->opening(loadTime);
-      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->blinkTimer);
     }
     if(this->breakerState == eBreakerState::Opening)
     {
       this->closing(loadTime);
-      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->blinkTimer);
     }
     if(this->breakerState == eBreakerState::OpeningF)
     {

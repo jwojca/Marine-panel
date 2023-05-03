@@ -1,6 +1,6 @@
 #include "Marine_panel_v2.h"
 
-int task = 100;
+int task = 50;
 int16_t alarmCounter = 0;
 int16_t alarmIndex = 1000;
 
@@ -15,6 +15,7 @@ float pemsAvailiblePower = 0.0;
 color Red{255, 0, 0};
 color Green{0, 255, 0};
 color Blue{0, 0, 255};
+color None{0, 0, 0};
 
 //static int16_t alarmCounter = 0;
 //static int16_t alarmIndex = 1000;
@@ -53,12 +54,13 @@ void resetAlarmIndex()
   alarmIndex = 1000;
 }
 
-void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm)
+
+void RGBLedColor(uint8_t afirstPin, color aColor, Adafruit_PWMServoDriver pwm)
 {
   uint16_t red, green, blue;
-  red = map(aRed, 0, 255, 0, 4095);
-  green = map(aGreen, 0, 255, 0, 4095);
-  blue = map(aBlue, 0, 255, 0, 4095);
+  red = map(aColor.red, 0, 255, 0, 4095);
+  green = map(aColor.green, 0, 255, 0, 4095);
+  blue = map(aColor.blue, 0, 255, 0, 4095);
 
   pwm.setPin(afirstPin, red);
   pwm.setPin(afirstPin + 1, green);
@@ -78,15 +80,15 @@ void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm)
   uint16_t delayTime = 500;
   
   for(uint8_t i = 0; i < numOfLeds*3; i += 3)
-    RGBLedColor(i, 255, 0, 0, pwm);
+    RGBLedColor(i, Red, pwm);
   delay(delayTime);
 
   for(uint8_t i = 0; i < numOfLeds*3; i += 3)
-    RGBLedColor(i, 0, 255, 0, pwm);
+    RGBLedColor(i, Green, pwm);
   delay(delayTime);
 
   for(uint8_t i = 0; i < numOfLeds*3; i += 3)
-    RGBLedColor(i, 0, 0, 255, pwm);
+    RGBLedColor(i, Blue, pwm);
   delay(delayTime);
 
 }
@@ -95,11 +97,11 @@ void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn,
 {
     if(millis() - *timer > durationOn)
     {
-        RGBLedColor(firstPin, 0, 0, 0, pwm);
+        RGBLedColor(firstPin, None, pwm);
     }
     if(millis() - *timer > durationOn + durationOff)
     {
-        RGBLedColor(firstPin, aColor.red, aColor.green, aColor.blue, pwm);
+        RGBLedColor(firstPin, aColor, pwm);
         *timer = millis();
     }
 }
@@ -409,24 +411,24 @@ void Valve::writeCmd()
   uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
   if(this->valveState == Failure)
   {
-    RGBLedColor(firstPin, 255, 0, 0, pwm);
+    RGBLedColor(firstPin, Red, pwm);
     dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->valveAlarm1, this->alarmRow);
   }
   else
   {
     if(this->valveState == Opened)
-        RGBLedColor(firstPin, 0, 255, 0, pwm);
+        RGBLedColor(firstPin, Blue, pwm);
     if(this->valveState == Closed)
-        RGBLedColor(firstPin, 0, 0, 0, pwm);
+        RGBLedColor(firstPin, None, pwm);
     if(this->valveState == Opening)
     {
       this->opening(loadTime);
-      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->blinkTimer);
     }
     if(this->valveState == Closing)
     {
       this->closing(loadTime);
-      RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->blinkTimer);
+      RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->blinkTimer);
     }
     if(this->valveState == StoppingF)
     {
@@ -591,20 +593,20 @@ void Pump::writeCmd()
     uint8_t firstPin = ((rgbNumber % 6) - 1) * 3;
     if(this->pumpState == Failure)
     {
-      RGBLedColor(firstPin, 255, 0, 0, pwm);
+      RGBLedColor(firstPin, Red, pwm);
       dispShowAlarm(*this->alarmDisps->d1, *this->alarmDisps->d2, *this->alarmDisps->d3, *this->alarmDisps->d4, this->pumpAlarm1, this->alarmRow);
     }
         
     else
     {
         if(this->pumpState == Starting)
-            RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->timer);
+            RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->timer);
         if(this->pumpState == Running)
-            RGBLedColor(firstPin, 0, 255, 0, pwm);
+            RGBLedColor(firstPin, Blue, pwm);
         if(this->pumpState == Stopping)
-            RGBLedBlink(pwm, firstPin, 500, 250, Green, &this->timer);
+            RGBLedBlink(pwm, firstPin, 500, 250, Blue, &this->timer);
         if(this->pumpState == Stopped)
-            RGBLedColor(firstPin, 0, 0, 0, pwm);
+            RGBLedColor(firstPin, None, pwm);
         if(this->pumpState == StoppingF)
             RGBLedBlink(pwm, firstPin, 500, 250, Red, &this->timer);
         if(this->pumpState == SlowingDown)

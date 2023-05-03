@@ -150,6 +150,7 @@ struct color
 extern color Red;
 extern color Green;
 extern color Blue;
+extern color None;
 
 extern float pemsAvailiblePower;
 
@@ -285,7 +286,7 @@ void printAlarmCounter();
 void printAlarmIndex();
 void resetAlarmIndex();
 
-void RGBLedColor(uint8_t afirstPin, uint8_t aRed, uint8_t aGreen, uint8_t aBlue, Adafruit_PWMServoDriver pwm);
+void RGBLedColor(uint8_t afirstPin, color aColor, Adafruit_PWMServoDriver pwm);
 void RGBLedOff(uint8_t firstPin, Adafruit_PWMServoDriver pwm);
 void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm);
 void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn, int durationOff, color aColor, unsigned long *timer);
