@@ -25,7 +25,7 @@ void Damper::readMode()
   
 }
 
-void Damper::readState(ModbusEthernet &mb, bool mbRead, uint16_t mbAdr)
+void Damper::readState(uint16_t mbAdr)
 {
 
   //For dynamic rows change
@@ -89,16 +89,7 @@ void Damper::readState(ModbusEthernet &mb, bool mbRead, uint16_t mbAdr)
     }
     else    //Auto - read from modbus
     {
-      if (mb.isConnected(server)) 
-      {  
-        if(mbRead)
-        {
-          mb.readCoil(server, mbAdr, &this->openCmd);
-        }
-
-      } 
-      else
-        Serial.println("Connection not established, cannot read data.");
+      this->openCmd = arrayCoilsR[mbAdr];
     }
 
     bool closeCmd = !this->openCmd;
@@ -173,62 +164,31 @@ void Damper::writeCmd()
 
 }
 
-void Damper::writeMb(ModbusEthernet &mb, bool mbWrite, uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut)
+void Damper::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut)
 {
+  bool fbOpn = false;
+  bool fbCls = false;
+  bool fbFail = false;
+  bool fbAut = false;
+  
+
   if(this->damperMode == Auto)    //Auto - read from modbus
   {
-    bool fbOpn = this->damperState == eDamperState::Opened;
-    bool fbCls = this->damperState == eDamperState::Closed;
-    bool fbAut = true;
-
-    if (mb.isConnected(server)) 
-    {  
-      if(mbWrite)
-      {
-        mb.writeCoil(server, mbAdrOpn, &fbOpn);
-        mb.writeCoil(server, mbAdrCls, &fbCls);
-        mb.writeCoil(server, mbAdrAut, &fbAut );
-      }
-
-    } 
-    else
-      Serial.println("Connection not established, cannot read data.");
+    fbOpn = this->damperState == eDamperState::Opened;
+    fbCls = this->damperState == eDamperState::Closed;
+    fbAut = true;
   }
-  bool damperFail = this->damperState == eDamperState::Failure|| this->damperState == eDamperState::failClogged;
 
+  bool damperFail = this->damperState == eDamperState::Failure|| this->damperState == eDamperState::failClogged;
   if(damperFail)
   {
-    bool fbFail = true;
-    if (mb.isConnected(server)) 
-    {  
-      if(mbWrite)
-        mb.writeCoil(server, mbAdrFail, &fbFail);
-    } 
-    else
-      Serial.println("Connection not established, cannot read data.");
-
+    fbFail = true;
   }
-  if(this->damperMode == Local && not damperFail)    //Local - null everything
-  {
-    bool fbOpn = false;
-    bool fbCls = false;
-    bool fbAut = false;
-    bool fbFail = false;
 
-    if (mb.isConnected(server)) 
-    {  
-      if(mbWrite)
-      {
-        mb.writeCoil(server, mbAdrOpn, &fbOpn);
-        mb.writeCoil(server, mbAdrCls, &fbCls);
-        mb.writeCoil(server, mbAdrAut, &fbAut );
-        mb.writeCoil(server, mbAdrFail, &fbFail);
-      }
-
-    } 
-    else
-      Serial.println("Connection not established, cannot read data.");
-  }
+  arrayCoilsW[mbAdrOpn - coilsWrOffset] = fbOpn;
+  arrayCoilsW[mbAdrCls - coilsWrOffset] = fbCls;
+  arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
+  arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
 
 }
 
@@ -261,7 +221,7 @@ void ValveLinear::readMode()
   
 }
 
-void ValveLinear::readState()
+void ValveLinear::readState(uint16_t mbAdr)
 {
 
    //For dynamic rows change
@@ -320,42 +280,42 @@ void ValveLinear::readState()
   {
     if(this->valveMode == Local)
     {
-        bool openCmd = read2State(pcf2Pin, false, *pcf2);
-        bool closeCmd = !openCmd;
-
-        if(openCmd && (this->valveState == eValveLinState::Closed || this->valveState == eValveLinState::Closing))
-        {
-          this->timer = millis(); //reset timer
-          this->valveState = eValveLinState::Opening;
-        }
-        if(closeCmd && (this->valvePrevState == eValveLinState::Opened || this->valveState == eValveLinState::Opening))
-        {
-          this->timer = millis(); //reset timer
-          this->valveState = eValveLinState::Closing;
-        }
-        if(closeCmd && (this->valvePrevState == eValveLinState::Opened || this->valveState == eValveLinState::Opening))
-        {
-          this->timer = millis(); //reset timer
-          this->valveState = eValveLinState::Closing;
-        }
-            
-        if(closeCmd && (this->valvePrevState == eValveLinState::Failure))
-        {
-          alarmIndex = this->alarmRow;
-          if(alarmCounter > 1 && alarmIndex < alarmCounter)
-          {
-            alarmRemoved = true;
-            updatedAlarmRows2 = alarmCounter - alarmIndex;
-          }
-          decrementAlarmCounter(*this->alarmDisps);
-          this->alarmRow = 0;
-          this->valveState = eValveLinState::Closed;
-        }
-          
+      this->openCmd = read2State(pcf2Pin, false, *pcf2);   
     }
     else    //Auto - read from modbus
     {
+      this->openCmd = arrayCoilsR[mbAdr];
+    }
 
+    bool closeCmd = !this->openCmd;
+
+    if(openCmd && (this->valveState == eValveLinState::Closed || this->valveState == eValveLinState::Closing))
+    {
+      this->timer = millis(); //reset timer
+      this->valveState = eValveLinState::Opening;
+    }
+    if(closeCmd && (this->valvePrevState == eValveLinState::Opened || this->valveState == eValveLinState::Opening))
+    {
+      this->timer = millis(); //reset timer
+      this->valveState = eValveLinState::Closing;
+    }
+    if(closeCmd && (this->valvePrevState == eValveLinState::Opened || this->valveState == eValveLinState::Opening))
+    {
+      this->timer = millis(); //reset timer
+      this->valveState = eValveLinState::Closing;
+    }
+        
+    if(closeCmd && (this->valvePrevState == eValveLinState::Failure))
+    {
+      alarmIndex = this->alarmRow;
+      if(alarmCounter > 1 && alarmIndex < alarmCounter)
+      {
+        alarmRemoved = true;
+        updatedAlarmRows2 = alarmCounter - alarmIndex;
+      }
+      decrementAlarmCounter(*this->alarmDisps);
+      this->alarmRow = 0;
+      this->valveState = eValveLinState::Closed;
     }
 
   }
@@ -398,6 +358,34 @@ void ValveLinear::writeCmd()
   }
 
 }
+
+void ValveLinear::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut)
+{
+  bool fbOpn = false;
+  bool fbCls = false;
+  bool fbAut = false;
+  bool fbFail = false;
+
+  if(this->valveMode == Auto)   
+  {
+    fbOpn = this->valveState == eValveLinState::Opened;
+    fbCls = this->valveState == eValveLinState::Closed;
+    fbAut = true;
+
+  }
+  bool valveFail = this->valveState == eValveLinState::Failure;
+
+  if(valveFail)
+  {
+    fbFail = (this->valveState == eValveLinState::Failure);
+  }
+
+  arrayCoilsW[mbAdrOpn - coilsWrOffset] = fbOpn;
+  arrayCoilsW[mbAdrCls - coilsWrOffset] = fbCls;
+  arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
+  arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
+}
+
 
 void ValveLinear::savePrevState()
 {

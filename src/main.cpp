@@ -427,7 +427,7 @@ void loop()
     grcsVars.actPowerBT = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
 
 
-    /*
+    
     //RCS
     rcsAzipodReadData(grcsVars, task);
     rcsBowThrustersReadData(grcsVars, task);
@@ -436,15 +436,17 @@ void loop()
     //hvacReadMb(mb, gMbRead, gMbTaskDone, gHvacSimVars);
 
     gDamper1.readMode();
-    gDamper1.readState(mb, gMbRead, Dmp1CmdOpAut_ADR);
+    gDamper1.readState(Dmp1CmdOpAut_ADR);
     gDamper2.readMode();
-    gDamper2.readState(mb, gMbRead, Dmp2CmdOpAut_ADR);
+    gDamper2.readState(Dmp2CmdOpAut_ADR);
     gValve3.readMode();
-    gValve3.readState();
+    gValve3.readState(Vlv3CmdOpAut_ADR);
+    /*
     gFan1.readMode();
     gFan1.readState();
+    */
     
-
+    /*
     //Buttons
     if(read2State(P0, false, pcf7))
       Serial.println("azi L");
@@ -461,6 +463,7 @@ void loop()
     if(read2State(P6, false, pcf7))
       Serial.println("Fire al");
       */
+    
   }
     
  
@@ -493,16 +496,19 @@ void loop()
   //---------- VMS -----------
   vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
 
-  /*
+  
   //---------- HVAC -----------
   hvacSimulation(gDamper1, gDamper2, gValve3, gFan1, gHvacSimVars);
 
   //---------- RCS ------------
   rcsAzipodSimulate(grcsVars);
-  */
+  
 
 
   //3. WRITE
+
+  
+
   //---------- VMS -----------
   gValve1.writeCmd();
   gValve1.writeMb(Vlv1Opened_ADR, Vlv1Closed_ADR, Vlv1Failure_ADR, Vlv1Auto_ADR);
@@ -530,22 +536,27 @@ void loop()
   gGenerator1.writeCmd();
   gGenerator2.writeCmd();
 
-  /*
+  
   //---------- HVAC -----------
-  hvacWriteMb(mb, gMbWrite, gHvacSimVars);
+  //hvacWriteMb(mb, gMbWrite, gHvacSimVars);
 
   
   gDamper1.writeCmd();
- // gDamper1.writeMb(mb, gMbWrite, Dmp1OpLim_ADR, Dmp1ClLim_ADR, Dmp1Fail, Dmp1Aut);
+  gDamper1.writeMb(Dmp1OpLim_ADR, Dmp1ClLim_ADR, Dmp1Fail_ADR, Dmp1Aut_ADR);
   gDamper2.writeCmd();
-  //gDamper1.writeMb(mb, gMbWrite, Dmp2OpLim_ADR, Dmp2ClLim_ADR, Dmp2Fail, Dmp2Aut);
+  gDamper2.writeMb(Dmp2OpLim_ADR, Dmp2ClLim_ADR, Dmp2Fail_ADR, Dmp2Aut_ADR);
   gValve3.writeCmd();
-  gFan1.writeCmd();
-  */
+  gValve3.writeMb(Vlv3Opened_ADR, Vlv3Closed_ADR, Vlv3Failure_ADR, Vlv3Auto_ADR);
+  
+
+  //gFan1.writeCmd();
+  
 
   //Write feedbacks via modbus TCP
   writeBools(mb);
   writeInts(mb);
+
+  
 
   // 4. VISUALIZE
  
