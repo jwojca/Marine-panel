@@ -414,7 +414,7 @@ void Fan::readMode()
     this->fanMode = Auto;
 }
 
-void Fan::readState()
+void Fan::readState(uint16_t mbAdr, uint16_t mbAdr2)
 {
 
    //For dynamic rows change
@@ -473,43 +473,42 @@ void Fan::readState()
   {
     if(this->fanMode == Local)
     {
-        bool run = read2State(pcf2Pin, false, *pcf2);
-        bool stop = !run;
-
-        if(run && (this->fanPrevState == eFanState::Stopped || this->fanPrevState == eFanState::Stopping))
-        {
-          this->timer = millis(); //reset timer
-          this->fanState = eFanState::Starting;
-        }
-            
-        if ((this->fanPrevState == eFanState::Running || this->fanPrevState == eFanState::Starting))
-        {
-          if(stop)
-          {
-            this->timer = millis(); //reset timer
-            this->fanState = eFanState::Stopping;
-          }
-        }
-        if (stop && (this->fanPrevState == eFanState::Failure))
-        {
-          alarmIndex = this->alarmRow;
-          if(alarmCounter > 1 && alarmIndex < alarmCounter)
-          {
-            alarmRemoved = true;
-            updatedAlarmRows2 = alarmCounter - alarmIndex;
-          }
-          decrementAlarmCounter(*this->alarmDisps);
-          this->alarmRow = 0;
-          this->fanState = eFanState::Stopped;
-          
-        }
-            
-    
+      this->run = read2State(pcf2Pin, false, *pcf2);
     }
 
     else    //Auto - read from modbus
     {
+      this->run = arrayCoilsR[mbAdr];
+      this->refSpeed = arrayHregsR[mbAdr2];
+    }
 
+    bool stop = !this->run;
+    if(run && (this->fanPrevState == eFanState::Stopped || this->fanPrevState == eFanState::Stopping))
+    {
+      this->timer = millis(); //reset timer
+      this->fanState = eFanState::Starting;
+    }
+        
+    if ((this->fanPrevState == eFanState::Running || this->fanPrevState == eFanState::Starting))
+    {
+      if(stop)
+      {
+        this->timer = millis(); //reset timer
+        this->fanState = eFanState::Stopping;
+      }
+    }
+    if (stop && (this->fanPrevState == eFanState::Failure))
+    {
+      alarmIndex = this->alarmRow;
+      if(alarmCounter > 1 && alarmIndex < alarmCounter)
+      {
+        alarmRemoved = true;
+        updatedAlarmRows2 = alarmCounter - alarmIndex;
+      }
+      decrementAlarmCounter(*this->alarmDisps);
+      this->alarmRow = 0;
+      this->fanState = eFanState::Stopped;
+      
     }
     
   }
@@ -561,6 +560,38 @@ void Fan::writeCmd()
 
       
 }
+
+void Fan::writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut)
+{
+  bool fbRun = false;
+  bool fbAut = false;
+  bool fbFail = false;
+
+  uint16_t fbSpeed = 0;
+  
+
+  if(this->fanMode == Auto)   
+  {
+    fbRun = this->fanState == eFanState::Running || this->fanState == eFanState::Starting || this->fanState == eFanState::Stopping || this->fanState == eFanState::StoppingF;
+    fbAut = true;
+
+    fbSpeed = uint16_t(this->speed);
+  }
+  bool fanFail = this->fanState == eFanState::Failure;
+
+  if(fanFail)
+  {
+    fbFail = true;
+  }
+
+  arrayCoilsW[mbAdrRun - coilsWrOffset] = fbRun;
+  arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
+  arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
+
+  arrayHregsW[FanPosAct_ADR - HregsWrOffset] = fbSpeed;
+ 
+}
+
 
 
 void Fan::savePrevState()
@@ -662,58 +693,15 @@ void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan, hvacSimVarsStruct &a
   display.display();
 }
 
-void hvacWriteMb(ModbusEthernet &mb, bool mbWrite, hvacSimVarsStruct &aHvacSimVars)
+void hvacWriteMb(hvacSimVarsStruct &aHvacSimVars)
 {
-  if (mb.isConnected(server)) 
-  {  
-    if(mbWrite)
-    {
-      mbHvacSimVars.pressure = uint16_t(aHvacSimVars.pressure);
-      mbHvacSimVars.temp = uint16_t(aHvacSimVars.temp);
-      //Serial.println(mbHvacSimVars.pressure);
-      //Serial.println(mbHvacSimVars.temp);
-      mb.writeHreg(server, SnsrPressAct_ADR, &mbHvacSimVars.pressure);
-      mb.writeHreg(server, SnsrTempAct_ADR, &mbHvacSimVars.temp);
-
-    }
-      
-  } 
-  else
-    Serial.println("Connection not established, cannot read data.");
+  arrayHregsW[SnsrPressAct_ADR - HregsWrOffset] = aHvacSimVars.pressure;
+  arrayHregsW[SnsrTempAct_ADR - HregsWrOffset] = aHvacSimVars.temp;
 }
 
-void hvacReadMb(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, hvacSimVarsStruct &aHvacSimVars)
+void hvacReadMb(hvacSimVarsStruct &aHvacSimVars)
 {
-  if (mb.isConnected(server)) 
-  {  
-
-    if(mbRead)
-    {
-      uint16_t trans1 = mb.readHreg(server, SnsrPressRef_ADR, &mbHvacSimVars.pressureRef);
-      while(mb.isTransaction(trans1))
-      { 
-        Serial.println("Transaction 1 active");
-        mb.task();
-        delay(10);
-      }
-
-      uint16_t trans2 = mb.readHreg(server, SnsrTempRef_ADR, &mbHvacSimVars.tempRef);
-      while(mb.isTransaction(trans2))
-      { 
-        Serial.println("Transaction 2 active");
-        mb.task();
-        delay(10);
-      }
-      
-     
-    }
-      
-    
-      aHvacSimVars.pressureRef = mbHvacSimVars.pressureRef;
-      aHvacSimVars.tempRef = mbHvacSimVars.tempRef;
-   
-  } 
-  else
-    Serial.println("Connection not established, cannot read data.");
+  aHvacSimVars.pressureRef = arrayHregsR[SnsrPressRef_ADR];
+  aHvacSimVars.tempRef = arrayHregsR[SnsrTempRef_ADR];
 }
 

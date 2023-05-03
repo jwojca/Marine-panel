@@ -433,7 +433,7 @@ void loop()
     rcsBowThrustersReadData(grcsVars, task);
 
     //HVAC
-    //hvacReadMb(mb, gMbRead, gMbTaskDone, gHvacSimVars);
+    hvacReadMb(gHvacSimVars);
 
     gDamper1.readMode();
     gDamper1.readState(Dmp1CmdOpAut_ADR);
@@ -441,10 +441,9 @@ void loop()
     gDamper2.readState(Dmp2CmdOpAut_ADR);
     gValve3.readMode();
     gValve3.readState(Vlv3CmdOpAut_ADR);
-    /*
     gFan1.readMode();
-    gFan1.readState();
-    */
+    gFan1.readState(FanCmdStartAut_ADR, FanPosRef_ADR);
+
     
     /*
     //Buttons
@@ -538,7 +537,7 @@ void loop()
 
   
   //---------- HVAC -----------
-  //hvacWriteMb(mb, gMbWrite, gHvacSimVars);
+  hvacWriteMb(gHvacSimVars);
 
   
   gDamper1.writeCmd();
@@ -547,9 +546,8 @@ void loop()
   gDamper2.writeMb(Dmp2OpLim_ADR, Dmp2ClLim_ADR, Dmp2Fail_ADR, Dmp2Aut_ADR);
   gValve3.writeCmd();
   gValve3.writeMb(Vlv3Opened_ADR, Vlv3Closed_ADR, Vlv3Failure_ADR, Vlv3Auto_ADR);
-  
-
-  //gFan1.writeCmd();
+  gFan1.writeCmd();
+  gFan1.writeMb(FanRunning_ADR, FanFailure_ADR, FanAuto_ADR);
   
 
   //Write feedbacks via modbus TCP

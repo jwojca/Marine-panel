@@ -149,6 +149,7 @@ class Fan
 
     bool breakersClosed = false;
     bool failure = false;
+    bool run;
 
     
 
@@ -169,8 +170,9 @@ class Fan
     
     
     void readMode();
-    void readState();
+    void readState(uint16_t mbAdr, uint16_t mbAdr2);
     void writeCmd();
+    void writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut);
     void savePrevState();
     void stopping(uint32_t loadTime);
     void starting(uint32_t loadTime);
@@ -180,5 +182,5 @@ class Fan
 
 void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan, hvacSimVarsStruct &aHvacSimVars);
 void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan, hvacSimVarsStruct &aHvacSimVars);
-void hvacWriteMb(ModbusEthernet &mb, bool mbWrite, hvacSimVarsStruct &aHvacSimVars);
-void hvacReadMb(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, hvacSimVarsStruct &aHvacSimVars);
+void hvacWriteMb(hvacSimVarsStruct &aHvacSimVars);
+void hvacReadMb(hvacSimVarsStruct &aHvacSimVars);
