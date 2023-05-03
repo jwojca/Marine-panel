@@ -381,10 +381,6 @@ void loop()
     for(uint16_t i = 0; i < 10; ++i)
       Serial.println(arrayHregsR[i]);
 
-    
-
-
-
     //---------- VMS -----------
     gValve1.readMode();
     gValve1.readState(Vlv1CmdOpAut_ADR);
@@ -445,7 +441,7 @@ void loop()
     gFan1.readState(FanCmdStartAut_ADR, FanPosRef_ADR);
 
     
-    /*
+    
     //Buttons
     if(read2State(P0, false, pcf7))
       Serial.println("azi L");
@@ -461,7 +457,7 @@ void loop()
       Serial.println("DP1");
     if(read2State(P6, false, pcf7))
       Serial.println("Fire al");
-      */
+      
     
   }
     
@@ -506,8 +502,6 @@ void loop()
 
   //3. WRITE
 
-  
-
   //---------- VMS -----------
   gValve1.writeCmd();
   gValve1.writeMb(Vlv1Opened_ADR, Vlv1Closed_ADR, Vlv1Failure_ADR, Vlv1Auto_ADR);
@@ -523,14 +517,19 @@ void loop()
   vmsMbWrite(gVmsSimVars);
   
 
-  
   //---------- PEMS -----------
   gBreaker1.writeCmd();
+  gBreaker1.writeMb(Brkr1Closed_ADR, Brkr1Opened_ADR, Brkr1Failure_ADR, Brkr1Auto_ADR);
   gBreaker2.writeCmd();
+  gBreaker2.writeMb(Brkr2Closed_ADR, Brkr2Opened_ADR, Brkr2Failure_ADR, Brkr2Auto_ADR);
   gBreaker3.writeCmd();
+  gBreaker3.writeMb(Brkr3Closed_ADR, Brkr3Opened_ADR, Brkr3Failure_ADR, Brkr3Auto_ADR);
   gBreaker4.writeCmd();
+  gBreaker4.writeMb(Brkr4Closed_ADR, Brkr4Opened_ADR, Brkr4Failure_ADR, Brkr4Auto_ADR);
   gBreaker5.writeCmd();
+  gBreaker5.writeMb(Brkr5Closed_ADR, Brkr5Opened_ADR, Brkr5Failure_ADR, Brkr5Auto_ADR);
   gBreaker6.writeCmd();
+  gBreaker6.writeMb(Brkr6Closed_ADR, Brkr6Opened_ADR, Brkr6Failure_ADR, Brkr6Auto_ADR);
 
   gGenerator1.writeCmd();
   gGenerator2.writeCmd();
@@ -616,11 +615,7 @@ void loop()
     
 
   delay(100);
- 
 
-
-
-  
 }
 
 

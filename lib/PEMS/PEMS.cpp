@@ -161,6 +161,33 @@ void Breaker::writeCmd()
   
 }
 
+void Breaker::writeMb(uint16_t mbAdrCls, uint16_t mbAdrOpn, uint16_t mbAdrFail, uint16_t mbAdrAut)
+{
+  bool fbCls = false;
+  bool fbOpn = false;
+  bool fbAut = false;
+  bool fbFail = false;
+
+  if(this->breakerMode == Auto)   
+  {
+    fbOpn = this->breakerState == eBreakerState::Opened;
+    fbCls = this->breakerState == eBreakerState::Closed;
+    fbAut = true;
+
+  }
+  bool breakerFail = this->breakerState == eBreakerState::Failure;
+
+  if(breakerFail)
+  {
+    fbFail = true;
+  }
+
+  arrayCoilsW[mbAdrCls - coilsWrOffset] = fbCls;
+  arrayCoilsW[mbAdrOpn - coilsWrOffset] = fbOpn;
+  arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
+  arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
+}
+
 void Breaker::savePrevState()
 {
     this->breakerPrevState = this->breakerState;
