@@ -8,6 +8,9 @@ class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, Ethern
 
 extern uint16_t mbReadDelay;
 
+extern bool arrayRead[];
+extern uint16_t arrayInt[];
+
 #define Gen1StartAuto_ADR 1
 #define Gen1StopAuto_ADR 2
 #define Gen1Running_ADR 3
@@ -150,3 +153,8 @@ extern uint16_t mbReadDelay;
 #define Dmp2Fail 108
 #define Dmp2Aut 109
 
+
+void readBools(ModbusEthernet &mb);
+void writeBools(ModbusEthernet &mb);
+void readInts(ModbusEthernet &mb);
+void writeInts(ModbusEthernet &mb);

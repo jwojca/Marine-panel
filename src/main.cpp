@@ -573,61 +573,23 @@ void loop()
   }
   */
 
-  uint16_t regCount = 200;
-  uint16_t HregCount = 30;
-
-  bool arrayRead[regCount];
-  uint16_t arrayInt[HregCount];
   
-  for(uint16_t i = 0; i < regCount; ++i)
-    arrayRead[i] = false;
-
-  uint16_t mbDelayTest = 2;
-  uint16_t waitCount = 0;
 
   //Writing booleans
-  uint16_t transRead = mb.readCoil(server, 0, arrayRead, regCount);
-  while(mb.isTransaction(transRead))
-  {
-    mb.task();
-    Serial.println("Reading Coils");
-    waitCount++;
-    delay(mbDelayTest);
-  }
-
-  uint16_t transWrite = mb.writeCoil(server, 200, arrayRead, regCount);
-  while(mb.isTransaction(transWrite))
-  {
-    mb.task();
-    Serial.println("Writing Coils");
-    waitCount++;
-    delay(mbDelayTest);
-  }
-  
-
+  readBools(mb);
+  writeBools(mb);
 
   //Writing integers
-  uint16_t transReadH = mb.readHreg(server, 0, arrayInt, HregCount);
-  while(mb.isTransaction(transReadH))
+  readInts(mb);
+  writeInts(mb);
+
+
+  if(!mb.isConnected(server))
   {
-    mb.task();
-    Serial.println("Reading Hregs");
-    waitCount++;
-    delay(mbDelayTest);
+    mb.connect(server);
+    Serial.println("Trying to recconect");
   }
-
-  uint16_t transWriteH = mb.writeHreg(server, 100, arrayInt, HregCount);
-  while(mb.isTransaction(transWriteH))
-  {
-    mb.task();
-    Serial.println("Writing Hregs");
-    waitCount++;
-    delay(mbDelayTest);
-  }
-
-  Serial.println(waitCount * mbDelayTest);
-
-
+    
 
   delay(100);
  
