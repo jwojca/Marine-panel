@@ -10,9 +10,11 @@ extern uint16_t mbReadDelay;
 
 extern bool arrayCoilsR[];
 extern bool arrayCoilsW[];
-extern uint16_t arrayHregs[];
+extern uint16_t arrayHregsR[];
+extern uint16_t arrayHregsW[];
 
 extern uint16_t coilsWrOffset;
+extern uint16_t HregsWrOffset;
 
 //IO list revision C
 #define Gen1StartAuto_ADR 0
@@ -161,3 +163,4 @@ void readBools(ModbusEthernet &mb);
 void writeBools(ModbusEthernet &mb);
 void readInts(ModbusEthernet &mb);
 void writeInts(ModbusEthernet &mb);
+void initRegs();

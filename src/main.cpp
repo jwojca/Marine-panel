@@ -297,7 +297,8 @@ void setup()
     if(mbOn)
       mb.client();
 
-
+    //Null coils and Hregs
+    initRegs();
   }
 
   //joystick test
@@ -377,6 +378,11 @@ void loop()
     readBools(mb);
     readInts(mb);
 
+    for(uint16_t i = 0; i < 10; ++i)
+      Serial.println(arrayHregsR[i]);
+
+    
+
 
 
     //---------- VMS -----------
@@ -384,13 +390,14 @@ void loop()
     gValve1.readState(Vlv1CmdOpAut_ADR);
     gValve2.readMode();
     gValve2.readState(Vlv2CmdOpAut_ADR);
-    /*
+    
     gPump1.readMode();
-    gPump1.readState(mb, gMbRead, gMbTaskDone, Pmp1CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
+    gPump1.readState(Pmp1CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
     gPump2.readMode();
-    gPump2.readState(mb, gMbRead, gMbTaskDone, Pmp2CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
-    vmsMbRead(mb, gMbRead, gMbTaskDone, gVmsSimVars);
-    */
+    gPump2.readState(Pmp2CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
+
+    //vmsMbRead(mb, gMbRead, gMbTaskDone, gVmsSimVars);
+    
   
     /*
     //---------- PEMS -----------
@@ -483,7 +490,7 @@ void loop()
   */
 
   //---------- VMS -----------
-  //vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
+  vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
 
   /*
   //---------- HVAC -----------
@@ -501,12 +508,12 @@ void loop()
   gValve2.writeCmd();
   gValve2.writeMb(Vlv2Opened_ADR, Vlv2Closed_ADR, Vlv2Failure_ADR, Vlv2Auto_ADR);
   
-  /*
+  
   gPump1.writeCmd();
   gPump1.writeMb(Pmp1Running_ADR, Pmp1Stopped_ADR, Pmp1Failure_ADR, Pmp1Auto_ADR);
   gPump2.writeCmd();
-  gPump1.writeMb( Pmp2Running_ADR, Pmp2Stopped_ADR, Pmp2Failure_ADR, Pmp2Auto_ADR);
-  */
+  gPump2.writeMb(Pmp2Running_ADR, Pmp2Stopped_ADR, Pmp2Failure_ADR, Pmp2Auto_ADR);
+  
 
   /*
   //---------- PEMS -----------

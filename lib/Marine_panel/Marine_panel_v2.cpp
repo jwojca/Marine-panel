@@ -495,7 +495,7 @@ void Pump::readMode()
     this->pumpMode = Auto;
 }
 
-void Pump::readState(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, uint16_t mbAdr, uint16_t mbAdr2)
+void Pump::readState(uint16_t mbAdr, uint16_t mbAdr2)
 {
 
   //For dynamic rows change
@@ -553,24 +553,8 @@ void Pump::readState(ModbusEthernet &mb, bool mbRead, bool mbTaskDone, uint16_t 
     }
     else    //Auto - read from modbus
     {
-      
-      if (mb.isConnected(server)) 
-      {  
-        if(mbRead)
-        {
-          mb.readCoil(server, mbAdr, &this->run);
-          mb.readHreg(server, mbAdr2, &this->mbSpeedRef);
-        }
-
-        if(mbTaskDone)
-        {
-          this->refSpeed = this->mbSpeedRef;
-        }
-          
-      } 
-      else
-        Serial.println("Connection not established, cannot read data.");
-
+      this->run = arrayCoilsR[mbAdr];
+      this->refSpeed = arrayHregsR[mbAdr2];
     }
 
     
@@ -629,62 +613,30 @@ void Pump::writeCmd()
 
 }
 
-void Pump::writeMb(ModbusEthernet &mb, bool mbWrite, uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uint16_t mbAdrAut)
+void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uint16_t mbAdrAut)
 {
-  if(this->pumpMode == Auto)    //Auto - read from modbus
+  bool fbRun = false;
+  bool fbStp = false;
+  bool fbAut = false;
+  bool fbFail = false;
+
+  if(this->pumpMode == Auto)   
   {
-    bool fbRun = this->pumpState == Running;
-    bool fbStp = this->pumpState == Stopped;
-    bool fbAut = true;
-
-    if (mb.isConnected(server)) 
-    {  
-      if(mbWrite)
-      {
-        mb.writeCoil(server, mbAdrRun, &fbRun);
-        mb.writeCoil(server, mbAdrStp, &fbStp);
-        mb.writeCoil(server, mbAdrAut, &fbAut );
-      }
-
-    } 
-    else
-      Serial.println("Connection not established, cannot read data.");
+    fbRun = this->pumpState == Running || this->pumpState == Starting || this->pumpState == Stopping || this->pumpState == StoppingF;
+    fbStp = this->pumpState == Stopped;
+    fbAut = true;
   }
   bool pumpFail = this->pumpState == Failure || this->pumpState == Failure2;
 
   if(pumpFail)
   {
-    bool fbFail = (this->pumpState == Failure) || (this->pumpState == Failure2);
-    if (mb.isConnected(server)) 
-    {  
-      if(mbWrite)
-        mb.writeCoil(server, mbAdrFail, &fbFail);
-    } 
-    else
-      Serial.println("Connection not established, cannot read data.");
-
+    fbFail = true;
   }
-  if(this->pumpMode == Local && not pumpFail)    //Local - null everything
-  {
-    bool fbRun = false;
-    bool fbStp = false;
-    bool fbAut = false;
-    bool fbFail = false;
 
-    if (mb.isConnected(server)) 
-    {  
-      if(mbWrite)
-      {
-        mb.writeCoil(server, mbAdrRun, &fbRun);
-        mb.writeCoil(server, mbAdrStp, &fbStp);
-        mb.writeCoil(server, mbAdrAut, &fbAut );
-        mb.writeCoil(server, mbAdrFail, &fbFail);
-      }
-
-    } 
-    else
-      Serial.println("Connection not established, cannot read data.");
-  }
+  arrayCoilsW[mbAdrRun - coilsWrOffset] = fbRun;
+  arrayCoilsW[mbAdrStp - coilsWrOffset] = fbStp;
+  arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
+  arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
 
 }
 

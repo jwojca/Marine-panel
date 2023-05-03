@@ -6,11 +6,14 @@ uint16_t mbReadDelay = 300;
 const uint16_t HregsCount = 30;
 const uint16_t coilsCount = 200;
 
-uint16_t arrayHregs[HregsCount];
+
 bool arrayCoilsR[coilsCount];
 bool arrayCoilsW[coilsCount];
+uint16_t arrayHregsR[HregsCount];
+uint16_t arrayHregsW[HregsCount];
 
 uint16_t coilsWrOffset = 200;
+uint16_t HregsWrOffset = 30;
 
 uint16_t mbTaskDelay = 2;
 
@@ -38,7 +41,7 @@ void writeBools(ModbusEthernet &mb)
 }
 void readInts(ModbusEthernet &mb)
 {
-    uint16_t transReadH = mb.readHreg(server, 0, arrayHregs, HregsCount);
+    uint16_t transReadH = mb.readHreg(server, 0, arrayHregsR, HregsCount);
     while(mb.isTransaction(transReadH))
     {
         mb.task();
@@ -49,7 +52,7 @@ void readInts(ModbusEthernet &mb)
 }
 void writeInts(ModbusEthernet &mb)
 {
-    uint16_t transWriteH = mb.writeHreg(server, 30, arrayHregs, HregsCount);
+    uint16_t transWriteH = mb.writeHreg(server, HregsWrOffset, arrayHregsW, HregsCount);
     while(mb.isTransaction(transWriteH))
     {
         mb.task();
@@ -57,4 +60,19 @@ void writeInts(ModbusEthernet &mb)
         delay(mbTaskDelay);
     }
 
+}
+
+void initRegs()
+{
+    for(uint16_t i = 0; i < HregsCount; ++i)
+    {
+        arrayHregsR[i] = 0;
+        arrayHregsW[i] = 0;
+    }
+
+    for(uint16_t i = 0; i < coilsCount; ++i)
+    {
+        arrayCoilsR[i] = false;
+        arrayCoilsW[i] = false;
+    }
 }
