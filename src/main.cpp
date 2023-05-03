@@ -297,9 +297,6 @@ void setup()
     if(mbOn)
       mb.client();
 
-
-
-
   }
 
   //joystick test
@@ -328,6 +325,8 @@ void setup()
   display4.display();
   display15.display();
 
+
+
 }
   
 
@@ -354,6 +353,9 @@ enum simStateEnum{Init, fBreakersCloseCmd, fBreakersClosing, fGenStartCmd, fGenS
                   fireAlarmAct, valve2OpenCmd, pump2Starting, pump2Running10s, pump1Starting, pump1SlowingDown, pump1Stopping, v3On, v3Cooling, Restart};
 simStateEnum simState = Init;
 
+
+
+
 void loop()
 {
 
@@ -365,6 +367,7 @@ void loop()
   5. SAVE PREV STATE
   */
 
+  /*
   if(!simulationLoop)
   {
     // 1. READ
@@ -558,23 +561,6 @@ void loop()
 
   //6. DEBUG
 
-  //Serial.println(gPump1.timer);
- // Serial.println(gPump2.timer);
- 
- 
- /*
-  String voltageX1 = "X1 " + String(analogReadMilliVolts(JOY1_X)) + "mV";
-  String voltageY1 = "Y1 " + String(analogReadMilliVolts(JOY1_Y)) + "mV";
-  String voltageX2 = "X2 " + String(analogReadMilliVolts(JOY2_X)) + "mV";
-  String voltageY2 = "Y2 " + String(analogReadMilliVolts(JOY2_Y)) + "mV";
-  display15.clearDisplay();
-  dispStringALigned(voltageX1, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
-  dispStringALigned(voltageY1, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 10);
-  dispStringALigned(voltageX2, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 20);
-  dispStringALigned(voltageY2, display15, DejaVu_Sans_Mono_10, LeftTop, 0, 30);
-  display15.display();*/
-
- 
   delay(task);
 
   //gMbRead = false;
@@ -585,72 +571,69 @@ void loop()
     mb.task();
     gMbTaskDone = true;
   }
+  */
 
-  /*RGBLedTest(5, pwm1);
-  RGBLedTest(5, pwm2);
-  RGBLedTest(4, pwm3);*/
+  uint16_t regCount = 200;
+  uint16_t HregCount = 30;
 
-  //Serial.println("Alarm removed" + String(alarmRemoved));
-  //Serial.println("Alarm added" + String(newAlarmAdded));
- 
+  bool arrayRead[regCount];
+  uint16_t arrayInt[HregCount];
   
+  for(uint16_t i = 0; i < regCount; ++i)
+    arrayRead[i] = false;
 
+  uint16_t mbDelayTest = 2;
+  uint16_t waitCount = 0;
 
-
-  boolWrite = !boolWrite;
-
-  //resetAlarmIndex();
-  //newAlarmAdded = false;
- 
-  
-  
-
-  if(false)
+  //Writing booleans
+  uint16_t transRead = mb.readCoil(server, 0, arrayRead, regCount);
+  while(mb.isTransaction(transRead))
   {
-    Serial.println(gBreaker1.breakerMode);
-    
-    if(Ethernet.linkStatus() == LinkOFF) 
-    {
-      Serial.println("The Ethernet cable is unplugged...");
-    }
-    else
-    {
-       if (mb.isConnected(server)) 
-      {  
-        
-          mb.readCoil(server, 1, &test1);
-          mb.readHreg(server, 1, &test2); 
-          mb.readHreg(server, 2, &test3); 
-          mb.readHreg(server, 100, &test4); 
-          mb.writeCoil(server, 1, boolWrite);
-          
-      } 
-      else 
-      {
-          mb.connect(server);           // Try to connect if not connected
-      }
-      //delay(100);                     // Pulling interval
-                          // Common local Modbus task
-      if (millis() - showLast > showDelay)
-      { // Display register value every x seconds (with default settings)
-        mb.task(); 
-        showLast = millis();
-        
-        Serial.print("Test1: ");
-        Serial.println(test1);
-        Serial.print("Test2: ");
-        Serial.println(test2);
-        Serial.print("Test3: ");
-        Serial.println(test3);
-        Serial.print("Test4: ");
-        Serial.println(test4);
-        
-      }
-
-    }
-
-   
+    mb.task();
+    Serial.println("Reading Coils");
+    waitCount++;
+    delay(mbDelayTest);
   }
+
+  uint16_t transWrite = mb.writeCoil(server, 200, arrayRead, regCount);
+  while(mb.isTransaction(transWrite))
+  {
+    mb.task();
+    Serial.println("Writing Coils");
+    waitCount++;
+    delay(mbDelayTest);
+  }
+  
+
+
+  //Writing integers
+  uint16_t transReadH = mb.readHreg(server, 0, arrayInt, HregCount);
+  while(mb.isTransaction(transReadH))
+  {
+    mb.task();
+    Serial.println("Reading Hregs");
+    waitCount++;
+    delay(mbDelayTest);
+  }
+
+  uint16_t transWriteH = mb.writeHreg(server, 100, arrayInt, HregCount);
+  while(mb.isTransaction(transWriteH))
+  {
+    mb.task();
+    Serial.println("Writing Hregs");
+    waitCount++;
+    delay(mbDelayTest);
+  }
+
+  Serial.println(waitCount * mbDelayTest);
+
+
+
+  delay(100);
+ 
+
+
+
   
 }
 
