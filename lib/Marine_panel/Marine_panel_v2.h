@@ -323,6 +323,8 @@ void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display
 void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVars);
 void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);
 
+void rcsMbWrite(rcsVarsStruct &rcsVars);
+
 float addNoise(float value, float min, float max);
 
 bool TOff(uint32_t delay, unsigned long *timer);

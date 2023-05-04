@@ -547,6 +547,9 @@ void loop()
   gValve3.writeMb(Vlv3Opened_ADR, Vlv3Closed_ADR, Vlv3Failure_ADR, Vlv3Auto_ADR);
   gFan1.writeCmd();
   gFan1.writeMb(FanRunning_ADR, FanFailure_ADR, FanAuto_ADR);
+
+  //---------- RCS -----------
+  rcsMbWrite(grcsVars);
   
 
   //Write feedbacks via modbus TCP

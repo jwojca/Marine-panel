@@ -1651,6 +1651,13 @@ void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle)
   
 }
 
+void rcsMbWrite(rcsVarsStruct &rcsVars)
+{
+  arrayHregsW[AzpdActSpeed_ADR - HregsWrOffset] = rcsVars.actRPM;
+  arrayHregsW[AzpdActAngPORT_ADR - HregsWrOffset] = rcsVars.actAnglePORT;
+  arrayHregsW[AzpdActAngSTBD_ADR - HregsWrOffset] = rcsVars.actAngleSTBD;
+}
+
 
 int joyReadData(uint8_t pin, bool verticalAxis)
 {
