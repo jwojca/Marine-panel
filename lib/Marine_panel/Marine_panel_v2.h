@@ -167,6 +167,17 @@ struct alarmDispsStruct
 
 enum fontAligment{LeftTop, RightTop, LeftBottom, RightBottom};
 
+/*
+  actState and prevState relates to state of button, true means button is pushed, false means its not pushed
+  actValue is actual state of value connected to the button, actValue changes when button is pressed
+*/
+struct pushBtn
+{
+  bool actState, prevState;
+  bool actValue;
+  uint8_t pcfPin;
+};
+
 
 
 
@@ -329,9 +340,10 @@ void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);
 
 void rcsMbWrite(rcsVarsStruct &rcsVars);
 void rcsMbRead(rcsVarsStruct &rcsVars);
+void readPushBtn(pushBtn &btn, PCF8574 &pcf);
+
 
 float addNoise(float value, float min, float max);
-
 bool TOff(uint32_t delay, unsigned long *timer);
 
 int joyReadData(uint8_t pin, bool verticalAxis = false);

@@ -19,10 +19,6 @@ RTC_DS1307 rtc;
 bool setTime = false;
 
 
-
-
-
-
 //peripherals
 PCF8574 pcf1(PCF1_ADRESS); 
 PCF8574 pcf2(PCF2_ADRESS); 
@@ -63,13 +59,6 @@ Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(PWM1_ADRESS);
 Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(PWM2_ADRESS);
 Adafruit_PWMServoDriver pwm3 = Adafruit_PWMServoDriver(PWM3_ADRESS);
 
-//Global variables 
-/*float gVmsPump1Pressure = 7.8, gVmsPump2Pressure = 12.0, gVmsPressureRef = 7.0, gVmsMaxPressure = 15.0;
-float gVmsTankWater = 5000.0, gVmsInflow = 0.0, gVmsOutflow = 0.0;
-float gVmsPump2MaxInflow = 1600.0; //l/s
-float gVmsTankMaxVol = 10000.0; //l
-float gVmsPressureAct = 0.0; //Bar*/
-
 vmsSimVarsStruct gVmsSimVars
 {
     .PressureRef = 8.0, .MaxPressure = 15.0, .PressureAct = 0.0, //Bar
@@ -97,9 +86,12 @@ Damper gDamper1(&rtc, &alarmDisps, hvacD1Alarm1, pwm3, RGB11, P0, P4, &pcf6, &pc
 ValveLinear gValve3(&rtc, &alarmDisps, hvacV3Alarm1, pwm3, RGB12, P4, &pcf6, P6, &pcf5);
 Fan gFan1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm3, RGB13, P6, &pcf6, P7, &pcf5);
 
-eRcsState gAzRpmCtrl = eRcsState::Auto;
-eRcsState gAzSteerCtrl = eRcsState::Auto;
-eRcsState gBtCtrl = eRcsState::Auto;
+
+pushBtn gAzButtSteer { .actState = false, .prevState = false, .actValue = false, .pcfPin = P0 };
+pushBtn gAzButtRpm { .actState = false, .prevState = false, .actValue = false, .pcfPin = P1 };
+pushBtn gBtStart { .actState = false, .prevState = false, .actValue = false, .pcfPin = P3 };
+pushBtn gBtStop { .actState = false, .prevState = false, .actValue = false, .pcfPin = P4 };
+
 
 
 #define LOGO_HEIGHT   16
@@ -382,9 +374,6 @@ void loop()
     readBools(mb);
     readInts(mb);
 
-    for(uint16_t i = 0; i < 10; ++i)
-      Serial.println(arrayHregsR[i]);
-
     //---------- VMS -----------
     gValve1.readMode();
     gValve1.readState(Vlv1CmdOpAut_ADR);
@@ -397,8 +386,7 @@ void loop()
     gPump2.readState(Pmp2CmdStrtAut_ADR, Pmp1SpeedRef_ADR);
 
     vmsMbRead(gVmsSimVars);
-    
-  
+
     
     //---------- PEMS -----------
     
@@ -427,20 +415,17 @@ void loop()
     grcsVars.actPowerBT = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
 
 
-    
     //RCS
     rcsAzipodReadData(grcsVars, task);
     rcsBowThrustersReadData(grcsVars, task);
+    rcsMbRead(grcsVars);
 
     //RCS buttons
-    if(read2State(P0, false, pcf7))
-      Serial.println("azi L");
-    if(read2State(P1, false, pcf7))
-      Serial.println("azi R");
-    if(read2State(P3, false, pcf7))
-      Serial.println("bt strt");
-    if(read2State(P4, false, pcf7))
-      Serial.println("bt stop");
+    readPushBtn(gAzButtSteer, pcf7);
+    readPushBtn(gAzButtRpm, pcf7);
+    readPushBtn(gBtStart, pcf7);
+    readPushBtn(gBtStop, pcf7);
+  
 
     //HVAC
     hvacReadMb(gHvacSimVars);

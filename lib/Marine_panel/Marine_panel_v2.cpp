@@ -1750,6 +1750,18 @@ void rcsMbRead(rcsVarsStruct &rcsVars)
   rcsVars.refRpmPortBT = float(arrayHregsR[BtrRefSpPORT_ADR]/mbMultFactor);
   rcsVars.refRpmStbdBT = float(arrayHregsR[BtrRefSpSTBD_ADR]/mbMultFactor);
 }
+void readPushBtn(pushBtn &btn, PCF8574 &pcf)
+{
+  btn.actState = read2State(btn.pcfPin, false, pcf);
+  if(btn.actState && !btn.prevState)
+  {
+    btn.actValue = !btn.actValue;
+    Serial.println("Switched state");
+  }
+    
+    
+  btn.prevState = btn.actState;
+}
 
 
 int joyReadData(uint8_t pin, bool verticalAxis)
