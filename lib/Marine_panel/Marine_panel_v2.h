@@ -115,6 +115,8 @@ extern int16_t updatedAlarmRows2;
 enum mpMode{Local, Auto};
 enum mpState{Closed, Opened, Failure, Failure2, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running, SlowingDown}; //states for valves and pumps 
 
+enum class eRcsState{Local, Auto};
+
 
 //TODO split states for valves, pumps, breakers, DGs
 
@@ -136,9 +138,10 @@ struct rcsVarsStruct
   float refAngleSTBD = 0.0, refAnglePORT = 0.0, actAngleSTBD = 0.0, actAnglePORT = 0.0; 
 
   float refRpmBt = 0.0, actRpmBT = 0.0, minRpmBT = 0.0, maxRpmBT = 100.0;
-  float refRpmStbdBT = 0.0, refRpmPortBT = 0.0;
+  float refRpmStbdBT = 0.0, refRpmPortBT = 0.0, actRpmStbdBT = 0.0, actRpmPortBT = 0.0;
   float refPowerBT = 0.0, actPowerBT = 0.0, minPowerBT = 0.0, maxPowerBT = 1.0;
 };
+
 
 struct color
 {
@@ -319,11 +322,13 @@ void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
 void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task);
 void rcsAzipodSimulate(rcsVarsStruct &rcsVars);
 void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task);
+void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars);
 void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVarsStruct);
 void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVars);
 void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);
 
 void rcsMbWrite(rcsVarsStruct &rcsVars);
+void rcsMbRead(rcsVarsStruct &rcsVars);
 
 float addNoise(float value, float min, float max);
 

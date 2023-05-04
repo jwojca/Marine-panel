@@ -97,6 +97,10 @@ Damper gDamper1(&rtc, &alarmDisps, hvacD1Alarm1, pwm3, RGB11, P0, P4, &pcf6, &pc
 ValveLinear gValve3(&rtc, &alarmDisps, hvacV3Alarm1, pwm3, RGB12, P4, &pcf6, P6, &pcf5);
 Fan gFan1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm3, RGB13, P6, &pcf6, P7, &pcf5);
 
+eRcsState gAzRpmCtrl = eRcsState::Auto;
+eRcsState gAzSteerCtrl = eRcsState::Auto;
+eRcsState gBtCtrl = eRcsState::Auto;
+
 
 #define LOGO_HEIGHT   16
 #define LOGO_WIDTH    16
@@ -428,6 +432,16 @@ void loop()
     rcsAzipodReadData(grcsVars, task);
     rcsBowThrustersReadData(grcsVars, task);
 
+    //RCS buttons
+    if(read2State(P0, false, pcf7))
+      Serial.println("azi L");
+    if(read2State(P1, false, pcf7))
+      Serial.println("azi R");
+    if(read2State(P3, false, pcf7))
+      Serial.println("bt strt");
+    if(read2State(P4, false, pcf7))
+      Serial.println("bt stop");
+
     //HVAC
     hvacReadMb(gHvacSimVars);
 
@@ -443,16 +457,10 @@ void loop()
     
     
     //Buttons
-    if(read2State(P0, false, pcf7))
-      Serial.println("azi L");
-    if(read2State(P1, false, pcf7))
-      Serial.println("azi R");
+   
     if(read2State(P2, false, pcf7))
       Serial.println("Emer");
-    if(read2State(P3, false, pcf7))
-      Serial.println("bt strt");
-    if(read2State(P4, false, pcf7))
-      Serial.println("bt stop");
+
     if(gDpOn = read2State(P5, false, pcf7))
       Serial.println("DP1");
     if(read2State(P6, false, pcf7))
@@ -497,6 +505,7 @@ void loop()
 
   //---------- RCS ------------
   rcsAzipodSimulate(grcsVars);
+  rcsBowThrustersSimulate(grcsVars);
   
 
 
@@ -574,7 +583,7 @@ void loop()
 
   //---------- PEMS -----------
   gGenerator1.visualize();
-  gGenerator2.visualize();
+  //gGenerator2.visualize();
 
   //---------- RCS -----------
   dispRCSAzipodVisualize(display5, display6, display7, grcsVars);

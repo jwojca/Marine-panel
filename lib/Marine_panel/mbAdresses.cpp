@@ -15,6 +15,8 @@ uint16_t arrayHregsW[HregsCount];
 uint16_t coilsWrOffset = 200;
 uint16_t HregsWrOffset = 30;
 
+float mbMultFactor = 10.0;
+
 uint16_t mbTaskDelay = 2;
 
 

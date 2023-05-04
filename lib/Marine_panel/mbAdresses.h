@@ -16,6 +16,8 @@ extern uint16_t arrayHregsW[];
 extern uint16_t coilsWrOffset;
 extern uint16_t HregsWrOffset;
 
+extern float mbMultFactor;
+
 //IO list revision C
 #define Gen1StartAuto_ADR 0
 #define Gen1StopAuto_ADR 1

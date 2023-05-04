@@ -630,8 +630,8 @@ void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uin
     fbRun = this->pumpState == Running || this->pumpState == Starting || this->pumpState == Stopping || this->pumpState == StoppingF;
     fbStp = this->pumpState == Stopped;
     fbAut = true;
-    fbPressure = uint16_t(this->pressure);
-    fbSpeed = uint16_t(this->speed);
+    fbPressure = uint16_t(this->pressure * mbMultFactor);
+    fbSpeed = uint16_t(this->speed * mbMultFactor);
   }
   bool pumpFail = this->pumpState == Failure || this->pumpState == Failure2;
 
@@ -857,7 +857,7 @@ void vmsMbRead(vmsSimVarsStruct &aVmsSimVars)
 }
 void vmsMbWrite(vmsSimVarsStruct &aVmsSimVars)
 {
-  arrayHregsW[VmsPressAct_ADR - HregsWrOffset] = aVmsSimVars.PressureAct;
+  arrayHregsW[VmsPressAct_ADR - HregsWrOffset] = uint16_t(aVmsSimVars.PressureAct * mbMultFactor);
 }
 
 float addNoise(float value, float min, float max)
@@ -1346,11 +1346,9 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars)
     //Turning STBD-
     else if(rcsVars.refAngleSTBD < rcsVars.actAngleSTBD)
     {
-    
         rcsVars.actAngleSTBD -= degIncrease * task/1000.0;
         if(rcsVars.actAngleSTBD < rcsVars.refAngleSTBD)
           rcsVars.actAngleSTBD = rcsVars.refAngleSTBD;
-
     }
   }
 
@@ -1358,9 +1356,81 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars)
      rcsVars.actAngle = rcsVars.actAnglePORT;
   else
     rcsVars.actAngle = rcsVars.actAnglePORT + (360.0 - rcsVars.actAngleSTBD);
+
+}
+
+void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars)
+{
+  float speedDif;
+  if(rcsVars.refRpmPortBT > 0.0)
+    speedDif = rcsVars.refRpmPortBT - rcsVars.actRpmPortBT;
+  else if(rcsVars.refRpmStbdBT > 0.0)
+    speedDif = rcsVars.refRpmStbdBT - rcsVars.actRpmStbdBT;
+    
+  float minPowRequiered = 0.4;
+  float powRequieredRpm = map(speedDif, 0, 100, 0, (rcsVars.maxPower/2.0) * 1000.0);
+
+  bool boatMoving = bool(rcsVars.actRpmPortBT || rcsVars.actRpmStbdBT);
+  rcsVars.refPower = (powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
+
+
+  //Speed change
+  float spdIncr = 5.0;
   
+  //Turn to port+
+  if(rcsVars.refRpmPortBT > rcsVars.actRpmPortBT)
+  {
+    //When should turn to port side but ship is turned to stbd side 
+    if(rcsVars.actRpmStbdBT > 0.0)
+    {
+      rcsVars.actRpmStbdBT -= spdIncr * task/1000.0;
+      if(rcsVars.actRpmStbdBT < 0.0)
+        rcsVars.actRpmStbdBT = 0.0;
+    }
+    else
+    {
+      rcsVars.actRpmPortBT += spdIncr * task/1000.0;
+      if(rcsVars.actRpmPortBT > rcsVars.refRpmPortBT)
+        rcsVars.actRpmPortBT = rcsVars.refRpmPortBT;
+    }
+      
+  }
+  //Turn to port-
+  else if(rcsVars.refRpmPortBT < rcsVars.actRpmPortBT)
+  {
+    rcsVars.actRpmPortBT -= spdIncr * task/1000.0;
+    if(rcsVars.actRpmPortBT < rcsVars.refRpmPortBT)
+      rcsVars.actRpmPortBT = rcsVars.refRpmPortBT;
+  }
+
+  //Turning STBD+ (reference is higher than actual)
+  else if(rcsVars.refRpmStbdBT > rcsVars.actRpmStbdBT)
+  {
+      //When should turn to stbd side but ship is turned to port side 
+      if(rcsVars.actRpmPortBT > 0.0)
+      {
+      rcsVars.actRpmPortBT -= spdIncr * task/1000.0;
+      if(rcsVars.actRpmPortBT < 0.0)
+        rcsVars.actRpmPortBT = 0.0;
+      }
+      else
+      {
+        rcsVars.actRpmStbdBT += spdIncr * task/1000.0;
+        if(rcsVars.actRpmStbdBT > rcsVars.refRpmStbdBT)
+          rcsVars.actRpmStbdBT = rcsVars.refRpmStbdBT;
+      }
+  }
+
+  //Turning STBD-
+  else if(rcsVars.refRpmStbdBT < rcsVars.actRpmStbdBT)
+  {
+      rcsVars.actRpmStbdBT -= spdIncr * task/1000.0;
+      if(rcsVars.actRpmStbdBT < rcsVars.refRpmStbdBT)
+        rcsVars.actRpmStbdBT = rcsVars.refRpmStbdBT;
+  }
 
  
+  rcsVars.actRpmBT = rcsVars.actRpmStbdBT - rcsVars.actRpmPortBT;
 }
 
 void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task)
@@ -1421,6 +1491,13 @@ void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &d
   String powerActStr = "Act. power: " + String(rcsVars.actPowerBT, 1) + "MW";
   String powerBgStr = String(rcsVars.minPowerBT, 1) + "               " + String(rcsVars.maxPowerBT, 1);
 
+  //Creating string for actual BT rpms
+  String actRpmStr;
+  if(rcsVars.actRpmPortBT > 0)
+    actRpmStr = String(rcsVars.actRpmPortBT, 1) + "% PO";
+  if(rcsVars.actRpmStbdBT > 0)
+    actRpmStr = String(rcsVars.actRpmStbdBT, 1) + "% ST";
+
 
   dispStringALigned(powerRefStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
   dispStringALigned(powerActStr, display, DejaVu_Sans_Mono_10, LeftTop, 0, 13);
@@ -1434,7 +1511,7 @@ void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &d
   //Rpm
   display2.clearDisplay();
   String rpmRefStr;
-  String rpmActStr = "Act.rpm: " + String(0.0, 1) + "%";
+  String rpmActStr = "Act.rpm: " + actRpmStr;
   String rpmBgStr = String(rcsVars.maxRpmBT, 0) + "       0       " + String(rcsVars.maxRpmBT, 0);
 
   if(rcsVars.refRpmPortBT > 0.0)
@@ -1450,7 +1527,7 @@ void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &d
   //int power = map(int(rcsVars.refPowerBT * 100), int(rcsVars.minPowerBT * 100), int(rcsVars.maxPowerBT * 100), 0, 100);
   //dispProgBarHorizontal(display2, 0, 49, SCREEN_WIDTH, 15, 20);
   rcsVars.refRpmBt = rcsVars.refRpmStbdBT - rcsVars.refRpmPortBT;
-  dispProgBarHorizontal2(display2, 0, 49, SCREEN_WIDTH, 15, int16_t(rcsVars.refRpmBt), -100, 100);
+  dispProgBarHorizontal2(display2, 0, 49, SCREEN_WIDTH, 15, int16_t(rcsVars.actRpmBT), -100, 100);
 
   display2.display();
 
@@ -1653,9 +1730,25 @@ void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle)
 
 void rcsMbWrite(rcsVarsStruct &rcsVars)
 {
-  arrayHregsW[AzpdActSpeed_ADR - HregsWrOffset] = rcsVars.actRPM;
-  arrayHregsW[AzpdActAngPORT_ADR - HregsWrOffset] = rcsVars.actAnglePORT;
-  arrayHregsW[AzpdActAngSTBD_ADR - HregsWrOffset] = rcsVars.actAngleSTBD;
+  //Azipod
+  arrayHregsW[AzpdActSpeed_ADR - HregsWrOffset] = uint16_t(rcsVars.actRPM * mbMultFactor);
+  arrayHregsW[AzpdActAngPORT_ADR - HregsWrOffset] = uint16_t(rcsVars.actAnglePORT * mbMultFactor);
+  arrayHregsW[AzpdActAngSTBD_ADR - HregsWrOffset] = uint16_t(rcsVars.actAngleSTBD * mbMultFactor);
+
+  //Bow thruster
+  
+}
+
+void rcsMbRead(rcsVarsStruct &rcsVars)
+{
+  //Azipod
+  rcsVars.refRPM = float(arrayHregsR[AzpdRefSpeed_ADR]/mbMultFactor);
+  rcsVars.refAnglePORT = float(arrayHregsR[AzpdRefAngPORT_ADR]/mbMultFactor);
+  rcsVars.refAngleSTBD = float(arrayHregsR[AzpdRefAngSTBD_ADR]/mbMultFactor);
+
+  //Bow thruster
+  rcsVars.refRpmPortBT = float(arrayHregsR[BtrRefSpPORT_ADR]/mbMultFactor);
+  rcsVars.refRpmStbdBT = float(arrayHregsR[BtrRefSpSTBD_ADR]/mbMultFactor);
 }
 
 

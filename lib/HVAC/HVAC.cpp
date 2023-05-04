@@ -574,8 +574,7 @@ void Fan::writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut)
   {
     fbRun = this->fanState == eFanState::Running || this->fanState == eFanState::Starting || this->fanState == eFanState::Stopping || this->fanState == eFanState::StoppingF;
     fbAut = true;
-
-    fbSpeed = uint16_t(this->speed);
+    fbSpeed = uint16_t(this->speed * mbMultFactor);
   }
   bool fanFail = this->fanState == eFanState::Failure;
 
@@ -695,8 +694,8 @@ void hvacVisualization(Adafruit_SSD1306 &display, Fan &fan, hvacSimVarsStruct &a
 
 void hvacWriteMb(hvacSimVarsStruct &aHvacSimVars)
 {
-  arrayHregsW[SnsrPressAct_ADR - HregsWrOffset] = aHvacSimVars.pressure;
-  arrayHregsW[SnsrTempAct_ADR - HregsWrOffset] = aHvacSimVars.temp;
+  arrayHregsW[SnsrPressAct_ADR - HregsWrOffset] = uint16_t(aHvacSimVars.pressure * mbMultFactor);
+  arrayHregsW[SnsrTempAct_ADR - HregsWrOffset] =  uint16_t(aHvacSimVars.temp * mbMultFactor);
 }
 
 void hvacReadMb(hvacSimVarsStruct &aHvacSimVars)
