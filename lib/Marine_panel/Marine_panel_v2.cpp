@@ -14,7 +14,7 @@ float pemsAvailiblePower = 0.0;
 
 color Red{255, 0, 0};
 color Green{0, 255, 0};
-color Blue{0, 0, 255};
+color Blue{0, 255, 255};
 color None{0, 0, 0};
 
 //static int16_t alarmCounter = 0;

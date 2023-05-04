@@ -285,6 +285,8 @@ void ValveLinear::readState(uint16_t mbAdr)
     else    //Auto - read from modbus
     {
       this->openCmd = arrayCoilsR[mbAdr];
+      this->openRef = arrayHregsR[Vlv3PosRef_ADR];
+      this->openAct = this->openRef;
     }
 
     bool closeCmd = !this->openCmd;
@@ -366,12 +368,14 @@ void ValveLinear::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFa
   bool fbAut = false;
   bool fbFail = false;
 
+
+  
+
   if(this->valveMode == Auto)   
   {
     fbOpn = this->valveState == eValveLinState::Opened;
     fbCls = this->valveState == eValveLinState::Closed;
     fbAut = true;
-
   }
   bool valveFail = this->valveState == eValveLinState::Failure;
 
@@ -384,6 +388,8 @@ void ValveLinear::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFa
   arrayCoilsW[mbAdrCls - coilsWrOffset] = fbCls;
   arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
   arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
+
+  arrayHregsW[Vlv3PosAct_ADR - HregsWrOffset] = this->openAct;
 }
 
 
