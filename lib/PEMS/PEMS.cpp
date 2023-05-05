@@ -429,6 +429,12 @@ void Generator::stopping(uint32_t loadTime)
   }
 }
 
+void Generator::writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr)
+{
+  arrayHregsW[fbPowAdr - HregsWrOffset] = uint16_t(this->power * mbMultFactor);
+  arrayHregsW[fbRpmAdr - HregsWrOffset] = uint16_t(this->speed * mbMultFactor);
+}
+
 //IMPORTANT - function only clears display and write state into buffer. Text is displayed in visualize function.
 void Generator::dispState(String text)  
 {

@@ -115,6 +115,7 @@ class Generator
     void readMode();
     void readState(uint16_t mbAdr);
     void writeCmd();
+    void writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr);
     void savePrevState();
     void stopping(uint32_t loadTime);
     void starting(uint32_t loadTime);

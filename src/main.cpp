@@ -192,7 +192,7 @@ void setup()
   display6.display();
   display7.display();
   display8.display();
-  display9.display();
+  //display9.display();
   display10.display();
   display11.display();
   display12.display();
@@ -526,7 +526,9 @@ void loop()
   gBreaker6.writeMb(Brkr6Closed_ADR, Brkr6Opened_ADR, Brkr6Failure_ADR, Brkr6Auto_ADR);
 
   gGenerator1.writeCmd();
+  gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR);
   gGenerator2.writeCmd();
+  gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR);
 
   
   //---------- HVAC -----------
