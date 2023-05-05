@@ -285,7 +285,7 @@ void ValveLinear::readState(uint16_t mbAdr)
     else    //Auto - read from modbus
     {
       this->openCmd = arrayCoilsR[mbAdr];
-      this->openRef = arrayHregsR[Vlv3PosRef_ADR];
+      this->openRef = uint16_t(arrayHregsR[Vlv3PosRef_ADR]/mbMultFactor);
       this->openAct = this->openRef;
     }
 
@@ -389,7 +389,7 @@ void ValveLinear::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFa
   arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
   arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
 
-  arrayHregsW[Vlv3PosAct_ADR - HregsWrOffset] = this->openAct;
+  arrayHregsW[Vlv3PosAct_ADR - HregsWrOffset] = uint16_t(this->openAct * mbMultFactor);
 }
 
 
@@ -485,7 +485,7 @@ void Fan::readState(uint16_t mbAdr, uint16_t mbAdr2)
     else    //Auto - read from modbus
     {
       this->run = arrayCoilsR[mbAdr];
-      this->refSpeed = arrayHregsR[mbAdr2];
+      this->refSpeed = float(arrayHregsR[mbAdr2]/mbMultFactor);
     }
 
     bool stop = !this->run;
@@ -593,7 +593,7 @@ void Fan::writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut)
   arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
   arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
 
-  arrayHregsW[FanPosAct_ADR - HregsWrOffset] = fbSpeed;
+  arrayHregsW[FanPosAct_ADR - HregsWrOffset] = uint16_t(fbSpeed * mbMultFactor);
  
 }
 
