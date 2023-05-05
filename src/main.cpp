@@ -192,7 +192,7 @@ void setup()
   display6.display();
   display7.display();
   display8.display();
-  //display9.display();
+  display9.display();
   display10.display();
   display11.display();
   display12.display();
@@ -211,6 +211,7 @@ void setup()
   display7.clearDisplay();
   display8.clearDisplay();
   display9.clearDisplay();
+  display9.display();
   display10.clearDisplay();
   display11.clearDisplay();
   display12.clearDisplay();
@@ -418,7 +419,7 @@ void loop()
     //RCS
     rcsAzipodReadData(grcsVars, task);
     rcsBowThrustersReadData(grcsVars, task);
-    rcsMbRead(grcsVars);
+    //rcsMbRead(grcsVars);
 
     //RCS buttons
     readPushBtn(gAzButtSteer, pcf7);
@@ -545,7 +546,7 @@ void loop()
   gFan1.writeMb(FanRunning_ADR, FanFailure_ADR, FanAuto_ADR);
 
   //---------- RCS -----------
-  rcsMbWrite(grcsVars);
+  //rcsMbWrite(grcsVars);
   
 
   //Write feedbacks via modbus TCP

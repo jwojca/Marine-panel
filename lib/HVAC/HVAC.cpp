@@ -580,7 +580,7 @@ void Fan::writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut)
   {
     fbRun = this->fanState == eFanState::Running || this->fanState == eFanState::Starting || this->fanState == eFanState::Stopping || this->fanState == eFanState::StoppingF;
     fbAut = true;
-    fbSpeed = uint16_t(this->speed * mbMultFactor);
+    fbSpeed = uint16_t(this->speed);
   }
   bool fanFail = this->fanState == eFanState::Failure;
 
