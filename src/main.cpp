@@ -126,6 +126,7 @@ bool gMbRead = true;
 bool gMbWrite = true;
 bool gMbTaskDone = false;
 bool gDpOn = false;
+bool gFailConnect = false;
 
 void simulationFnc();
 
@@ -287,6 +288,7 @@ void setup()
       if(numOfTries > 5)
       {
         mbOn = false;
+        gFailConnect = true;
         break;
       }
         
@@ -366,14 +368,27 @@ void loop()
   5. SAVE PREV STATE
   */
 
-  simulationLoop = false;
+  if(gDpOn = read2State(P5, false, pcf7))
+    Serial.println("DP1");
+
+  if(!gDpOn)
+    simulationLoop = false;
+  else if(gDpOn && !simulationLoop)
+  {
+    simulationLoop = true;
+    simState = Init;
+  }
   
   if(!simulationLoop)
   {
     // 1. READ
     //Read command via modbus tcp
-    readBools(mb);
-    readInts(mb);
+    if(mb.isConnected(server))
+    {
+      readBools(mb);
+      readInts(mb);
+    }
+
 
     //---------- VMS -----------
     gValve1.readMode();
@@ -447,8 +462,7 @@ void loop()
     if(read2State(P2, false, pcf7))
       Serial.println("Emer");
 
-    if(gDpOn = read2State(P5, false, pcf7))
-      Serial.println("DP1");
+ 
     if(read2State(P6, false, pcf7))
       Serial.println("Fire al");
       
@@ -462,17 +476,8 @@ void loop()
   //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE
-  /*
-  gFan1.readMode();
-
   
-  if(!gDpOn)
-    simulationLoop = false;
-  else if(gDpOn && !simulationLoop)
-  {
-    simulationLoop = true;
-    simState = Init;
-  }
+ 
   
   //simulationLoop = false;
 
@@ -480,7 +485,7 @@ void loop()
   if(simulationLoop)
     simulationFnc();
 
-  */
+  
 
   //---------- VMS -----------
   vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
@@ -550,8 +555,12 @@ void loop()
   
 
   //Write feedbacks via modbus TCP
-  writeBools(mb);
-  writeInts(mb);
+  if(mb.isConnected(server))
+  {
+    writeBools(mb);
+    writeInts(mb);
+  }
+  
 
   
 
@@ -607,10 +616,11 @@ void loop()
   delay(task);
 
 
-  if(!mb.isConnected(server))
+  if(!mb.isConnected(server) && !gFailConnect)
   {
     mb.connect(server);
     Serial.println("Trying to recconect");
+    delay(100);
   }
     
 
