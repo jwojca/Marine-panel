@@ -168,13 +168,11 @@ void Breaker::writeMb(uint16_t mbAdrCls, uint16_t mbAdrOpn, uint16_t mbAdrFail, 
   bool fbAut = false;
   bool fbFail = false;
 
-  if(this->breakerMode == Auto)   
-  {
-    fbOpn = this->breakerState == eBreakerState::Opened;
-    fbCls = this->breakerState == eBreakerState::Closed;
-    fbAut = true;
+  //Write feedbacks
+  fbOpn = this->breakerState == eBreakerState::Opened;
+  fbCls = this->breakerState == eBreakerState::Closed;
+  fbAut = true;
 
-  }
   bool breakerFail = this->breakerState == eBreakerState::Failure;
 
   if(breakerFail)

@@ -447,13 +447,12 @@ void Valve::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, ui
   bool fbAut = false;
   bool fbFail = false;
 
-  if(this->valveMode == Auto)   
-  {
-    fbOpn = this->valveState == Opened;
-    fbCls = this->valveState == Closed;
-    fbAut = true;
+ 
+  //Write feedbacks
+  fbOpn = this->valveState == Opened;
+  fbCls = this->valveState == Closed;
+  fbAut = true;
 
-  }
   bool valveFail = this->valveState == Failure || this->valveState == Failure2;
 
   if(valveFail)
