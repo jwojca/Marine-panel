@@ -624,15 +624,13 @@ void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uin
   uint16_t fbPressure = 0;
   uint16_t fbSpeed = 0;
   
+  //Write pump states
+  fbRun = this->pumpState == Running || this->pumpState == Starting || this->pumpState == Stopping || this->pumpState == StoppingF;
+  fbStp = this->pumpState == Stopped;
+  fbAut = true;
+  fbPressure = uint16_t(this->pressure * mbMultFactor);
+  fbSpeed = uint16_t(this->speed * mbMultFactor);
 
-  if(this->pumpMode == Auto)   
-  {
-    fbRun = this->pumpState == Running || this->pumpState == Starting || this->pumpState == Stopping || this->pumpState == StoppingF;
-    fbStp = this->pumpState == Stopped;
-    fbAut = true;
-    fbPressure = uint16_t(this->pressure * mbMultFactor);
-    fbSpeed = uint16_t(this->speed * mbMultFactor);
-  }
   bool pumpFail = this->pumpState == Failure || this->pumpState == Failure2;
 
   if(pumpFail)
@@ -853,7 +851,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
 
 void vmsMbRead(vmsSimVarsStruct &aVmsSimVars)
 {
-  aVmsSimVars.PressureRef = arrayHregsR[VmsPressRef_ADR];          
+  aVmsSimVars.PressureRef = float(arrayHregsR[VmsPressRef_ADR] / mbMultFactor);          
 }
 void vmsMbWrite(vmsSimVarsStruct &aVmsSimVars)
 {
