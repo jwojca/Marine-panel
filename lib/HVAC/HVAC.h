@@ -79,7 +79,7 @@ class ValveLinear
     uint8_t rgbNumber;
     Adafruit_PWMServoDriver pwm;
 
-    uint16_t openRef, openAct;
+    float openRef, openAct;
     bool openCmd;
 
     PCF8574 *pcf1;

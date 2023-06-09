@@ -282,9 +282,12 @@ void ValveLinear::readState(uint16_t mbAdr)
     }
     else    //Auto - read from modbus
     {
-      this->openCmd = arrayCoilsR[mbAdr];
-      this->openRef = uint16_t(arrayHregsR[Vlv3PosRef_ADR]/mbMultFactor);
+      //this->openCmd = arrayCoilsR[mbAdr];
+      this->openRef = float(arrayHregsR[Vlv3PosRef_ADR]/mbMultFactor);
       this->openAct = this->openRef;
+
+      //Open command when actual is higher than 3
+      this->openCmd = this->openAct >= 3.0;
     }
 
     bool closeCmd = !this->openCmd;
@@ -385,6 +388,7 @@ void ValveLinear::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFa
   arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
 
   arrayHregsW[Vlv3PosAct_ADR - HregsWrOffset] = uint16_t(this->openAct * mbMultFactor);
+
 }
 
 
