@@ -451,7 +451,8 @@ void Valve::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, ui
   //Write feedbacks
   fbOpn = this->valveState == Opened;
   fbCls = this->valveState == Closed;
-  fbAut = true;
+  if(this->valveMode == Auto)
+    fbAut = true;
 
   bool valveFail = this->valveState == Failure || this->valveState == Failure2;
 
@@ -626,7 +627,9 @@ void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uin
   //Write pump states
   fbRun = this->pumpState == Running || this->pumpState == Starting || this->pumpState == Stopping || this->pumpState == StoppingF;
   fbStp = this->pumpState == Stopped;
-  fbAut = true;
+  if(this->pumpMode == Auto)
+    fbAut = true;
+
   fbPressure = uint16_t(this->pressure * mbMultFactor);
   fbSpeed = uint16_t(this->speed * mbMultFactor);
 

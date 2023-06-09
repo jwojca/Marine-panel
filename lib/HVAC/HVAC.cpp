@@ -174,7 +174,8 @@ void Damper::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, u
   //Write feedbacks
   fbOpn = this->damperState == eDamperState::Opened;
   fbCls = this->damperState == eDamperState::Closed;
-  fbAut = true;
+  if(this->damperMode == Auto)
+    fbAut = true;
 
   bool damperFail = this->damperState == eDamperState::Failure|| this->damperState == eDamperState::failClogged;
   if(damperFail)
@@ -368,7 +369,8 @@ void ValveLinear::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFa
   //Write feedbacks
   fbOpn = this->valveState == eValveLinState::Opened;
   fbCls = this->valveState == eValveLinState::Closed;
-  fbAut = true;
+  if(this->valveMode == Auto)
+    fbAut = true;
 
   bool valveFail = this->valveState == eValveLinState::Failure;
 
@@ -571,8 +573,9 @@ void Fan::writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut)
 
   //Write feedbacks
   fbRun = this->fanState == eFanState::Running || this->fanState == eFanState::Starting || this->fanState == eFanState::Stopping || this->fanState == eFanState::StoppingF;
-  fbAut = true;
   fbSpeed = uint16_t(this->speed);
+  if(this->fanMode == Auto)
+    fbAut = true;
 
   bool fanFail = this->fanState == eFanState::Failure;
 
