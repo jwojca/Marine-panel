@@ -1763,7 +1763,12 @@ void readPushBtn(pushBtn &btn, PCF8574 &pcf)
   btn.prevState = btn.actState;
 }
 
-void writeButMb(pushBtn &btn)
+void writeButMb(bool buttVal, uint16_t adr)
+{
+  arrayCoilsW[adr - coilsWrOffset] = buttVal;
+}
+
+void writePushButMb(pushBtn &btn)
 {
   arrayCoilsW[btn.mbAddres - coilsWrOffset] = btn.actValue;
 }

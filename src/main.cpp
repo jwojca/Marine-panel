@@ -89,11 +89,14 @@ Fan gFan1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm3, RGB13, P6, &pcf6, P7, &pcf5);
 
 pushBtn gAzButtSteer { .actState = false, .prevState = false, .actValue = false, .pcfPin = P0 };
 pushBtn gAzButtRpm { .actState = false, .prevState = false, .actValue = false, .pcfPin = P1 };
-//pushBtn gBtEmButt { .actState = false, .prevState = false, .actValue = false, .pcfPin = P2, .mbAddres = EsdActive_ADR};
+pushBtn gBtEmButt { .actState = false, .prevState = false, .actValue = false, .pcfPin = P2, .mbAddres = EsdActive_ADR};
 pushBtn gBtStart { .actState = false, .prevState = false, .actValue = false, .pcfPin = P3 };
 pushBtn gBtStop { .actState = false, .prevState = false, .actValue = false, .pcfPin = P4 };
-pushBtn gBtDp { .actState = false, .prevState = false, .actValue = false, .pcfPin = P5 };
+
+//pushBtn gBtDp { .actState = false, .prevState = false, .actValue = false, .pcfPin = P5 };
 //pushBtn gBtFireAl { .actState = false, .prevState = false, .actValue = false, .pcfPin = P6, .mbAddres = FireAlarmActive_ADR};
+bool gBtDp = false;
+bool gBtFireAl = false;
 
 
 #define LOGO_HEIGHT   16
@@ -453,13 +456,17 @@ void loop()
     
     
     //Buttons
+
+    //Push buttons
     readPushBtn(gAzButtSteer, pcf7);
     readPushBtn(gAzButtRpm, pcf7);
     readPushBtn(gBtEmButt, pcf7);
     readPushBtn(gBtStart, pcf7);
     readPushBtn(gBtStop, pcf7);
-    readPushBtn(gBtDp, pcf7);
-    readPushBtn(gBtFireAl, pcf7);
+
+    //2state buttons
+    gBtDp = read2State(P5, false, pcf7);
+    gBtFireAl = read2State(P6, false, pcf7);
     
   }
     
@@ -548,8 +555,9 @@ void loop()
   //rcsMbWrite(grcsVars);
 
   //Write buttons
-  writeButMb(gBtEmButt);
-  writeButMb(gBtFireAl);
+  writePushButMb(gBtEmButt);
+  writeButMb(gBtFireAl, FireAlarmActive_ADR);
+
 
   //Write feedbacks via modbus TCP
   if(mb.isConnected(server))

@@ -341,7 +341,8 @@ void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);
 void rcsMbWrite(rcsVarsStruct &rcsVars);
 void rcsMbRead(rcsVarsStruct &rcsVars);
 void readPushBtn(pushBtn &btn, PCF8574 &pcf);
-void writeButMb(pushBtn &btn);
+void writeButMb(bool buttVal, uint16_t adr);
+void writePushButMb(pushBtn &btn);
 
 
 float addNoise(float value, float min, float max);
