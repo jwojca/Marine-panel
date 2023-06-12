@@ -176,6 +176,7 @@ struct pushBtn
   bool actState, prevState;
   bool actValue;
   uint8_t pcfPin;
+  uint16_t mbAddres;
 };
 
 
@@ -287,7 +288,6 @@ class Pump
     void stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
     void starting(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
     void slowingDown();
-
 };
 
 
@@ -341,6 +341,7 @@ void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);
 void rcsMbWrite(rcsVarsStruct &rcsVars);
 void rcsMbRead(rcsVarsStruct &rcsVars);
 void readPushBtn(pushBtn &btn, PCF8574 &pcf);
+void writeButMb(pushBtn &btn);
 
 
 float addNoise(float value, float min, float max);

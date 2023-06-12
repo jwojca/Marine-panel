@@ -89,9 +89,11 @@ Fan gFan1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm3, RGB13, P6, &pcf6, P7, &pcf5);
 
 pushBtn gAzButtSteer { .actState = false, .prevState = false, .actValue = false, .pcfPin = P0 };
 pushBtn gAzButtRpm { .actState = false, .prevState = false, .actValue = false, .pcfPin = P1 };
+//pushBtn gBtEmButt { .actState = false, .prevState = false, .actValue = false, .pcfPin = P2, .mbAddres = EsdActive_ADR};
 pushBtn gBtStart { .actState = false, .prevState = false, .actValue = false, .pcfPin = P3 };
 pushBtn gBtStop { .actState = false, .prevState = false, .actValue = false, .pcfPin = P4 };
-
+pushBtn gBtDp { .actState = false, .prevState = false, .actValue = false, .pcfPin = P5 };
+//pushBtn gBtFireAl { .actState = false, .prevState = false, .actValue = false, .pcfPin = P6, .mbAddres = FireAlarmActive_ADR};
 
 
 #define LOGO_HEIGHT   16
@@ -435,14 +437,7 @@ void loop()
     rcsAzipodReadData(grcsVars, task);
     rcsBowThrustersReadData(grcsVars, task);
     //rcsMbRead(grcsVars);
-
-    //RCS buttons
-    readPushBtn(gAzButtSteer, pcf7);
-    readPushBtn(gAzButtRpm, pcf7);
-    readPushBtn(gBtStart, pcf7);
-    readPushBtn(gBtStop, pcf7);
-  
-
+ 
     //HVAC
     hvacReadMb(gHvacSimVars);
 
@@ -458,14 +453,13 @@ void loop()
     
     
     //Buttons
-   
-    if(read2State(P2, false, pcf7))
-      Serial.println("Emer");
-
- 
-    if(read2State(P6, false, pcf7))
-      Serial.println("Fire al");
-      
+    readPushBtn(gAzButtSteer, pcf7);
+    readPushBtn(gAzButtRpm, pcf7);
+    readPushBtn(gBtEmButt, pcf7);
+    readPushBtn(gBtStart, pcf7);
+    readPushBtn(gBtStop, pcf7);
+    readPushBtn(gBtDp, pcf7);
+    readPushBtn(gBtFireAl, pcf7);
     
   }
     
@@ -552,7 +546,10 @@ void loop()
 
   //---------- RCS -----------
   //rcsMbWrite(grcsVars);
-  
+
+  //Write buttons
+  writeButMb(gBtEmButt);
+  writeButMb(gBtFireAl);
 
   //Write feedbacks via modbus TCP
   if(mb.isConnected(server))
@@ -560,8 +557,6 @@ void loop()
     writeBools(mb);
     writeInts(mb);
   }
-  
-
   
 
   // 4. VISUALIZE

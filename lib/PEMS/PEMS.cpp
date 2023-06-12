@@ -171,14 +171,14 @@ void Breaker::writeMb(uint16_t mbAdrCls, uint16_t mbAdrOpn, uint16_t mbAdrFail, 
   //Write feedbacks
   fbOpn = this->breakerState == eBreakerState::Opened;
   fbCls = this->breakerState == eBreakerState::Closed;
-  fbAut = true;
+  
+  if(this->breakerMode == Auto)
+    fbAut = true;
 
   bool breakerFail = this->breakerState == eBreakerState::Failure;
 
   if(breakerFail)
-  {
     fbFail = true;
-  }
 
   arrayCoilsW[mbAdrCls - coilsWrOffset] = fbCls;
   arrayCoilsW[mbAdrOpn - coilsWrOffset] = fbOpn;

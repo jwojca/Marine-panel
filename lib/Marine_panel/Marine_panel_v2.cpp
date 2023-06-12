@@ -1763,6 +1763,11 @@ void readPushBtn(pushBtn &btn, PCF8574 &pcf)
   btn.prevState = btn.actState;
 }
 
+void writeButMb(pushBtn &btn)
+{
+  arrayCoilsW[btn.mbAddres - coilsWrOffset] = btn.actValue;
+}
+
 
 int joyReadData(uint8_t pin, bool verticalAxis)
 {
