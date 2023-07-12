@@ -62,6 +62,8 @@ class Breaker
     
 };
 
+enum class eGeneratorState{Failure, Failure2, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running, Delivering};
+
 class Generator
 {
   public:
@@ -70,8 +72,8 @@ class Generator
     float voltage;
     float nomVoltage;
     float frequency;
-    mpState generatorState = Stopped;
-    mpState generatorPrevState = Stopped;
+    eGeneratorState generatorState = eGeneratorState::Stopped;
+    eGeneratorState generatorPrevState = eGeneratorState::Stopped;
     mpMode generatorMode = Local;
 
     PCF8574 *pcf1;

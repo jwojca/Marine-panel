@@ -69,7 +69,7 @@ rcsVarsStruct grcsVars;
 hvacSimVarsStruct gHvacSimVars
 {
   .pressureRef = 1600.0, .pressure = 1500.0, .pressMin = 0.0, .pressMax = 2000.0,      //Pa
-  .tempRef = 21.0, .temp = 21.0, .tempMin = 18.0, .tempMax = 30.0,                     //°C
+  .tempRef = 21.0, .temp = 21.0, .tempMin = 12.0, .tempMax = 30.0, .tempOut = 28.0,    //°C
   .roomVolume = 10000.0, .airInRoom = 0.0                                              //m3
 };
 
@@ -472,13 +472,9 @@ void loop()
     
  
 
-
-
   //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE
-  
- 
   
   //simulationLoop = false;
 
@@ -673,13 +669,13 @@ void simulationFnc()
     
     case fGenStartCmd:
       gGenerator1.nomPower = 500.0;
-      gGenerator1.generatorState = Starting;
+      gGenerator1.generatorState = eGeneratorState::Starting;
       simTimer = millis();
       simState = fGenStarting;
       break;  
 
     case fGenStarting:
-      if(gGenerator1.generatorState == Running)
+      if(gGenerator1.generatorState == eGeneratorState::Running)
       {
         simTimer = millis();
         simState = fGenRunning5s;
@@ -696,14 +692,14 @@ void simulationFnc()
       gBreaker5.timer = millis();
       gBreaker5.breakerState = eBreakerState::Opening;
       gGenerator1.failure = true;
-      gGenerator1.generatorState = StoppingF;
+      gGenerator1.generatorState = eGeneratorState::StoppingF;
       simState = cb5Tripped;
       break;
     
     case cb5Tripped:
       if(gGenerator1.power == 0.0)
       {
-        gGenerator1.generatorState = Failure2;
+        gGenerator1.generatorState = eGeneratorState::Failure2;
         gGenerator1.generatorAlarm2.time = rtcTime2String(rtc);
         dispShowAlarm(*gGenerator1.alarmDisps->d1, *gGenerator1.alarmDisps->d2, *gGenerator1.alarmDisps->d3, *gGenerator1.alarmDisps->d4, gGenerator1.generatorAlarm2, 1);
         simState = cb5Tripped5s;
@@ -717,7 +713,7 @@ void simulationFnc()
       break;
     
     case fGenRst:
-      gGenerator1.generatorState = Stopped;
+      gGenerator1.generatorState = eGeneratorState::Stopped;
       dispClearAlarms(display1, display2, display3, display4);
       
 
@@ -728,7 +724,7 @@ void simulationFnc()
 
       gGenerator2.nomPower = 500.0;
       gGenerator2.timer = millis();
-      gGenerator2.generatorState = Starting;
+      gGenerator2.generatorState = eGeneratorState::Starting;
       simTimer = millis();
       simState = fGenRst5s;
       break;
@@ -748,13 +744,13 @@ void simulationFnc()
       if(gBreaker5.breakerState == eBreakerState::Closed)
       {
         gGenerator1.nomPower = 2000;
-        gGenerator1.generatorState = Starting;
+        gGenerator1.generatorState = eGeneratorState::Starting;
         simState = fGenStarting2;
       }
       break;
     
     case fGenStarting2:
-      if(gGenerator1.generatorState == Running)
+      if(gGenerator1.generatorState == eGeneratorState::Running)
       {
         simTimer = millis();
         simState = fGenRunning5s2;

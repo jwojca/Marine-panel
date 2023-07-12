@@ -781,23 +781,25 @@ void vmsDispPressure(Adafruit_SSD1306 &display, float pressure1, float pressure2
 
 void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSimVarsStruct &vmsSimVars, int task)
 {
+    int pmpStrtDelay = 2;
+    float pmpFillFactor = 0.3;
     float dt = (float)task/1000;
 
     if(Pump1.pumpState == Starting)
     {
-        Pump1.starting(3, dt, vmsSimVars);
+        Pump1.starting(pmpStrtDelay, dt, vmsSimVars);
     }
     else if(Pump1.pumpState == Running)
     {
         Pump1.pressure = Pump1.nomPressure * map(Pump1.speed, 0, Pump1.maxSpeed, 0, 100)/100.0;
         Pump1.pressure = addNoise(Pump1.pressure, -0.15, 0.15);
-        float dp = (Pump1.pressure - vmsSimVars.PressureAct) * 0.1;
+        float dp = (Pump1.pressure - vmsSimVars.PressureAct) * pmpFillFactor;
         Pump1.actInflow = Pump1.maxInflow * dp;  
         Pump1.speed = Pump1.refSpeed;
         Pump1.speed += random(-10, 10);
     }
     else if(Pump1.pumpState == Stopping || Pump1.pumpState == StoppingF)
-        Pump1.stopping(3, dt, vmsSimVars);
+        Pump1.stopping(pmpStrtDelay, dt, vmsSimVars);
     else if(Pump1.pumpState == Stopped)
     {
         Pump1.pressure = 0;
@@ -808,18 +810,18 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
 
 
     if(Pump2.pumpState == Starting)
-        Pump2.starting(3, dt, vmsSimVars);
+        Pump2.starting(pmpStrtDelay, dt, vmsSimVars);
     else if(Pump2.pumpState == Running)
     {   
         Pump2.pressure = Pump2.nomPressure;
         Pump2.pressure = addNoise(Pump2.pressure, -0.15, 0.15);
-        float dp = (Pump2.pressure - vmsSimVars.PressureAct) * 0.1;
+        float dp = (Pump2.pressure - vmsSimVars.PressureAct) * pmpFillFactor;
         Pump2.actInflow = Pump2.maxInflow * dp;
         Pump2.speed = 955;
         Pump2.speed += random(-10, 10);
     }
     else if(Pump2.pumpState == Stopping || Pump2.pumpState == StoppingF)
-        Pump2.stopping(3, dt, vmsSimVars);
+        Pump2.stopping(pmpStrtDelay, dt, vmsSimVars);
     else
     {
         Pump2.pressure = 0;
@@ -840,7 +842,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
 
     //quick outflow of water, when V2 opens suddenly
     if(Valve2.valveState == Opening && Valve2.valvePrevState == Closed)
-        vmsSimVars.TankWater -= vmsSimVars.PressureAct * 100;
+        vmsSimVars.TankWater -= vmsSimVars.PressureAct * 50;
  
     vmsSimVars.TankWater = vmsSimVars.TankWater + vmsSimVars.Inflow - vmsSimVars.Outflow;
     vmsSimVars.TankWater = constrain(vmsSimVars.TankWater, 0, vmsSimVars.TankMaxVol);

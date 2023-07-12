@@ -9,7 +9,7 @@ enum class eFanState{Stopped, Running, Starting, Stopping, Failure, StoppingF};
 struct hvacSimVarsStruct
 {
     float pressureRef, pressure, pressMin, pressMax;
-    float tempRef, temp, tempMin, tempMax;
+    float tempRef, temp, tempMin, tempMax, tempOut;
     float roomVolume;
     float airInRoom;
 };
@@ -17,7 +17,7 @@ struct hvacSimVarsStruct
 struct mbHvacSimVarsStruct
 {
     uint16_t pressureRef, pressure, pressMin, pressMax;
-    uint16_t tempRef, temp, tempMin, tempMax;
+    uint16_t tempRef, temp, tempMin, tempMax, tempOut;
     uint16_t roomVolume;
     uint16_t airInRoom;
 };

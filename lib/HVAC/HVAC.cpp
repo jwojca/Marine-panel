@@ -9,8 +9,8 @@ float gSlope, gOffset;
 mbHvacSimVarsStruct mbHvacSimVars
 {
   .pressureRef = 1600, .pressure = 1500, .pressMin = 0, .pressMax = 2000,      //Pa
-  .tempRef = 21, .temp = 21, .tempMin = 18, .tempMax = 30,                     //°C
-  .roomVolume = 10000, .airInRoom = 0                                              //m3
+  .tempRef = 21, .temp = 21, .tempMin = 12, .tempMax = 30, .tempOut = 28,      //°C
+  .roomVolume = 10000, .airInRoom = 0                                          //m3
 };
 
 
@@ -660,8 +660,8 @@ void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &f
     if(valve.valveState == eValveLinState::Opened)
     {
       float airIncrease = fanSpeedPct/100.0 * pressInrease; //Lets say that airvolume increase is proportional to pressIncrease and fans rpm
-      float tempDecreaseFactor = 0.2;
-      float tempDecrease = airIncrease * 0.001;
+      float tempDecreaseFactor = 0.004;
+      float tempDecrease = airIncrease * tempDecreaseFactor * valve.openAct/100.0;
       aHvacSimVars.temp -= tempDecrease;
       aHvacSimVars.temp = constrain(aHvacSimVars.temp, aHvacSimVars.tempMin, aHvacSimVars.tempMax);
     }
@@ -669,6 +669,9 @@ void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &f
 
   //Air leakage 
   aHvacSimVars.pressure -= pressDecrease;
+  float tempIncreaseFactor = 0.02; //pokud je rozdil 6 stupnu
+  float tempIncrease = 0.05 + (aHvacSimVars.tempOut - aHvacSimVars.temp) * tempIncreaseFactor;
+  aHvacSimVars.temp += float(tempIncrease/task);
 
   /*Debug
   Serial.println("Pressure incr: " + String((fanSpeedPct/100.0 * pressInrease)));
