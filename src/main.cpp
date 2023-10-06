@@ -425,11 +425,11 @@ void loop()
     gBreaker6.readState(Brkr6CmdClsAut_ADR);
 
     gGenerator1.readMode();
-    gGenerator1.readBreakersState(gBreaker1.breakerState == eBreakerState::Closed, gBreaker5.breakerState == eBreakerState::Closed);
+    gGenerator1.readBreakersState(gBreaker1.breakerState == eBreakerState::Closed);
     gGenerator1.readState(Gen1StartAuto_ADR);
     
     gGenerator2.readMode();
-    gGenerator2.readBreakersState(gBreaker2.breakerState == eBreakerState::Closed, gBreaker6.breakerState == eBreakerState::Closed);
+    gGenerator2.readBreakersState(gBreaker2.breakerState == eBreakerState::Closed);
     gGenerator2.readState(Gen2StartAuto_ADR);
 
     grcsVars.actPower = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
@@ -529,9 +529,9 @@ void loop()
   gBreaker6.writeMb(Brkr6Closed_ADR, Brkr6Opened_ADR, Brkr6Failure_ADR, Brkr6Auto_ADR);
 
   gGenerator1.writeCmd();
-  gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR);
+  gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR, Gen1Volt_ADR, Gen1Freq_ADR);
   gGenerator2.writeCmd();
-  gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR);
+  gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR, Gen2Volt_ADR, Gen2Freq_ADR);
 
   
   //---------- HVAC -----------

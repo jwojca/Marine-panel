@@ -1,6 +1,6 @@
 #include "Marine_panel_v2.h"
 
-int task = 50;
+int task = 100;
 int16_t alarmCounter = 0;
 int16_t alarmIndex = 1000;
 

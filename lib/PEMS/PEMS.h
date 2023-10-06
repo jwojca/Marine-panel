@@ -69,9 +69,10 @@ class Generator
   public:
     float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 3000.0;
     float speed = 0.0, nomSpeed = 850.0, maxSpeed = 1500.0, minSpeed = 0.0;
-    float voltage;
-    float nomVoltage;
-    float frequency;
+    float voltage = 0.0;
+    float nomVoltage = 795.0;
+    float nomFrequency = 50.0;
+    float frequency = 0.0;
     eGeneratorState generatorState = eGeneratorState::Stopped;
     eGeneratorState generatorPrevState = eGeneratorState::Stopped;
     mpMode generatorMode = Local;
@@ -97,6 +98,7 @@ class Generator
     bool mbRead = true;
     bool mbTask = false;
     bool run = false;
+    bool prevRunState = false;
 
     RTC_DS1307 *rtc;
 
@@ -117,12 +119,12 @@ class Generator
     void readMode();
     void readState(uint16_t mbAdr);
     void writeCmd();
-    void writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr);
+    void writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr);
     void savePrevState();
     void stopping(uint32_t loadTime);
     void starting(uint32_t loadTime);
     void dispState(String text);
     void visualize();
-    void readBreakersState(bool state1, bool state2);
+    void readBreakersState(bool state1);
 
 };

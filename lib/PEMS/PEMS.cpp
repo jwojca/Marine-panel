@@ -289,7 +289,10 @@ void Generator::readState(uint16_t mbAdr)
 
     else    //Auto - read from modbus
     {
-      this->run = arrayCoilsR[mbAdr];
+      //Start CMD rising edge
+      if(arrayCoilsR[mbAdr] && !this->prevRunState)
+       this->run = true;
+      this->prevRunState = this->run;
     }
 
     bool stop = !run;
@@ -349,7 +352,7 @@ void Generator::readState(uint16_t mbAdr)
 void Generator::writeCmd()
 {   
 
-    uint32_t loadTime = 3000;
+    uint32_t loadTime = 2000;
 
     if(this->generatorState == eGeneratorState::Failure)
     {
@@ -379,6 +382,8 @@ void Generator::writeCmd()
           //values oscilating
           //this->power = addNoise(this->nomPower, -5.0, 5.0);
           this->speed = addNoise(this->nomSpeed, -5.0, 5.0);
+          this->frequency = addNoise(this->nomFrequency, -0.5, 0.5);
+          this->voltage = addNoise(this->nomVoltage, -5, 5);
         }
 
         if(this->generatorState == eGeneratorState::Delivering)
@@ -427,7 +432,15 @@ void Generator::starting(uint32_t loadTime)
   this->speed += (this->nomSpeed/loadTime) * task;  
   this->speed = addNoise(this->speed, -5.0, 5.0);
 
-  
+  this->frequency += (this->nomFrequency/loadTime) * task;  
+  this->frequency = addNoise(this->frequency, -0.5, 0.5);
+  Serial.println(this->frequency);
+
+  this->voltage += (this->nomVoltage/loadTime) * task;  
+  this->voltage = addNoise(this->voltage, -0.5, 0.5);
+  Serial.println(this->voltage);
+
+
   if(this->speed >= this->nomSpeed)
     this->generatorState = eGeneratorState::Running;
 }
@@ -436,10 +449,16 @@ void Generator::stopping(uint32_t loadTime)
 {
   this->power -= (this->nomPower/loadTime) * task;
   this->power = addNoise(this->power, -5.0, 5.0);
+
   this->speed -= (this->nomSpeed/loadTime) * task;
   this->speed = addNoise(this->speed, -5.0, 5.0);
+
+  this->frequency -= (this->nomFrequency/loadTime) * task;  
+  this->voltage -= (this->nomVoltage/loadTime) * task;  
   
   this->speed = constrain(this->speed, this->minSpeed, this->maxSpeed);
+  this->frequency = constrain(this->frequency, 0, this->nomFrequency);
+  this->voltage = constrain(this->voltage, 0, this->nomVoltage);
 
   if(this->power <= this->minPower)
   {
@@ -452,10 +471,12 @@ void Generator::stopping(uint32_t loadTime)
   }
 }
 
-void Generator::writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr)
+void Generator::writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr)
 {
   arrayHregsW[fbPowAdr - HregsWrOffset] = uint16_t(this->power * mbMultFactor);
   arrayHregsW[fbRpmAdr - HregsWrOffset] = uint16_t(this->speed * mbMultFactor);
+  arrayHregsW[fbVoltAdr - HregsWrOffset] = uint16_t(this->voltage * mbMultFactor);
+  arrayHregsW[fbFreqAdr - HregsWrOffset] = uint16_t(this->frequency * mbMultFactor);
 }
 
 //IMPORTANT - function only clears display and write state into buffer. Text is displayed in visualize function.
@@ -544,10 +565,7 @@ void Generator::visualize()
     this->display->display();
 }
 
-void Generator::readBreakersState(bool state1, bool state2)
+void Generator::readBreakersState(bool state1)
 {
-  if(state1 && state2)
-    this->breakersClosed = true;
-  else
-    this->breakersClosed = false;
+  this->breakersClosed = state1;
 }
