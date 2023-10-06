@@ -162,6 +162,11 @@ extern float mbMultFactor;
 #define Gen1Freq_ADR 48
 #define Gen2Volt_ADR 49
 #define Gen2Freq_ADR 50
+#define Gen1Conn_ADR 278
+#define Gen1Disconn_ADR 279
+#define Gen2Conn_ADR 280
+#define Gen2Disconn_ADR 281
+
 
 
 

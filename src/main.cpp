@@ -412,25 +412,25 @@ void loop()
     //---------- PEMS -----------
     
     gBreaker1.readMode();
-    gBreaker1.readState(Brkr1CmdClsAut_ADR);
+    gBreaker1.readState(Brkr1CmdClsAut_ADR, Brkr1CmdOpAut_ADR);
     gBreaker2.readMode();
-    gBreaker2.readState(Brkr2CmdClsAut_ADR);
+    gBreaker2.readState(Brkr2CmdClsAut_ADR,Brkr2CmdOpAut_ADR);
     gBreaker3.readMode();
-    gBreaker3.readState(Brkr3CmdClsAut_ADR);
+    gBreaker3.readState(Brkr3CmdClsAut_ADR,Brkr3CmdOpAut_ADR);
     gBreaker4.readMode();
-    gBreaker4.readState(Brkr4CmdClsAut_ADR);
+    gBreaker4.readState(Brkr4CmdClsAut_ADR, Brkr4CmdOpAut_ADR);
     gBreaker5.readMode();
-    gBreaker5.readState(Brkr5CmdClsAut_ADR);
+    gBreaker5.readState(Brkr5CmdClsAut_ADR, Brkr5CmdOpAut_ADR);
     gBreaker6.readMode();
-    gBreaker6.readState(Brkr6CmdClsAut_ADR);
+    gBreaker6.readState(Brkr6CmdClsAut_ADR, Brkr6CmdOpAut_ADR);
 
     gGenerator1.readMode();
     gGenerator1.readBreakersState(gBreaker1.breakerState == eBreakerState::Closed);
-    gGenerator1.readState(Gen1StartAuto_ADR);
+    gGenerator1.readState(Gen1StartAuto_ADR, Gen1StopAuto_ADR);
     
     gGenerator2.readMode();
     gGenerator2.readBreakersState(gBreaker2.breakerState == eBreakerState::Closed);
-    gGenerator2.readState(Gen2StartAuto_ADR);
+    gGenerator2.readState(Gen2StartAuto_ADR, Gen2StopAuto_ADR);
 
     grcsVars.actPower = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
     grcsVars.actPowerBT = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW

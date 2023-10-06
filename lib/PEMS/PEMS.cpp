@@ -13,7 +13,7 @@ void Breaker::readMode()
     this->breakerMode = Auto;
 }
 
-void Breaker::readState(uint16_t mbAdr)
+void Breaker::readState(uint16_t cmdClsAdr, uint16_t cmdOpnAdr)
 {
    //For dynamic rows change
   if(alarmCounter == 0)
@@ -75,16 +75,25 @@ void Breaker::readState(uint16_t mbAdr)
     
     if(this->breakerMode == Local)
     {
-        this->openCmd = read2State(pcf2Pin, false, *pcf2);         
+        this->openCmd = read2State(pcf2Pin, false, *pcf2);     
+        this->closeCmd = !openCmd;    
     }
     else    //Auto - read from modbus
     {
-      this->openCmd = arrayCoilsR[mbAdr];
-    }
+      if(arrayCoilsR[cmdClsAdr] && this->breakerState == eBreakerState::Opened)
+      {
+        this->openCmd = true;
+        this->closeCmd = false;
+      }
 
+      if(arrayCoilsR[cmdOpnAdr] && this->breakerState == eBreakerState::Closed)
+      {
+        this->openCmd = false;
+        this->closeCmd = true;
+      }
+        
     
-
-    bool closeCmd = !openCmd;
+    }
 
         if(openCmd && (this->breakerState == eBreakerState::Opened || this->breakerState == eBreakerState::Opening))
         {
@@ -193,7 +202,10 @@ void Breaker::savePrevState()
 void Breaker::opening(uint32_t loadTime)
 {
   if(TOff(loadTime, &this->timer))
+  {
     this->breakerState = eBreakerState::Closed;
+  }
+    
     
 }
 
@@ -214,7 +226,7 @@ void Generator::readMode()
     this->generatorMode = Auto;
 }
 
-void Generator::readState(uint16_t mbAdr)
+void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr)
 {
   //For dynamic rows change
   if(alarmCounter == 0)
@@ -285,17 +297,29 @@ void Generator::readState(uint16_t mbAdr)
     if(this->generatorMode == Local)
     {
         this->run = read2State(pcf2Pin, false, *pcf2);
+        this->stop = !run;
     }
 
     else    //Auto - read from modbus
     {
       //Start CMD rising edge
-      if(arrayCoilsR[mbAdr] && !this->prevRunState)
-       this->run = true;
+      if(arrayCoilsR[startCmdAdr] && !this->prevRunState)
+      {
+        this->run = true;
+        this->stop = false;
+      }
+
+      //Stop CMD rising edge
+      if(arrayCoilsR[stopCmdAdr] && this->prevRunState)
+      {
+        this->run = false;
+        this->stop = true;
+      }
+       
       this->prevRunState = this->run;
     }
 
-    bool stop = !run;
+    
 
     if(run && (this->generatorPrevState == eGeneratorState::Stopped || this->generatorPrevState == eGeneratorState::Stopping))
       {
@@ -326,7 +350,7 @@ void Generator::readState(uint16_t mbAdr)
         }
         else if(!this->breakersClosed)
         {
-          this->generatorState = eGeneratorState::StoppingF;
+          this->generatorState = eGeneratorState::Unloading;
         }
           
       }
@@ -389,10 +413,18 @@ void Generator::writeCmd()
         if(this->generatorState == eGeneratorState::Delivering)
         {
           this->display->clearDisplay();
-          this->dispState("Delivering");
+          this->dispState("Deliver.");
           //values oscilating
-          this->power = addNoise(this->nomPower, -5.0, 5.0);
+          this->power = addNoise(this->refPower, -5.0, 5.0);
           this->speed = addNoise(this->nomSpeed, -5.0, 5.0);
+          this->frequency = addNoise(this->nomFrequency, -0.5, 0.5);
+          this->voltage = addNoise(this->nomVoltage, -5, 5);
+        }
+        if(this-> generatorState == eGeneratorState::Unloading)
+        {
+          this->display->clearDisplay();
+          this->dispState("Unload.");
+          this->unloading(loadTime);
         }
             //RGBLedColor(firstPin, 0, 255, 0, pwm);
         if(this->generatorState == eGeneratorState::Stopping)
@@ -434,11 +466,9 @@ void Generator::starting(uint32_t loadTime)
 
   this->frequency += (this->nomFrequency/loadTime) * task;  
   this->frequency = addNoise(this->frequency, -0.5, 0.5);
-  Serial.println(this->frequency);
 
   this->voltage += (this->nomVoltage/loadTime) * task;  
   this->voltage = addNoise(this->voltage, -0.5, 0.5);
-  Serial.println(this->voltage);
 
 
   if(this->speed >= this->nomSpeed)
@@ -447,8 +477,6 @@ void Generator::starting(uint32_t loadTime)
 
 void Generator::stopping(uint32_t loadTime)
 {
-  this->power -= (this->nomPower/loadTime) * task;
-  this->power = addNoise(this->power, -5.0, 5.0);
 
   this->speed -= (this->nomSpeed/loadTime) * task;
   this->speed = addNoise(this->speed, -5.0, 5.0);
@@ -460,7 +488,7 @@ void Generator::stopping(uint32_t loadTime)
   this->frequency = constrain(this->frequency, 0, this->nomFrequency);
   this->voltage = constrain(this->voltage, 0, this->nomVoltage);
 
-  if(this->power <= this->minPower)
+  if(this->speed <= this->minSpeed)
   {
     this->speed = this->minSpeed;
     this->power = this->minPower;
@@ -468,6 +496,19 @@ void Generator::stopping(uint32_t loadTime)
       this->failure = true;
     else
       this->generatorState = eGeneratorState::Stopped;
+  }
+}
+
+void Generator::unloading(uint32_t loadTime)
+{
+  this->power -= (this->nomPower/loadTime) * task;
+  if(this->power <= this->minPower)
+  {
+    this->power = this->minPower;
+    if(this->generatorState == eGeneratorState::StoppingF)
+      this->failure = true;
+    else
+      this->generatorState = eGeneratorState::Running;
   }
 }
 

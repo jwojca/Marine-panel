@@ -30,6 +30,7 @@ class Breaker
     bool mbTask = false;
     bool mbOpenCmd = false;
     bool openCmd = false;
+    bool closeCmd = false;
 
     alarmDispsStruct *alarmDisps;
     mpAlarm breakerAlarm1;
@@ -53,7 +54,7 @@ class Breaker
     }
     
     void readMode();
-    void readState(uint16_t mbAdr);
+    void readState(uint16_t cmdClsAdr, uint16_t cmdOpnAdr);
     void writeCmd();
     void writeMb(uint16_t mbAdrCls, uint16_t mbAdrOpn, uint16_t mbAdrFail, uint16_t mbAdrAut);
     void savePrevState();
@@ -62,15 +63,15 @@ class Breaker
     
 };
 
-enum class eGeneratorState{Failure, Failure2, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running, Delivering};
+enum class eGeneratorState{Failure, Failure2, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running, Delivering, Unloading};
 
 class Generator
 {
   public:
-    float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 3000.0;
+    float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 3000.0, refPower = 0;
     float speed = 0.0, nomSpeed = 850.0, maxSpeed = 1500.0, minSpeed = 0.0;
     float voltage = 0.0;
-    float nomVoltage = 795.0;
+    float nomVoltage = 700.0;
     float nomFrequency = 50.0;
     float frequency = 0.0;
     eGeneratorState generatorState = eGeneratorState::Stopped;
@@ -98,6 +99,7 @@ class Generator
     bool mbRead = true;
     bool mbTask = false;
     bool run = false;
+    bool stop = false;
     bool prevRunState = false;
 
     RTC_DS1307 *rtc;
@@ -117,12 +119,13 @@ class Generator
     
     
     void readMode();
-    void readState(uint16_t mbAdr);
+    void readState(uint16_t startCmdAdr, uint16_t stopCmdAdr);
     void writeCmd();
     void writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr);
     void savePrevState();
     void stopping(uint32_t loadTime);
     void starting(uint32_t loadTime);
+    void unloading(uint32_t loadTime);
     void dispState(String text);
     void visualize();
     void readBreakersState(bool state1);
