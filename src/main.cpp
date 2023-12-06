@@ -432,8 +432,8 @@ void loop()
     gGenerator2.readBreakersState(gBreaker2.breakerState == eBreakerState::Closed);
     gGenerator2.readState(Gen2StartAuto_ADR, Gen2StopAuto_ADR);
 
-    grcsVars.actPower = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
-    grcsVars.actPowerBT = gGenerator1.power/1000.0 + gGenerator2.power/1000.0;   //MW
+    grcsVars.actPower = abs(gGenerator1.power/1000.0 + gGenerator2.power/1000.0);   //MW
+    grcsVars.actPowerBT = abs(gGenerator1.power/1000.0 + gGenerator2.power/1000.0);   //MW
 
 
     //RCS
@@ -528,9 +528,9 @@ void loop()
   gBreaker6.writeCmd();
   gBreaker6.writeMb(Brkr6Closed_ADR, Brkr6Opened_ADR, Brkr6Failure_ADR, Brkr6Auto_ADR);
 
-  gGenerator1.writeCmd();
+  gGenerator1.writeCmd(1500.0);
   gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR, Gen1Volt_ADR, Gen1Freq_ADR);
-  gGenerator2.writeCmd();
+  gGenerator2.writeCmd(1500.0);
   gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR, Gen2Volt_ADR, Gen2Freq_ADR);
 
   

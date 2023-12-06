@@ -373,10 +373,11 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr)
 
 }
 
-void Generator::writeCmd()
+void Generator::writeCmd(float aRefPower)
 {   
 
     uint32_t loadTime = 2000;
+    this->refPower = aRefPower;
 
     if(this->generatorState == eGeneratorState::Failure)
     {

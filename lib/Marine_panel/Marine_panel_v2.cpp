@@ -1373,7 +1373,7 @@ void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars)
   float powRequieredRpm = map(speedDif, 0, 100, 0, (rcsVars.maxPower/2.0) * 1000.0);
 
   bool boatMoving = bool(rcsVars.actRpmPortBT || rcsVars.actRpmStbdBT);
-  rcsVars.refPower = (powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
+  rcsVars.refPowerBT = (powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
 
 
   //Speed change
