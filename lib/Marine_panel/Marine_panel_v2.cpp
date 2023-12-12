@@ -1277,7 +1277,8 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars)
   //Accelerating
   if(rcsVars.refRPM > rcsVars.actRPM)
   {
-    if(rcsVars.actPower > rcsVars.refPower)
+    bool powerOk = (rcsVars.actPower >= rcsVars.refPower) or abs(rcsVars.actPower - rcsVars.refPower) < 0.01;
+    if(powerOk)
     {
       float rpmIncrease = 5;
       rcsVars.actRPM += rpmIncrease * task/1000.0;
@@ -1288,8 +1289,8 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars)
   //Decelerating
   else if(rcsVars.refRPM < rcsVars.actRPM)
   {
-  
-    if(rcsVars.actPower > rcsVars.refPower)
+    bool powerOk = (rcsVars.actPower >= rcsVars.refPower) or abs(rcsVars.actPower - rcsVars.refPower) < 0.01;
+    if(powerOk)
     {
       float rpmDecrease = 5;
       rcsVars.actRPM -= rpmDecrease * task/1000.0;
@@ -1300,7 +1301,8 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars)
 
 
   float degIncrease = 1.0;
-  if(rcsVars.actPower > rcsVars.refPower)
+  bool powerOk = (rcsVars.actPower >= rcsVars.refPower) or abs(rcsVars.actPower - rcsVars.refPower) < 0.01;
+  if(powerOk)
   {
      //Turning PORT+
     if(rcsVars.refAnglePORT > rcsVars.actAnglePORT)
@@ -1736,6 +1738,9 @@ void rcsMbWrite(rcsVarsStruct &rcsVars)
   arrayHregsW[AzpdActSpeed_ADR - HregsWrOffset] = uint16_t(rcsVars.actRPM * mbMultFactor);
   arrayHregsW[AzpdActAngPORT_ADR - HregsWrOffset] = uint16_t(rcsVars.actAnglePORT * mbMultFactor);
   arrayHregsW[AzpdActAngSTBD_ADR - HregsWrOffset] = uint16_t(rcsVars.actAngleSTBD * mbMultFactor);
+
+  arrayHregsW[AzpdActPow_ADR - HregsWrOffset] = uint16_t(rcsVars.actPower * 1000 * mbMultFactor);
+  arrayHregsW[AzpdRefPow_ADR - HregsWrOffset] = uint16_t(rcsVars.refPower * 1000 * mbMultFactor);
 
   //Bow thruster
   

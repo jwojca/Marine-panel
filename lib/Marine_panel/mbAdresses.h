@@ -166,6 +166,9 @@ extern float mbMultFactor;
 #define Gen1Disconn_ADR 279
 #define Gen2Conn_ADR 280
 #define Gen2Disconn_ADR 281
+#define AzpdRefPow_ADR 51
+#define AzpdActPow_ADR 52
+
 
 
 

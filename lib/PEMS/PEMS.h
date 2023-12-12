@@ -119,8 +119,8 @@ class Generator
     
     
     void readMode();
-    void readState(uint16_t startCmdAdr, uint16_t stopCmdAdr);
-    void writeCmd(float aRefPower);
+    void readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t refPowAdr);
+    void writeCmd(float reqPower, float delPower);
     void writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr);
     void savePrevState();
     void stopping(uint32_t loadTime);

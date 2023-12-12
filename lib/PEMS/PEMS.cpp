@@ -226,7 +226,7 @@ void Generator::readMode()
     this->generatorMode = Auto;
 }
 
-void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr)
+void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t refPowAdr)
 {
   //For dynamic rows change
   if(alarmCounter == 0)
@@ -302,6 +302,10 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr)
 
     else    //Auto - read from modbus
     {
+
+      //Read ref power
+      this->refPower = arrayHregsR[refPowAdr];
+      
       //Start CMD rising edge
       if(arrayCoilsR[startCmdAdr] && !this->prevRunState)
       {
@@ -373,11 +377,10 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr)
 
 }
 
-void Generator::writeCmd(float aRefPower)
+void Generator::writeCmd(float reqPower, float delPower)
 {   
 
     uint32_t loadTime = 2000;
-    this->refPower = aRefPower;
 
     if(this->generatorState == eGeneratorState::Failure)
     {
@@ -415,8 +418,25 @@ void Generator::writeCmd(float aRefPower)
         {
           this->display->clearDisplay();
           this->dispState("Deliver.");
+
+          float powerDeadband = 5.0;
+          float reqPowKw = reqPower * 1000;
+          float delPowKw = delPower * 1000;
+
+          float powDiff = abs(reqPowKw - delPowKw);
+          
+          Serial.println("reqPower" + String(reqPowKw));
+          Serial.println("delPower" + String(delPowKw));
+    
+
+          //increase power when required 
+          if((delPowKw - powerDeadband) <= reqPowKw)
+            this->power += powDiff * float(task)/1000.0 + powerDeadband/2;
+          if((delPowKw + powerDeadband) >= reqPowKw)
+            this->power -= powDiff * float(task)/1000.0 - + powerDeadband/2;
           //values oscilating
-          this->power = addNoise(this->refPower, -5.0, 5.0);
+          //this->power = addNoise(this->refPower, -5.0, 5.0);
+          this->power = constrain(this->power, 0, this->maxPower);
           this->speed = addNoise(this->nomSpeed, -5.0, 5.0);
           this->frequency = addNoise(this->nomFrequency, -0.5, 0.5);
           this->voltage = addNoise(this->nomVoltage, -5, 5);
