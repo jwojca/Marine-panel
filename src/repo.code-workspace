@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"name": "repo",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.tcc": "cpp",
+			"fstream": "cpp",
+			"random": "cpp",
+			"array": "cpp"
+		}
+	}
+}

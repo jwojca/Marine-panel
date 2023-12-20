@@ -81,7 +81,7 @@ Breaker gBreaker1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm1, RGB2, P4, P2, &pcf1, &
 Breaker gBreaker3(&rtc, &alarmDisps, pemsCB3Alarm1, pwm1, RGB3, P0, P4, &pcf2, &pcf3), gBreaker4(&rtc, &alarmDisps, pemsCB4Alarm1, pwm1, RGB4, P2, P5, &pcf2, &pcf3);
 Breaker gBreaker5(&rtc, &alarmDisps, pemsCB5Alarm1, pwm1, RGB1, P4, P6, &pcf2, &pcf3), gBreaker6(&rtc, &alarmDisps, pemsCB6Alarm1, pwm2, RGB6, P6, P7, &pcf2, &pcf3);
 
-Generator gGenerator1(&rtc, &alarmDisps, pemsDG1Alarm1, pemsDG1Alarm2,  &display8, P0, P0, &pcf1, &pcf3), gGenerator2(&rtc, &alarmDisps, pemsDG2Alarm1, pemsDG2Alarm2, &display9, P2, P1, &pcf1, &pcf3);
+Generator gGenerator1(&rtc, &alarmDisps, pemsDG1Alarm1, pemsDG1Alarm2,  &display8, P0, P0, 1, &pcf1, &pcf3), gGenerator2(&rtc, &alarmDisps, pemsDG2Alarm1, pemsDG2Alarm2, &display9, P2, P1, 2, &pcf1, &pcf3);
 Damper gDamper1(&rtc, &alarmDisps, hvacD1Alarm1, pwm3, RGB11, P0, P4, &pcf6, &pcf5), gDamper2(&rtc, &alarmDisps, hvacD2Alarm1, pwm3, RGB14, P2, P5, &pcf6, &pcf5);
 ValveLinear gValve3(&rtc, &alarmDisps, hvacV3Alarm1, pwm3, RGB12, P4, &pcf6, P6, &pcf5);
 Fan gFan1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm3, RGB13, P6, &pcf6, P7, &pcf5);
@@ -425,12 +425,16 @@ void loop()
     gBreaker6.readState(Brkr6CmdClsAut_ADR, Brkr6CmdOpAut_ADR);
 
     gGenerator1.readMode();
-    gGenerator1.readBreakersState(gBreaker1.breakerState == eBreakerState::Closed);
+    gGenerator1.readGenBrkState(gBreaker1.breakerState == eBreakerState::Closed);
     gGenerator1.readState(Gen1StartAuto_ADR, Gen1StopAuto_ADR, Gen1RefPower_ADR);
     
     gGenerator2.readMode();
-    gGenerator2.readBreakersState(gBreaker2.breakerState == eBreakerState::Closed);
+    gGenerator2.readGenBrkState(gBreaker2.breakerState == eBreakerState::Closed);
     gGenerator2.readState(Gen2StartAuto_ADR, Gen2StopAuto_ADR, Gen2RefPower_ADR);
+
+    //read bustie
+    gGenerator1.readBustieState(gBreaker3.breakerState);
+    gGenerator2.readBustieState(gBreaker3.breakerState);
 
     grcsVars.actPower = abs(gGenerator1.power/1000.0 + gGenerator2.power/1000.0);   //MW
     grcsVars.actPowerBT = abs(gGenerator1.power/1000.0 + gGenerator2.power/1000.0);   //MW
@@ -528,9 +532,9 @@ void loop()
   gBreaker6.writeCmd();
   gBreaker6.writeMb(Brkr6Closed_ADR, Brkr6Opened_ADR, Brkr6Failure_ADR, Brkr6Auto_ADR);
 
-  gGenerator1.writeCmd(grcsVars.refPower, grcsVars.actPower);
+  gGenerator1.writeCmd(grcsVars, gGenerator2);
   gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR, Gen1Volt_ADR, Gen1Freq_ADR);
-  gGenerator2.writeCmd(grcsVars.refPower, grcsVars.actPower);
+  gGenerator2.writeCmd(grcsVars, gGenerator1);
   gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR, Gen2Volt_ADR, Gen2Freq_ADR);
 
   

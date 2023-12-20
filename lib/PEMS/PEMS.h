@@ -92,8 +92,10 @@ class Generator
     mpAlarm generatorAlarm1;
     mpAlarm generatorAlarm2;
     uint16_t alarmRow = 0;
+    uint16_t genId = 0;
 
-    bool breakersClosed = false;
+    bool genBrkClosed = false;
+    bool bustieClosed = false;
     bool failure = false;
 
     bool mbRead = true;
@@ -104,7 +106,7 @@ class Generator
 
     RTC_DS1307 *rtc;
 
-    Generator(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _generatorAlarm1, mpAlarm _generatorAlarm2, Adafruit_SSD1306 *_display, uint8_t _pcf1Pin, uint8_t _pcf2Pin, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
+    Generator(RTC_DS1307 *_rtc, alarmDispsStruct *_alarmDisps, mpAlarm _generatorAlarm1, mpAlarm _generatorAlarm2, Adafruit_SSD1306 *_display, uint8_t _pcf1Pin, uint8_t _pcf2Pin, uint16_t _genId, PCF8574 *_pcf1 = NULL, PCF8574 *_pcf2 = NULL)
     {
       pcf1 = _pcf1;
       pcf2 = _pcf2;
@@ -115,12 +117,13 @@ class Generator
       generatorAlarm1 = _generatorAlarm1;
       generatorAlarm2 = _generatorAlarm2;
       rtc = _rtc;
+      genId = _genId;
     }
     
     
     void readMode();
     void readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t refPowAdr);
-    void writeCmd(float reqPower, float delPower);
+    void writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen);
     void writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr);
     void savePrevState();
     void stopping(uint32_t loadTime);
@@ -128,6 +131,7 @@ class Generator
     void unloading(uint32_t loadTime);
     void dispState(String text);
     void visualize();
-    void readBreakersState(bool state1);
+    void readGenBrkState(bool state1);
+    void readBustieState(eBreakerState state);
 
 };

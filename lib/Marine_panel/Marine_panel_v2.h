@@ -140,6 +140,7 @@ struct rcsVarsStruct
   float refRpmBt = 0.0, actRpmBT = 0.0, minRpmBT = 0.0, maxRpmBT = 100.0;
   float refRpmStbdBT = 0.0, refRpmPortBT = 0.0, actRpmStbdBT = 0.0, actRpmPortBT = 0.0;
   float refPowerBT = 0.0, actPowerBT = 0.0, minPowerBT = 0.0, maxPowerBT = 1.0;
+  float refTotPow = 0;
 };
 
 

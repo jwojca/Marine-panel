@@ -338,7 +338,7 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t re
           this->timer = millis(); //reset timer
           this->generatorState = eGeneratorState::Stopping;
         }
-        else if(this->breakersClosed)
+        else if(this->genBrkClosed)
         {
           this->generatorState = eGeneratorState::Delivering;
         }
@@ -352,7 +352,7 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t re
           this->timer = millis(); //reset timer
           this->generatorState = eGeneratorState::Stopping;
         }
-        else if(!this->breakersClosed)
+        else if(!this->genBrkClosed)
         {
           this->generatorState = eGeneratorState::Unloading;
         }
@@ -377,7 +377,7 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t re
 
 }
 
-void Generator::writeCmd(float reqPower, float delPower)
+void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen)
 {   
 
     uint32_t loadTime = 2000;
@@ -420,26 +420,66 @@ void Generator::writeCmd(float reqPower, float delPower)
           this->dispState("Deliver.");
 
           float powerDeadband = 5.0;
-          float reqPowKw = reqPower * 1000;
-          float delPowKw = delPower * 1000;
+          float reqPowKw = 0;
+          float delPowKw = 0;
 
-          float powDiff = abs(reqPowKw - delPowKw);
+          //when bustie breaker close
+          if(this->bustieClosed)
+          {
+            float genDelivering = 2.0;
+            reqPowKw = (rcsVars.refPower * 1000) / genDelivering;
+            delPowKw = rcsVars.actPower * 1000;
+          }
+          //Bus 1 and Bus 2 separates
+          else
+          {
+            //Bus 1
+            if(this->genId == 1)
+            {
+              reqPowKw = rcsVars.refPowerBT * 1000;
+              delPowKw = rcsVars.actPowerBT * 1000;
+            }
+            //Bus 2
+            if(this->genId == 2)
+            {
+              
+            }
+
+          }
+          
+
+
+
+          float powDiff = abs(reqPowKw - this->power);
           
           Serial.println("reqPower" + String(reqPowKw));
           Serial.println("delPower" + String(delPowKw));
     
 
           //increase power when required 
-          if((delPowKw - powerDeadband) <= reqPowKw)
+          if((this->power - powerDeadband) <= reqPowKw)
             this->power += powDiff * float(task)/1000.0 + powerDeadband/2;
-          if((delPowKw + powerDeadband) >= reqPowKw)
+          if((this->power + powerDeadband) >= reqPowKw)
             this->power -= powDiff * float(task)/1000.0 - + powerDeadband/2;
           //values oscilating
           //this->power = addNoise(this->refPower, -5.0, 5.0);
           this->power = constrain(this->power, 0, this->maxPower);
           this->speed = addNoise(this->nomSpeed, -5.0, 5.0);
-          this->frequency = addNoise(this->nomFrequency, -0.5, 0.5);
-          this->voltage = addNoise(this->nomVoltage, -5, 5);
+
+          //Simulation of voltage and frequency
+          //When bustie closed, generators voltage and frequency is equal
+          if(this->genId == 2 and this->bustieClosed)
+          {
+            this->frequency = aSecondGen.frequency;
+            this->voltage = aSecondGen.voltage;
+          }
+          //When bustie open, generators voltage and frequency differs
+          else
+          {
+            this->frequency = addNoise(this->nomFrequency, -0.5, 0.5);
+            this->voltage = addNoise(this->nomVoltage, -5, 5);
+          }
+
         }
         if(this-> generatorState == eGeneratorState::Unloading)
         {
@@ -627,7 +667,12 @@ void Generator::visualize()
     this->display->display();
 }
 
-void Generator::readBreakersState(bool state1)
+void Generator::readGenBrkState(bool state1)
 {
-  this->breakersClosed = state1;
+  this->genBrkClosed = state1;
+}
+
+void Generator::readBustieState(eBreakerState state)
+{
+  this->bustieClosed = (state == eBreakerState::Closed);
 }
