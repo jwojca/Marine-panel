@@ -2,6 +2,12 @@
 
 #include "../Marine_panel/Marine_panel_v2.h"
 
+struct busStruct
+{
+    float voltage, frequency, power; 
+};
+
+
 
 
 
@@ -135,3 +141,5 @@ class Generator
     void readBustieState(eBreakerState state);
 
 };
+
+void writeBusMb(busStruct bus1, busStruct bus2);

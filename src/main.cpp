@@ -93,6 +93,9 @@ pushBtn gBtEmButt { .actState = false, .prevState = false, .actValue = false, .p
 pushBtn gBtStart { .actState = false, .prevState = false, .actValue = false, .pcfPin = P3 };
 pushBtn gBtStop { .actState = false, .prevState = false, .actValue = false, .pcfPin = P4 };
 
+busStruct gBus1, gBus2;
+ 
+
 //pushBtn gBtDp { .actState = false, .prevState = false, .actValue = false, .pcfPin = P5 };
 //pushBtn gBtFireAl { .actState = false, .prevState = false, .actValue = false, .pcfPin = P6, .mbAddres = FireAlarmActive_ADR};
 bool gBtDp = false;
@@ -436,8 +439,35 @@ void loop()
     gGenerator1.readBustieState(gBreaker3.breakerState);
     gGenerator2.readBustieState(gBreaker3.breakerState);
 
-    grcsVars.actPower = abs(gGenerator1.power/1000.0 + gGenerator2.power/1000.0);   //MW
-    grcsVars.actPowerBT = abs(gGenerator1.power/1000.0 + gGenerator2.power/1000.0);   //MW
+    if(gBreaker3.breakerState == eBreakerState::Closed)
+    {
+      //Bus1 equals Bus2
+      gBus1.power = gGenerator1.power + gGenerator2.power;
+      gBus1.frequency = gGenerator1.frequency;
+      gBus1.voltage = gGenerator1.voltage;
+      gBus2 = gBus1;
+    }
+    else 
+    {
+      //Power
+      gBus1.power = gGenerator1.power;
+      gBus2.power = gGenerator2.power;
+
+      //Frequency
+      gBus1.frequency = gGenerator1.frequency;
+      gBus2.frequency = gGenerator2.frequency;
+
+      //Voltage 
+      gBus1.voltage = gGenerator1.voltage;
+      gBus2.voltage = gGenerator2.voltage;
+    }
+
+    
+
+    //grcsVars.actPower = abs(gGenerator1.power/1000.0);   //MW
+    //grcsVars.actPowerBT = abs(gGenerator2.power/1000.0);   //MW
+    
+
 
     
     //RCS
@@ -486,7 +516,6 @@ void loop()
   if(simulationLoop)
     simulationFnc();
 
-  
 
   //---------- VMS -----------
   vmsSimluation(gPump1, gPump2, gValve1, gValve2, gVmsSimVars, task);
@@ -496,8 +525,8 @@ void loop()
   hvacSimulation(gDamper1, gDamper2, gValve3, gFan1, gHvacSimVars);
 
   //---------- RCS ------------
-  rcsAzipodSimulate(grcsVars);
-  rcsBowThrustersSimulate(grcsVars);
+  rcsAzipodSimulate(grcsVars, gBus1.power);
+  rcsBowThrustersSimulate(grcsVars, gBus2.power);
   
 
 
@@ -536,6 +565,8 @@ void loop()
   gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR, Gen1Volt_ADR, Gen1Freq_ADR);
   gGenerator2.writeCmd(grcsVars, gGenerator1);
   gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR, Gen2Volt_ADR, Gen2Freq_ADR);
+
+  writeBusMb(gBus1, gBus2);
 
   
   //---------- HVAC -----------

@@ -169,7 +169,12 @@ extern float mbMultFactor;
 #define AzpdRefPow_ADR 51
 #define AzpdActPow_ADR 52
 #define Bus1Volt_ADR 53
-#define Bus2Volt_ADD 54
+#define Bus2Volt_ADR 54
+#define BtRefPow_ADR 55
+#define BtActPow_ADR 56
+#define Bus1Freq_ADR 57
+#define Bus2Freq_ADR 58
+
 
 
 

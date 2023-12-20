@@ -1254,7 +1254,7 @@ void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task)
 
 }
 
-void rcsAzipodSimulate(rcsVarsStruct &rcsVars)
+void rcsAzipodSimulate(rcsVarsStruct &rcsVars, float bus1Pow)
 {
   float angleDif;
   if(rcsVars.refAnglePORT > 0.0)
@@ -1270,41 +1270,37 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars)
   float rpmPct = map(abs(rcsVars.actRPM), 0, rcsVars.maxRPM, 0, 100);
 
   bool boatMoving = bool(rcsVars.actRPM || rcsVars.actAnglePORT || rcsVars.actAngleSTBD);
+  //convert bus power to MW
+  bus1Pow /= 1000; 
+
+  bool powerOk = (bus1Pow >= rcsVars.refPower) or abs(bus1Pow - rcsVars.refPower) < 0.01;
+  rcsVars.actPower = min(bus1Pow, rcsVars.refPower);
 
   rcsVars.refPower = (powRequieredSteer + powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
 
-    
-  //Accelerating
-  if(rcsVars.refRPM > rcsVars.actRPM)
+  if(powerOk)
   {
-    bool powerOk = (rcsVars.actPower >= rcsVars.refPower) or abs(rcsVars.actPower - rcsVars.refPower) < 0.01;
-    if(powerOk)
+    //Accelerating
+    if(rcsVars.refRPM > rcsVars.actRPM)
     {
       float rpmIncrease = 5;
       rcsVars.actRPM += rpmIncrease * task/1000.0;
       if(rcsVars.actRPM  > rcsVars.refRPM)
-        rcsVars.actRPM  = rcsVars.refRPM;
+      rcsVars.actRPM  = rcsVars.refRPM;
     }
-  }
-  //Decelerating
-  else if(rcsVars.refRPM < rcsVars.actRPM)
-  {
-    bool powerOk = (rcsVars.actPower >= rcsVars.refPower) or abs(rcsVars.actPower - rcsVars.refPower) < 0.01;
-    if(powerOk)
+    //Decelerating
+    else if(rcsVars.refRPM < rcsVars.actRPM)
     {
       float rpmDecrease = 5;
       rcsVars.actRPM -= rpmDecrease * task/1000.0;
       if(rcsVars.actRPM  < rcsVars.refRPM)
         rcsVars.actRPM  = rcsVars.refRPM;
     }
-  }
 
 
-  float degIncrease = 1.0;
-  bool powerOk = (rcsVars.actPower >= rcsVars.refPower) or abs(rcsVars.actPower - rcsVars.refPower) < 0.01;
-  if(powerOk)
-  {
-     //Turning PORT+
+    float degIncrease = 1.0;
+
+    //Turning PORT+
     if(rcsVars.refAnglePORT > rcsVars.actAnglePORT)
     {
       if(rcsVars.actAngleSTBD > 0.0)
@@ -1354,6 +1350,7 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars)
         if(rcsVars.actAngleSTBD < rcsVars.refAngleSTBD)
           rcsVars.actAngleSTBD = rcsVars.refAngleSTBD;
     }
+  
   }
 
   if(rcsVars.actAngleSTBD == 0)
@@ -1363,7 +1360,7 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars)
 
 }
 
-void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars)
+void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, float bus2Pow)
 {
   float speedDif;
   if(rcsVars.refRpmPortBT > 0.0)
@@ -1379,61 +1376,70 @@ void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars)
 
 
   //Speed change
-  float spdIncr = 5.0;
-  
-  //Turn to port+
-  if(rcsVars.refRpmPortBT > rcsVars.actRpmPortBT)
+  float spdIncr = 2.0;
+  //convert to MW
+  bus2Pow /= 1000;
+  //simulate actual BT power
+  rcsVars.actPowerBT = min(bus2Pow, rcsVars.refPowerBT);
+ 
+  bool powerOk = (bus2Pow >= rcsVars.refPowerBT) or abs(bus2Pow - rcsVars.refPowerBT) < 0.01;
+  if(powerOk)
   {
-    //When should turn to port side but ship is turned to stbd side 
-    if(rcsVars.actRpmStbdBT > 0.0)
+    //Turn to port+
+    if(rcsVars.refRpmPortBT > rcsVars.actRpmPortBT)
     {
-      rcsVars.actRpmStbdBT -= spdIncr * task/1000.0;
-      if(rcsVars.actRpmStbdBT < 0.0)
-        rcsVars.actRpmStbdBT = 0.0;
-    }
-    else
-    {
-      rcsVars.actRpmPortBT += spdIncr * task/1000.0;
-      if(rcsVars.actRpmPortBT > rcsVars.refRpmPortBT)
-        rcsVars.actRpmPortBT = rcsVars.refRpmPortBT;
-    }
-      
-  }
-  //Turn to port-
-  else if(rcsVars.refRpmPortBT < rcsVars.actRpmPortBT)
-  {
-    rcsVars.actRpmPortBT -= spdIncr * task/1000.0;
-    if(rcsVars.actRpmPortBT < rcsVars.refRpmPortBT)
-      rcsVars.actRpmPortBT = rcsVars.refRpmPortBT;
-  }
-
-  //Turning STBD+ (reference is higher than actual)
-  else if(rcsVars.refRpmStbdBT > rcsVars.actRpmStbdBT)
-  {
-      //When should turn to stbd side but ship is turned to port side 
-      if(rcsVars.actRpmPortBT > 0.0)
+      //When should turn to port side but ship is turned to stbd side 
+      if(rcsVars.actRpmStbdBT > 0.0)
       {
-      rcsVars.actRpmPortBT -= spdIncr * task/1000.0;
-      if(rcsVars.actRpmPortBT < 0.0)
-        rcsVars.actRpmPortBT = 0.0;
+        rcsVars.actRpmStbdBT -= spdIncr * task/1000.0;
+        if(rcsVars.actRpmStbdBT < 0.0)
+          rcsVars.actRpmStbdBT = 0.0;
       }
       else
       {
-        rcsVars.actRpmStbdBT += spdIncr * task/1000.0;
-        if(rcsVars.actRpmStbdBT > rcsVars.refRpmStbdBT)
-          rcsVars.actRpmStbdBT = rcsVars.refRpmStbdBT;
+        rcsVars.actRpmPortBT += spdIncr * task/1000.0;
+        if(rcsVars.actRpmPortBT > rcsVars.refRpmPortBT)
+          rcsVars.actRpmPortBT = rcsVars.refRpmPortBT;
       }
-  }
+        
+    }
+    //Turn to port-
+    else if(rcsVars.refRpmPortBT < rcsVars.actRpmPortBT)
+    {
+      rcsVars.actRpmPortBT -= spdIncr * task/1000.0;
+      if(rcsVars.actRpmPortBT < rcsVars.refRpmPortBT)
+        rcsVars.actRpmPortBT = rcsVars.refRpmPortBT;
+    }
 
-  //Turning STBD-
-  else if(rcsVars.refRpmStbdBT < rcsVars.actRpmStbdBT)
-  {
-      rcsVars.actRpmStbdBT -= spdIncr * task/1000.0;
-      if(rcsVars.actRpmStbdBT < rcsVars.refRpmStbdBT)
-        rcsVars.actRpmStbdBT = rcsVars.refRpmStbdBT;
-  }
+    //Turning STBD+ (reference is higher than actual)
+    else if(rcsVars.refRpmStbdBT > rcsVars.actRpmStbdBT)
+    {
+        //When should turn to stbd side but ship is turned to port side 
+        if(rcsVars.actRpmPortBT > 0.0)
+        {
+        rcsVars.actRpmPortBT -= spdIncr * task/1000.0;
+        if(rcsVars.actRpmPortBT < 0.0)
+          rcsVars.actRpmPortBT = 0.0;
+        }
+        else
+        {
+          rcsVars.actRpmStbdBT += spdIncr * task/1000.0;
+          if(rcsVars.actRpmStbdBT > rcsVars.refRpmStbdBT)
+            rcsVars.actRpmStbdBT = rcsVars.refRpmStbdBT;
+        }
+    }
 
- 
+    //Turning STBD-
+    else if(rcsVars.refRpmStbdBT < rcsVars.actRpmStbdBT)
+    {
+        rcsVars.actRpmStbdBT -= spdIncr * task/1000.0;
+        if(rcsVars.actRpmStbdBT < rcsVars.refRpmStbdBT)
+          rcsVars.actRpmStbdBT = rcsVars.refRpmStbdBT;
+    }
+
+  }
+  
+
   rcsVars.actRpmBT = rcsVars.actRpmStbdBT - rcsVars.actRpmPortBT;
 }
 
@@ -1743,6 +1749,8 @@ void rcsMbWrite(rcsVarsStruct &rcsVars)
   arrayHregsW[AzpdRefPow_ADR - HregsWrOffset] = uint16_t(rcsVars.refPower * 1000 * mbMultFactor);
 
   //Bow thruster
+  arrayHregsW[BtActPow_ADR - HregsWrOffset] = uint16_t(rcsVars.actPowerBT * 1000 * mbMultFactor);
+  arrayHregsW[BtRefPow_ADR - HregsWrOffset] = uint16_t(rcsVars.refPowerBT * 1000 * mbMultFactor);
   
 }
 

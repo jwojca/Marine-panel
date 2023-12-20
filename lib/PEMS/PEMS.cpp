@@ -421,40 +421,31 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen)
 
           float powerDeadband = 5.0;
           float reqPowKw = 0;
-          float delPowKw = 0;
 
-          //when bustie breaker close
+          //when bustie breaker close and both delivering
           if(this->bustieClosed)
           {
-            float genDelivering = 2.0;
-            reqPowKw = (rcsVars.refPower * 1000) / genDelivering;
-            delPowKw = rcsVars.actPower * 1000;
+            //both delivering
+            if(aSecondGen.generatorState == eGeneratorState::Delivering)
+              reqPowKw = ((rcsVars.refPower * 1000) + (rcsVars.refPower * 1000)) / 2.0;
+            //only one delivering
+            else
+              reqPowKw = ((rcsVars.refPower * 1000) + (rcsVars.refPower * 1000));
           }
           //Bus 1 and Bus 2 separates
           else
           {
             //Bus 1
             if(this->genId == 1)
-            {
-              reqPowKw = rcsVars.refPowerBT * 1000;
-              delPowKw = rcsVars.actPowerBT * 1000;
-            }
+              reqPowKw = rcsVars.refPower * 1000;
             //Bus 2
             if(this->genId == 2)
-            {
-              
-            }
+             reqPowKw = rcsVars.refPowerBT * 1000;
 
           }
           
-
-
-
           float powDiff = abs(reqPowKw - this->power);
           
-          Serial.println("reqPower" + String(reqPowKw));
-          Serial.println("delPower" + String(delPowKw));
-    
 
           //increase power when required 
           if((this->power - powerDeadband) <= reqPowKw)
@@ -468,7 +459,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen)
 
           //Simulation of voltage and frequency
           //When bustie closed, generators voltage and frequency is equal
-          if(this->genId == 2 and this->bustieClosed)
+          if(this->genId == 2 && this->bustieClosed && aSecondGen.generatorState == eGeneratorState::Delivering)
           {
             this->frequency = aSecondGen.frequency;
             this->voltage = aSecondGen.voltage;
@@ -675,4 +666,17 @@ void Generator::readGenBrkState(bool state1)
 void Generator::readBustieState(eBreakerState state)
 {
   this->bustieClosed = (state == eBreakerState::Closed);
+}
+
+
+
+void writeBusMb(busStruct bus1, busStruct bus2)
+{
+  //Voltage
+  arrayHregsW[Bus1Volt_ADR - HregsWrOffset] = uint16_t(bus1.voltage * mbMultFactor);
+  arrayHregsW[Bus2Volt_ADR - HregsWrOffset] =  uint16_t(bus2.voltage * mbMultFactor);
+
+  //Frequency
+  arrayHregsW[Bus1Freq_ADR - HregsWrOffset] = uint16_t(bus1.frequency * mbMultFactor);
+  arrayHregsW[Bus2Freq_ADR - HregsWrOffset] =  uint16_t(bus2.frequency * mbMultFactor);
 }
