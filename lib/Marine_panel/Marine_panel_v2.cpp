@@ -556,7 +556,7 @@ void Pump::readState(uint16_t mbAdr, uint16_t mbAdr2)
     else    //Auto - read from modbus
     {
       this->run = arrayCoilsR[mbAdr];
-      this->refSpeed = arrayHregsR[mbAdr2];
+      this->refSpeed = (float)(arrayHregsR[mbAdr2] * mbMultFactor);
     }
 
     
@@ -800,7 +800,8 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
     }
     else if(Pump1.pumpState == Stopping || Pump1.pumpState == StoppingF)
         Pump1.stopping(pmpStrtDelay, dt, vmsSimVars);
-    else if(Pump1.pumpState == Stopped)
+    //else if(Pump1.pumpState == Stopped || Pump1.pumpState == Failure || Pump1.pumpState == Failure2)
+    else
     {
         Pump1.pressure = 0;
         Pump1.actInflow = 0;

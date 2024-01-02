@@ -74,7 +74,7 @@
 
 
 
-
+//installed libraries
 #include <Wire.h>
 #include <Arduino.h>
 #include <PCF8574.h>
@@ -84,17 +84,12 @@
 #include <Adafruit_GFX.h>
 #include <RTClib.h>
 
-
-
-//#include <SSD1306Spi.h>
-
+//local libraries
 #include "../Marine_panel/Fonts/DejavuSansMono15.h"
 #include "../Marine_panel/Fonts/DejavuSansMono10.h"
 #include "../Marine_panel/Fonts/DejavuSansMono8.h"
 #include "Alarms.h"
 #include "mbAdresses.h"
-//#include "../lib/Marine_panel_VMS.h"
-
 #include "../Marine_panel/Images/Images.h"
 
 
@@ -108,24 +103,17 @@ extern int16_t updatedAlarmRows;
 extern int16_t updatedAlarmRows2;
 
 
-
-
-
-
 enum mpMode{Local, Auto};
 enum mpState{Closed, Opened, Failure, Failure2, Stopped, Starting, Stopping, StoppingF, Opening, Closing, Running, SlowingDown}; //states for valves and pumps 
-
 enum class eRcsState{Local, Auto};
 
-
-//TODO split states for valves, pumps, breakers, DGs
 
 
 struct vmsSimVarsStruct
 {
     float PressureRef, MaxPressure, PressureAct; //Bar
     float TankWater, TankMaxVol;                 //l
-    float Inflow, Outflow;                              //l/s
+    float Inflow, Outflow;                       //l/s
 };
 
 
@@ -354,38 +342,6 @@ void W5500Reset();
 
 void rtcPrintTime(RTC_DS1307 &rtc);
 String rtcTime2String(RTC_DS1307 &rtc);
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* MAIN COMMENT
-
-
-
-
-
-
-
-
-
-
-void mbTCPInit()
-{
-}
-
-*/
-
-
-
 
 
 #endif

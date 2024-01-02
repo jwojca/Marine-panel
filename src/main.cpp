@@ -441,25 +441,44 @@ void loop()
 
     if(gBreaker3.breakerState == eBreakerState::Closed)
     {
-      //Bus1 equals Bus2
-      gBus1.power = gGenerator1.power + gGenerator2.power;
-      gBus1.frequency = gGenerator1.frequency;
-      gBus1.voltage = gGenerator1.voltage;
-      gBus2 = gBus1;
+      //only generator breaker 1 closed
+      if(gBreaker1.breakerState == eBreakerState::Closed && gBreaker2.breakerState == eBreakerState::Opened)
+      {
+        gBus1.power = gGenerator1.power;
+        gBus1.frequency = gGenerator1.frequency;
+        gBus1.voltage = gGenerator1.voltage;
+        gBus2 = gBus1;
+      }
+      //only generator breaker 2 closed
+      else if (gBreaker1.breakerState == eBreakerState::Opened &&gBreaker2.breakerState == eBreakerState::Closed)
+      {
+        gBus2.power = gGenerator2.power;
+        gBus2.frequency = gGenerator2.frequency;
+        gBus2.voltage = gGenerator2.voltage;
+        gBus1 = gBus2;
+      }
+      //both generator breakers closed
+      else if(gBreaker1.breakerState == eBreakerState::Closed && gBreaker2.breakerState == eBreakerState::Closed)
+      {
+        gBus1.power = gGenerator1.power + gGenerator2.power;
+        gBus1.frequency = gGenerator1.frequency;
+        gBus1.voltage = gGenerator1.voltage;
+        gBus2 = gBus1;
+      }
+
     }
     else 
     {
-      //Power
-      gBus1.power = gGenerator1.power;
-      gBus2.power = gGenerator2.power;
+      float dgBrk1 = (float)(gBreaker1.breakerState == eBreakerState::Closed);
+      gBus1.power = gGenerator1.power * dgBrk1;
+      gBus1.frequency = gGenerator1.frequency * dgBrk1;
+      gBus1.voltage = gGenerator1.voltage * dgBrk1;
 
-      //Frequency
-      gBus1.frequency = gGenerator1.frequency;
-      gBus2.frequency = gGenerator2.frequency;
+      float dgBrk2 = (float)(gBreaker2.breakerState == eBreakerState::Closed);
+      gBus2.voltage = gGenerator2.voltage * dgBrk2;
+      gBus2.power = gGenerator2.power * dgBrk2;
+      gBus2.frequency = gGenerator2.frequency * dgBrk2;
 
-      //Voltage 
-      gBus1.voltage = gGenerator1.voltage;
-      gBus2.voltage = gGenerator2.voltage;
     }
 
     
@@ -561,9 +580,9 @@ void loop()
   gBreaker6.writeCmd();
   gBreaker6.writeMb(Brkr6Closed_ADR, Brkr6Opened_ADR, Brkr6Failure_ADR, Brkr6Auto_ADR);
 
-  gGenerator1.writeCmd(grcsVars, gGenerator2);
+  gGenerator1.writeCmd(grcsVars, gGenerator2, Gen1Incr_ADR, Gen1Decr_ADR);
   gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR, Gen1Volt_ADR, Gen1Freq_ADR);
-  gGenerator2.writeCmd(grcsVars, gGenerator1);
+  gGenerator2.writeCmd(grcsVars, gGenerator1, Gen2Incr_ADR, Gen2Decr_ADR);
   gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR, Gen2Volt_ADR, Gen2Freq_ADR);
 
   writeBusMb(gBus1, gBus2);

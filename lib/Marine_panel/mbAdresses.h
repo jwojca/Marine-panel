@@ -162,10 +162,10 @@ extern float mbMultFactor;
 #define Gen1Freq_ADR 48
 #define Gen2Volt_ADR 49
 #define Gen2Freq_ADR 50
-#define Gen1Conn_ADR 278
-#define Gen1Disconn_ADR 279
-#define Gen2Conn_ADR 280
-#define Gen2Disconn_ADR 281
+#define Gen1Conn_ADR 10
+#define Gen1Disconn_ADR 11
+#define Gen2Conn_ADR 12
+#define Gen2Disconn_ADR 13
 #define AzpdRefPow_ADR 51
 #define AzpdActPow_ADR 52
 #define Bus1Volt_ADR 53
@@ -174,11 +174,10 @@ extern float mbMultFactor;
 #define BtActPow_ADR 56
 #define Bus1Freq_ADR 57
 #define Bus2Freq_ADR 58
-
-
-
-
-
+#define Gen1Incr_ADR 14
+#define Gen1Decr_ADR 15
+#define Gen2Incr_ADR 16
+#define Gen2Decr_ADR 17
 
 
 

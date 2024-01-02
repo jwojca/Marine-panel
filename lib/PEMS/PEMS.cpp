@@ -377,7 +377,7 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t re
 
 }
 
-void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen)
+void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t incrAdr, uint16_t decrAdr)
 {   
 
     uint32_t loadTime = 2000;
@@ -447,11 +447,36 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen)
           float powDiff = abs(reqPowKw - this->power);
           
 
-          //increase power when required 
-          if((this->power - powerDeadband) <= reqPowKw)
-            this->power += powDiff * float(task)/1000.0 + powerDeadband/2;
-          if((this->power + powerDeadband) >= reqPowKw)
-            this->power -= powDiff * float(task)/1000.0 - + powerDeadband/2;
+          //Increase power when required 
+          //Local mode - governor handling power requests
+          if(this->generatorMode == Local)
+          {
+            if((this->power - powerDeadband) <= reqPowKw)
+              this->power += powDiff * float(task)/1000.0 + powerDeadband/2;
+            if((this->power + powerDeadband) >= reqPowKw)
+             this->power -= powDiff * float(task)/1000.0 - + powerDeadband/2;
+            Serial.println("local mode");
+          }
+          //Remote mode - PEMS is sending incr/decr pulses
+          else
+          {
+            bool incrPulse = arrayCoilsR[incrAdr];
+            bool decrPulse = arrayCoilsR[decrAdr];
+            if(incrPulse)
+            {
+              this->power += 10.0;
+              //Serial.println("incr pulse");
+            }
+             
+            if(decrPulse)
+            {
+              this->power -= 10.0;
+              //Serial.println("decr pulse");
+            }
+              
+            //Serial.println("remote mode");
+          }
+
           //values oscilating
           //this->power = addNoise(this->refPower, -5.0, 5.0);
           this->power = constrain(this->power, 0, this->maxPower);
