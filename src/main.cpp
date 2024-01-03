@@ -429,11 +429,11 @@ void loop()
 
     gGenerator1.readMode();
     gGenerator1.readGenBrkState(gBreaker1.breakerState == eBreakerState::Closed);
-    gGenerator1.readState(Gen1StartAuto_ADR, Gen1StopAuto_ADR, Gen1RefPower_ADR);
+    gGenerator1.readState(Gen1StartAuto_ADR, Gen1StopAuto_ADR, Gen1RefPower_ADR, Gen1Unload_ADR);
     
     gGenerator2.readMode();
     gGenerator2.readGenBrkState(gBreaker2.breakerState == eBreakerState::Closed);
-    gGenerator2.readState(Gen2StartAuto_ADR, Gen2StopAuto_ADR, Gen2RefPower_ADR);
+    gGenerator2.readState(Gen2StartAuto_ADR, Gen2StopAuto_ADR, Gen2RefPower_ADR, Gen2Unload_ADR);
 
     //read bustie
     gGenerator1.readBustieState(gBreaker3.breakerState);
@@ -544,8 +544,8 @@ void loop()
   hvacSimulation(gDamper1, gDamper2, gValve3, gFan1, gHvacSimVars);
 
   //---------- RCS ------------
-  rcsAzipodSimulate(grcsVars, gBus1.power);
-  rcsBowThrustersSimulate(grcsVars, gBus2.power);
+  rcsAzipodSimulate(grcsVars, gBus1.power, gBreaker5.breakerState == eBreakerState::Closed);
+  rcsBowThrustersSimulate(grcsVars, gBus2.power, gBreaker6.breakerState == eBreakerState::Closed);
   
 
 

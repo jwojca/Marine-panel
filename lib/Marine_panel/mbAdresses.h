@@ -178,6 +178,9 @@ extern float mbMultFactor;
 #define Gen1Decr_ADR 15
 #define Gen2Incr_ADR 16
 #define Gen2Decr_ADR 17
+#define Gen1Unload_ADR 18
+#define Gen2Unload_ADR 19
+
 
 
 

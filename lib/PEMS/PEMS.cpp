@@ -226,7 +226,7 @@ void Generator::readMode()
     this->generatorMode = Auto;
 }
 
-void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t refPowAdr)
+void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t refPowAdr, uint16_t unloadAdr)
 {
   //For dynamic rows change
   if(alarmCounter == 0)
@@ -347,12 +347,13 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t re
 
       if (this->generatorPrevState == eGeneratorState::Delivering)
       {
+        bool unloading = arrayCoilsR[unloadAdr];
         if(stop)
         {
           this->timer = millis(); //reset timer
           this->generatorState = eGeneratorState::Stopping;
         }
-        else if(!this->genBrkClosed)
+        else if(unloading)
         {
           this->generatorState = eGeneratorState::Unloading;
         }
@@ -463,18 +464,10 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
             bool incrPulse = arrayCoilsR[incrAdr];
             bool decrPulse = arrayCoilsR[decrAdr];
             if(incrPulse)
-            {
               this->power += 10.0;
-              //Serial.println("incr pulse");
-            }
              
             if(decrPulse)
-            {
               this->power -= 10.0;
-              //Serial.println("decr pulse");
-            }
-              
-            //Serial.println("remote mode");
           }
 
           //values oscilating
@@ -501,7 +494,9 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
         {
           this->display->clearDisplay();
           this->dispState("Unload.");
-          this->unloading(loadTime);
+          this->unloading(8000);
+
+
         }
             //RGBLedColor(firstPin, 0, 255, 0, pwm);
         if(this->generatorState == eGeneratorState::Stopping)

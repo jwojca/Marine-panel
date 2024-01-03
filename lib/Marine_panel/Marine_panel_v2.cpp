@@ -556,13 +556,13 @@ void Pump::readState(uint16_t mbAdr, uint16_t mbAdr2)
     else    //Auto - read from modbus
     {
       this->run = arrayCoilsR[mbAdr];
-      this->refSpeed = (float)(arrayHregsR[mbAdr2] * mbMultFactor);
+      this->refSpeed = (float)(arrayHregsR[mbAdr2]) / mbMultFactor;
     }
 
     
     bool stop = !this->run;
 
-    if(run && (this->pumpPrevState == Stopped || this->pumpPrevState == Stopping))
+    if(run && (this->pumpPrevState == Stopped || this->pumpPrevState == Stopping || this->prevRefSpeed > this->refSpeed))
         this->pumpState = Starting;
     if (stop && (this->pumpPrevState == Running || this->pumpPrevState == Starting))
         this->pumpState = Stopping;
@@ -625,7 +625,7 @@ void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uin
   uint16_t fbSpeed = 0;
   
   //Write pump states
-  fbRun = this->pumpState == Running || this->pumpState == Starting || this->pumpState == Stopping || this->pumpState == StoppingF;
+  fbRun = this->pumpState == Running || this->pumpState == Starting || this->pumpState == Stopping || this->pumpState == StoppingF || this->pumpState == SlowingDown;
   fbStp = this->pumpState == Stopped;
   if(this->pumpMode == Auto)
     fbAut = true;
@@ -800,8 +800,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
     }
     else if(Pump1.pumpState == Stopping || Pump1.pumpState == StoppingF)
         Pump1.stopping(pmpStrtDelay, dt, vmsSimVars);
-    //else if(Pump1.pumpState == Stopped || Pump1.pumpState == Failure || Pump1.pumpState == Failure2)
-    else
+    else if(Pump1.pumpState == Stopped || Pump1.pumpState == Failure || Pump1.pumpState == Failure2)
     {
         Pump1.pressure = 0;
         Pump1.actInflow = 0;
@@ -823,7 +822,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
     }
     else if(Pump2.pumpState == Stopping || Pump2.pumpState == StoppingF)
         Pump2.stopping(pmpStrtDelay, dt, vmsSimVars);
-    else
+    else if(Pump2.pumpState == Stopped || Pump2.pumpState == Failure || Pump2.pumpState == Failure2)
     {
         Pump2.pressure = 0;
         Pump2.actInflow = 0;
@@ -1255,7 +1254,7 @@ void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task)
 
 }
 
-void rcsAzipodSimulate(rcsVarsStruct &rcsVars, float bus1Pow)
+void rcsAzipodSimulate(rcsVarsStruct &rcsVars, float bus1Pow, bool feederClosed)
 {
   float angleDif;
   if(rcsVars.refAnglePORT > 0.0)
@@ -1274,7 +1273,7 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars, float bus1Pow)
   //convert bus power to MW
   bus1Pow /= 1000; 
 
-  bool powerOk = (bus1Pow >= rcsVars.refPower) or abs(bus1Pow - rcsVars.refPower) < 0.01;
+  bool powerOk = feederClosed && ((bus1Pow >= rcsVars.refPower) or abs(bus1Pow - rcsVars.refPower) < 0.01);
   rcsVars.actPower = min(bus1Pow, rcsVars.refPower);
 
   rcsVars.refPower = (powRequieredSteer + powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
@@ -1361,7 +1360,7 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars, float bus1Pow)
 
 }
 
-void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, float bus2Pow)
+void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, float bus2Pow, bool feederClosed)
 {
   float speedDif;
   if(rcsVars.refRpmPortBT > 0.0)
@@ -1383,7 +1382,7 @@ void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, float bus2Pow)
   //simulate actual BT power
   rcsVars.actPowerBT = min(bus2Pow, rcsVars.refPowerBT);
  
-  bool powerOk = (bus2Pow >= rcsVars.refPowerBT) or abs(bus2Pow - rcsVars.refPowerBT) < 0.01;
+  bool powerOk = feederClosed && ((bus2Pow >= rcsVars.refPowerBT) or abs(bus2Pow - rcsVars.refPowerBT) < 0.01);
   if(powerOk)
   {
     //Turn to port+
