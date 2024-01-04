@@ -74,11 +74,11 @@ enum class eGeneratorState{Failure, Failure2, Stopped, Starting, Stopping, Stopp
 class Generator
 {
   public:
-    float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 3000.0, refPower = 0;
+    float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 1910.0, reqPower = 0.0;
     float speed = 0.0, nomSpeed = 850.0, maxSpeed = 1500.0, minSpeed = 0.0;
     float voltage = 0.0;
-    float nomVoltage = 700.0;
-    float nomFrequency = 50.0;
+    float nomVoltage = 690.0;
+    float nomFrequency = 60.0;
     float frequency = 0.0;
     eGeneratorState generatorState = eGeneratorState::Stopped;
     eGeneratorState generatorPrevState = eGeneratorState::Stopped;

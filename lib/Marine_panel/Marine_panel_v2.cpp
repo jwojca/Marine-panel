@@ -1273,13 +1273,19 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars, float bus1Pow, bool feederClosed)
   //convert bus power to MW
   bus1Pow /= 1000; 
 
+  if(feederClosed)
+    rcsVars.actPower = min(bus1Pow, rcsVars.refPower);
+  else
+    rcsVars.actPower = 0.0;
+
   bool powerOk = feederClosed && ((bus1Pow >= rcsVars.refPower) or abs(bus1Pow - rcsVars.refPower) < 0.01);
-  rcsVars.actPower = min(bus1Pow, rcsVars.refPower);
+  
 
   rcsVars.refPower = (powRequieredSteer + powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
 
   if(powerOk)
   {
+
     //Accelerating
     if(rcsVars.refRPM > rcsVars.actRPM)
     {
@@ -1379,8 +1385,12 @@ void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, float bus2Pow, bool feederC
   float spdIncr = 2.0;
   //convert to MW
   bus2Pow /= 1000;
-  //simulate actual BT power
-  rcsVars.actPowerBT = min(bus2Pow, rcsVars.refPowerBT);
+
+  if(feederClosed)
+    rcsVars.actPowerBT = min(bus2Pow, rcsVars.refPowerBT);     //simulate actual BT power
+  else
+    rcsVars.actPowerBT = 0.0;
+
  
   bool powerOk = feederClosed && ((bus2Pow >= rcsVars.refPowerBT) or abs(bus2Pow - rcsVars.refPowerBT) < 0.01);
   if(powerOk)

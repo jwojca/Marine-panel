@@ -304,7 +304,7 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t re
     {
 
       //Read ref power
-      this->refPower = arrayHregsR[refPowAdr];
+      //this->refPower = arrayHregsR[refPowAdr];
       
       //Start CMD rising edge
       if(arrayCoilsR[startCmdAdr] && !this->prevRunState)
@@ -353,9 +353,10 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t re
           this->timer = millis(); //reset timer
           this->generatorState = eGeneratorState::Stopping;
         }
-        else if(unloading)
+        //else if(unloading)
+        else if(!this->genBrkClosed)
         {
-          this->generatorState = eGeneratorState::Unloading;
+          this->generatorState = eGeneratorState::Running;
         }
           
       }
@@ -409,7 +410,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
           this->display->clearDisplay();
           this->dispState("Running");
           //values oscilating
-          //this->power = addNoise(this->nomPower, -5.0, 5.0);
+          this->power = 0.0;
           this->speed = addNoise(this->nomSpeed, -5.0, 5.0);
           this->frequency = addNoise(this->nomFrequency, -0.5, 0.5);
           this->voltage = addNoise(this->nomVoltage, -5, 5);
@@ -421,54 +422,67 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
           this->dispState("Deliver.");
 
           float powerDeadband = 5.0;
-          float reqPowKw = 0;
-
+          
+     
           //when bustie breaker close and both delivering
           if(this->bustieClosed)
           {
             //both delivering
             if(aSecondGen.generatorState == eGeneratorState::Delivering)
-              reqPowKw = ((rcsVars.refPower * 1000) + (rcsVars.refPower * 1000)) / 2.0;
+              this->reqPower = ((rcsVars.actPower * 1000) + (rcsVars.actPowerBT * 1000)) / 2.0;
+              
             //only one delivering
             else
-              reqPowKw = ((rcsVars.refPower * 1000) + (rcsVars.refPower * 1000));
+              this->reqPower = ((rcsVars.actPower * 1000) + (rcsVars.actPowerBT * 1000));
+              
           }
           //Bus 1 and Bus 2 separates
           else
           {
             //Bus 1
             if(this->genId == 1)
-              reqPowKw = rcsVars.refPower * 1000;
+              this->reqPower = rcsVars.actPower * 1000;
             //Bus 2
             if(this->genId == 2)
-             reqPowKw = rcsVars.refPowerBT * 1000;
-
+             this->reqPower = rcsVars.actPowerBT * 1000;
           }
+
+ 
           
-          float powDiff = abs(reqPowKw - this->power);
-          
+          float powDiff = abs(this->reqPower - this->power);
+
+          bool incrPulse = arrayCoilsR[incrAdr];
+          bool decrPulse = arrayCoilsR[decrAdr];
+
 
           //Increase power when required 
           //Local mode - governor handling power requests
           if(this->generatorMode == Local)
           {
-            if((this->power - powerDeadband) <= reqPowKw)
+            if((this->power - powerDeadband) <= this->reqPower)
               this->power += powDiff * float(task)/1000.0 + powerDeadband/2;
-            if((this->power + powerDeadband) >= reqPowKw)
+            if((this->power + powerDeadband) >= this->reqPower)
              this->power -= powDiff * float(task)/1000.0 - + powerDeadband/2;
             Serial.println("local mode");
           }
           //Remote mode - PEMS is sending incr/decr pulses
-          else
+        else
+        {
+
+          if(incrPulse)
           {
-            bool incrPulse = arrayCoilsR[incrAdr];
-            bool decrPulse = arrayCoilsR[decrAdr];
-            if(incrPulse)
-              this->power += 10.0;
-             
-            if(decrPulse)
-              this->power -= 10.0;
+            this->power += 10.0;
+            //this->reqPower += 10.0;
+            //aSecondGen.reqPower -= 10.0;
           }
+
+          if(decrPulse)
+          {
+            this->power -= 10.0;
+            //this->reqPower -= 10.0; 
+            //aSecondGen.reqPower += 10.0;
+          }
+        }
 
           //values oscilating
           //this->power = addNoise(this->refPower, -5.0, 5.0);
@@ -476,7 +490,12 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
           this->speed = addNoise(this->nomSpeed, -5.0, 5.0);
 
           //Simulation of voltage and frequency
+          float frqKhz = map(this->power, this->minPower, this->maxPower, (this->nomFrequency - 1) * 1000, (this->nomFrequency + 1) * 1000);
+          this->frequency = frqKhz/1000.0;
+          this->voltage = addNoise(this->nomVoltage, -1, 1);
+          //this->voltage = map(this->power, this->minPower, this->maxPower, this->nomVoltage + 40, this->nomVoltage);
           //When bustie closed, generators voltage and frequency is equal
+          /*
           if(this->genId == 2 && this->bustieClosed && aSecondGen.generatorState == eGeneratorState::Delivering)
           {
             this->frequency = aSecondGen.frequency;
@@ -488,6 +507,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
             this->frequency = addNoise(this->nomFrequency, -0.5, 0.5);
             this->voltage = addNoise(this->nomVoltage, -5, 5);
           }
+          */
 
         }
         if(this-> generatorState == eGeneratorState::Unloading)
