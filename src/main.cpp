@@ -376,12 +376,15 @@ void loop()
   5. SAVE PREV STATE
   */
 
+  /* 
   if(gDpOn = read2State(P5, false, pcf7))
-    Serial.println("DP1");
+    Serial.println("DP1"); */
 
-  if(!gDpOn)
+  bool simEnable = gAzButtRpm.actState && gAzButtSteer.actState;
+
+  if(simEnable)
     simulationLoop = false;
-  else if(gDpOn && !simulationLoop)
+  else if(simEnable && !simulationLoop)
   {
     simulationLoop = true;
     simState = Init;
@@ -581,9 +584,9 @@ void loop()
   gBreaker6.writeMb(Brkr6Closed_ADR, Brkr6Opened_ADR, Brkr6Failure_ADR, Brkr6Auto_ADR);
 
   gGenerator1.writeCmd(grcsVars, gGenerator2, Gen1Incr_ADR, Gen1Decr_ADR);
-  gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR, Gen1Volt_ADR, Gen1Freq_ADR);
+  gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR, Gen1Volt_ADR, Gen1Freq_ADR, Gen1Auto_ADR);
   gGenerator2.writeCmd(grcsVars, gGenerator1, Gen2Incr_ADR, Gen2Decr_ADR);
-  gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR, Gen2Volt_ADR, Gen2Freq_ADR);
+  gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR, Gen2Volt_ADR, Gen2Freq_ADR, Gen2Auto_ADR);
 
   writeBusMb(gBus1, gBus2);
 
@@ -607,6 +610,7 @@ void loop()
   //Write buttons
   writePushButMb(gBtEmButt);
   writeButMb(gBtFireAl, FireAlarmActive_ADR);
+  writeButMb(gBtDp, DpAlrmActive_ADR);
 
 
   //Write feedbacks via modbus TCP

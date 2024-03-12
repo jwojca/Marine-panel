@@ -813,12 +813,12 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
         Pump2.starting(pmpStrtDelay, dt, vmsSimVars);
     else if(Pump2.pumpState == Running)
     {   
-        Pump2.pressure = Pump2.nomPressure;
-        Pump2.pressure = addNoise(Pump2.pressure, -0.15, 0.15);
+        Pump2.pressure = addNoise(Pump2.nomPressure, -0.15, 0.15);
         float dp = (Pump2.pressure - vmsSimVars.PressureAct) * pmpFillFactor;
         Pump2.actInflow = Pump2.maxInflow * dp;
         Pump2.speed = 955;
         Pump2.speed += random(-10, 10);
+        Serial.println("Pump 2 is running");
     }
     else if(Pump2.pumpState == Stopping || Pump2.pumpState == StoppingF)
         Pump2.stopping(pmpStrtDelay, dt, vmsSimVars);

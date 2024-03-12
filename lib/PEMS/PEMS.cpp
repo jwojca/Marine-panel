@@ -400,6 +400,8 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
         
     else
     {
+
+      
         if(this->generatorState == eGeneratorState::Starting)
         {
           this->starting(loadTime);
@@ -453,7 +455,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
 
           bool incrPulse = arrayCoilsR[incrAdr];
           bool decrPulse = arrayCoilsR[decrAdr];
-
+          float droop = 0.05;
 
           //Increase power when required 
           //Local mode - governor handling power requests
@@ -468,30 +470,39 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
           //Remote mode - PEMS is sending incr/decr pulses
         else
         {
+          
 
           if(incrPulse)
           {
-            this->power += 10.0;
+            //this->power += 10.0;
+            this->offset += 0.1;
+            this->offset = constrain(this->offset, 0.0, this->nomSpeed * droop);
             //this->reqPower += 10.0;
             //aSecondGen.reqPower -= 10.0;
           }
 
           if(decrPulse)
           {
-            this->power -= 10.0;
+            //this->power -= 10.0;
+            this->offset -= 0.1;
+            this->offset = constrain(this->offset, 0.0, this->nomSpeed * droop);
             //this->reqPower -= 10.0; 
             //aSecondGen.reqPower += 10.0;
           }
+
+          this->power = (this->maxPower * this->offset)/(droop * this->nomSpeed);
+
         }
 
           //values oscilating
           //this->power = addNoise(this->refPower, -5.0, 5.0);
           this->power = constrain(this->power, 0, this->maxPower);
-          this->speed = addNoise(this->nomSpeed, -5.0, 5.0);
+          this->speed = this->nomSpeed - this->power * ((this->nomSpeed * droop) / this->maxPower);
+          this->frequency = this->nomFrequency - this->power * ((this->nomFrequency * droop) / this->maxPower);
 
           //Simulation of voltage and frequency
-          float frqKhz = map(this->power, this->minPower, this->maxPower, (this->nomFrequency - 1) * 1000, (this->nomFrequency + 1) * 1000);
-          this->frequency = frqKhz/1000.0;
+          //float frqKhz = map(this->power, this->minPower, this->maxPower, (this->nomFrequency - 1) * 1000, (this->nomFrequency + 1) * 1000);
+          //this->frequency = frqKhz/1000.0;
           this->voltage = addNoise(this->nomVoltage, -1, 1);
           //this->voltage = map(this->power, this->minPower, this->maxPower, this->nomVoltage + 40, this->nomVoltage);
           //When bustie closed, generators voltage and frequency is equal
@@ -604,12 +615,14 @@ void Generator::unloading(uint32_t loadTime)
   }
 }
 
-void Generator::writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr)
+void Generator::writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr, uint16_t fbAutAdr)
 {
   arrayHregsW[fbPowAdr - HregsWrOffset] = uint16_t(this->power * mbMultFactor);
   arrayHregsW[fbRpmAdr - HregsWrOffset] = uint16_t(this->speed * mbMultFactor);
   arrayHregsW[fbVoltAdr - HregsWrOffset] = uint16_t(this->voltage * mbMultFactor);
   arrayHregsW[fbFreqAdr - HregsWrOffset] = uint16_t(this->frequency * mbMultFactor);
+
+  arrayCoilsW[fbAutAdr - coilsWrOffset] = this->generatorMode == Auto;
 }
 
 //IMPORTANT - function only clears display and write state into buffer. Text is displayed in visualize function.

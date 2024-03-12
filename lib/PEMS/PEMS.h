@@ -75,6 +75,7 @@ class Generator
 {
   public:
     float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 1910.0, reqPower = 0.0;
+    float offset = 0.0;
     float speed = 0.0, nomSpeed = 850.0, maxSpeed = 1500.0, minSpeed = 0.0;
     float voltage = 0.0;
     float nomVoltage = 690.0;
@@ -130,7 +131,7 @@ class Generator
     void readMode();
     void readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t refPowAdr, uint16_t unloadAdr);
     void writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t incrAdr, uint16_t decrAdr);
-    void writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr);
+    void writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr, uint16_t fbAutAdr);
     void savePrevState();
     void stopping(uint32_t loadTime);
     void starting(uint32_t loadTime);

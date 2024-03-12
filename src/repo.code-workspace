@@ -1,8 +1,7 @@
 {
 	"folders": [
 		{
-			"name": "repo",
-			"path": ".."
+			"path": "."
 		}
 	],
 	"settings": {
