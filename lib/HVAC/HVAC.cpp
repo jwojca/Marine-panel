@@ -1,5 +1,5 @@
 #include "HVAC.h"
-#include <Statistical.h>
+//#include <Statistical.h>
 
 bool gRegressionCalculated = false;
 float gSlope, gOffset;
@@ -628,7 +628,7 @@ void Fan::stopping(uint32_t loadTime)
 
 void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &fan, hvacSimVarsStruct &aHvacSimVars)
 {
-
+  /*
   if(!gRegressionCalculated)
   {
     float Data_X[] = {0.0, fan.maxAirFlow};
@@ -641,6 +641,7 @@ void hvacSimulation(Damper &damper1, Damper &damper2, ValveLinear &valve, Fan &f
     Serial.print("Offset       : "); Serial.println(gOffset, 5);
     gRegressionCalculated = true;
   }
+  */
   
   float fanSpeedPct = map(fan.speed, fan.minSpeed, fan.maxSpeed, 0, 100);
   float maxPresIncrease = 500.0; 

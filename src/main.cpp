@@ -134,7 +134,7 @@ bool gMbRead = true;
 bool gMbWrite = true;
 bool gMbTaskDone = false;
 bool gDpOn = false;
-bool gFailConnect = false;
+bool gFailConnect = true;
 
 void simulationFnc();
 
@@ -144,6 +144,7 @@ void setup()
 	Serial.begin(9600);
 	delay(1000);
 
+  
   pcfAllInInit(pcf1);
   pcfAllInInit(pcf2);
   pcfAllInInit(pcf3);
@@ -151,10 +152,12 @@ void setup()
   pcfAllInInit(pcf5);
   pcfAllInInit(pcf6);
   pcfAllInInit(pcf7);
-	
+  
+  
   pwmInit(pwm1);
   pwmInit(pwm2);
   pwmInit(pwm3);
+  
 
 
   delay(1000);
@@ -231,6 +234,7 @@ void setup()
   
 
   delay(1000);
+  
   W5500Reset(); //needed?
 
   //rtc
@@ -285,6 +289,7 @@ void setup()
       if (mb.isConnected(server))
       {
         Serial.println("Successfully connected"); 
+        gFailConnect = false;
         break;  
       }
       else
@@ -303,9 +308,11 @@ void setup()
     }
     if(mbOn)
       mb.client();
-
+    
     //Null coils and Hregs
     initRegs();
+
+
   }
 
   //joystick test
@@ -354,8 +361,8 @@ uint32_t showLast = 0;
 int dispRefreshTime = 500;
 unsigned long timeNow = 0;
 
-bool simulationLoop = true;
-bool simulationInit = true;
+bool simulationLoop = false;
+
 unsigned long simTimer = 0;
 enum simStateEnum{Init, fBreakersCloseCmd, fBreakersClosing, fGenStartCmd, fGenStarting, fGenRunning5s, cb5TripCmd, cb5Tripped, cb5Tripped5s, fGenRst, fGenRst5s,
                   cb5CloseCmd, cb5Closing, fGenStartCmd2, fGenStarting2, fGenRunning5s2, setAzipodRpm, shipAccelerating, shipOnRefRpm, shipTurning, shipOnRefAngle,
@@ -380,7 +387,8 @@ void loop()
   if(gDpOn = read2State(P5, false, pcf7))
     Serial.println("DP1"); */
 
-  bool simEnable = gAzButtRpm.actState && gAzButtSteer.actState;
+  bool simEnable = false;
+  //bool simEnable = gAzButtRpm.actState && gAzButtSteer.actState;
 
   if(simEnable)
     simulationLoop = false;
@@ -394,11 +402,12 @@ void loop()
   {
     // 1. READ
     //Read command via modbus tcp
-    if(mb.isConnected(server))
+    if(mb.isConnected(server) && !gFailConnect)
     {
       readBools(mb);
       readInts(mb);
     }
+
 
 
     //---------- VMS -----------
@@ -614,7 +623,7 @@ void loop()
 
 
   //Write feedbacks via modbus TCP
-  if(mb.isConnected(server))
+  if(mb.isConnected(server) && !gFailConnect)
   {
     writeBools(mb);
     writeInts(mb);
