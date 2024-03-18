@@ -115,7 +115,7 @@ class ValveLinear
     void readMode();
     void readState(uint16_t mbAdr);
     void writeCmd();
-    void writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut);
+    void writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbAdrLoc);
     void savePrevState();
     void closing(uint32_t loadTime);
     void opening(uint32_t loadTime);
@@ -172,7 +172,7 @@ class Fan
     void readMode();
     void readState(uint16_t mbAdr, uint16_t mbAdr2);
     void writeCmd();
-    void writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut);
+    void writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbAdrLoc);
     void savePrevState();
     void stopping(uint32_t loadTime);
     void starting(uint32_t loadTime);

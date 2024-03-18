@@ -362,11 +362,12 @@ void ValveLinear::writeCmd()
 
 }
 
-void ValveLinear::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut)
+void ValveLinear::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbAdrLoc)
 {
   bool fbOpn = false;
   bool fbCls = false;
   bool fbAut = false;
+  bool fbLoc = false;
   bool fbFail = false;
 
   //Write feedbacks
@@ -374,6 +375,8 @@ void ValveLinear::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFa
   fbCls = this->valveState == eValveLinState::Closed;
   if(this->valveMode == Auto)
     fbAut = true;
+  else
+    fbLoc = true;
 
   bool valveFail = this->valveState == eValveLinState::Failure;
 
@@ -386,6 +389,7 @@ void ValveLinear::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFa
   arrayCoilsW[mbAdrCls - coilsWrOffset] = fbCls;
   arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
   arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
+  arrayCoilsW[mbAdrLoc - coilsWrOffset] = fbLoc;
 
   arrayHregsW[Vlv3PosAct_ADR - HregsWrOffset] = uint16_t(this->openAct * mbMultFactor);
 
@@ -566,10 +570,12 @@ void Fan::writeCmd()
       
 }
 
-void Fan::writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut)
+void Fan::writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbAdrLoc)
 {
+  //Local feedbacks variables
   bool fbRun = false;
   bool fbAut = false;
+  bool fbLoc = false;
   bool fbFail = false;
 
   uint16_t fbSpeed = 0;
@@ -580,6 +586,8 @@ void Fan::writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut)
   fbSpeed = uint16_t(this->speed);
   if(this->fanMode == Auto)
     fbAut = true;
+  else
+    fbLoc = true;
 
   bool fanFail = this->fanState == eFanState::Failure;
 
@@ -591,6 +599,7 @@ void Fan::writeMb(uint16_t mbAdrRun, uint16_t mbAdrFail, uint16_t mbAdrAut)
   arrayCoilsW[mbAdrRun - coilsWrOffset] = fbRun;
   arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
   arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
+  arrayCoilsW[mbAdrLoc - coilsWrOffset] = fbLoc;
 
   arrayHregsW[FanPosAct_ADR - HregsWrOffset] = uint16_t(fbSpeed * mbMultFactor);
  

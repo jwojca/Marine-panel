@@ -11,6 +11,7 @@
 #define PCF7_ADRESS 0x26
 #define PCF8_ADRESS 0x27
 
+
 #define PWM1_ADRESS 0x40
 #define PWM2_ADRESS 0x41
 #define PWM3_ADRESS 0x42
@@ -214,7 +215,7 @@ class Valve
     void readMode();
     void readState(uint16_t mbAdr);
     void writeCmd();
-    void writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut);
+    void writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbAdrLoc);
     void savePrevState();
     void closing(uint32_t loadTime);
     void opening(uint32_t loadTime);
@@ -272,7 +273,7 @@ class Pump
     void readMode();
     void readState(uint16_t mbAdr, uint16_t mbAdr2);
     void writeCmd();
-    void writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbPresAdr, bool vds = false);
+    void writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbAdrLoc, uint16_t mbPresAdr, bool vds = false);
     void savePrevState();
     void stopping(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
     void starting(uint8_t loadTime, float dt, vmsSimVarsStruct &vmsSimVars);
@@ -296,8 +297,8 @@ void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn,
 
 void pcfAllOutInit(PCF8574 &pcf);
 void pcfAllInInit(PCF8574 &pcf);
-bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574);
-uint8_t read3State(uint8_t firstPin, bool printOn, PCF8574 pcf8574);
+bool read2State(uint8_t pin, bool printOn, PCF8574 PCF8574);
+uint8_t read3State(uint8_t firstPin, bool printOn, PCF8574 PCF8574);
 
 void pwmInit(Adafruit_PWMServoDriver &pwm);
 

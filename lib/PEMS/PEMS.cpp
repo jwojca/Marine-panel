@@ -168,11 +168,13 @@ void Breaker::writeCmd()
   
 }
 
-void Breaker::writeMb(uint16_t mbAdrCls, uint16_t mbAdrOpn, uint16_t mbAdrFail, uint16_t mbAdrAut)
+void Breaker::writeMb(uint16_t mbAdrCls, uint16_t mbAdrOpn, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbAdrLoc)
 {
+  //Local feeedback variables
   bool fbCls = false;
   bool fbOpn = false;
   bool fbAut = false;
+  bool fbLoc = false;
   bool fbFail = false;
 
   //Write feedbacks
@@ -181,6 +183,8 @@ void Breaker::writeMb(uint16_t mbAdrCls, uint16_t mbAdrOpn, uint16_t mbAdrFail, 
   
   if(this->breakerMode == Auto)
     fbAut = true;
+  else
+    fbLoc = true;
 
   bool breakerFail = this->breakerState == eBreakerState::Failure;
 
@@ -191,6 +195,7 @@ void Breaker::writeMb(uint16_t mbAdrCls, uint16_t mbAdrOpn, uint16_t mbAdrFail, 
   arrayCoilsW[mbAdrOpn - coilsWrOffset] = fbOpn;
   arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
   arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
+  arrayCoilsW[mbAdrLoc - coilsWrOffset] = fbLoc;
 }
 
 void Breaker::savePrevState()

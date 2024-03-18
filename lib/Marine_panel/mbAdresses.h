@@ -186,6 +186,7 @@ extern float mbMultFactor;
 
 
 
+
 void readBools(ModbusEthernet &mb);
 void writeBools(ModbusEthernet &mb);
 void readInts(ModbusEthernet &mb);

@@ -1,6 +1,6 @@
 #include "Marine_panel_v2.h"
 
-int task = 100;
+int task = 150;
 int16_t alarmCounter = 0;
 int16_t alarmIndex = 1000;
 
@@ -122,16 +122,16 @@ bool TOff(uint32_t delay, unsigned long *timer)
 void pcfAllOutInit(PCF8574 &pcf)
 {
   // Set pinMode to OUTPUT
-  pcf.pinMode(P0, OUTPUT);
-  pcf.pinMode(P1, OUTPUT);
-  pcf.pinMode(P2, OUTPUT);
-  pcf.pinMode(P3, OUTPUT);
-  pcf.pinMode(P4, OUTPUT);
-  pcf.pinMode(P5, OUTPUT);
-  pcf.pinMode(P6, OUTPUT);
-  pcf.pinMode(P7, OUTPUT);
+  pcf.pinMode(0, OUTPUT);
+  pcf.pinMode(1, OUTPUT);
+  pcf.pinMode(2, OUTPUT);
+  pcf.pinMode(3, OUTPUT);
+  pcf.pinMode(4, OUTPUT);
+  pcf.pinMode(5, OUTPUT);
+  pcf.pinMode(6, OUTPUT);
+  pcf.pinMode(7, OUTPUT);
 
-	Serial.print("Init pcf8574...");
+	Serial.print("Init PCF8574...");
 	if (pcf.begin())
 		Serial.println("OK");
   else
@@ -140,6 +140,19 @@ void pcfAllOutInit(PCF8574 &pcf)
 
 void pcfAllInInit(PCF8574 &pcf)
 {
+	if (pcf.begin())
+		Serial.println("OK");
+  else
+  {
+    for(uint16_t i = 0; i < 10; ++i)
+    {
+      delay(10);
+      pcf.begin();
+      Serial.println("Trying to connect PCF8574 again");
+    }
+  }
+
+
   // Set pinMode to OUTPUT
   pcf.pinMode(P0, INPUT);
   pcf.pinMode(P1, INPUT);
@@ -150,16 +163,13 @@ void pcfAllInInit(PCF8574 &pcf)
   pcf.pinMode(P6, INPUT);
   pcf.pinMode(P7, INPUT);
 
-	Serial.print("Init pcf8574...");
-	if (pcf.begin())
-		Serial.println("OK");
-  else
-		Serial.println("KO");
+	Serial.print("Init PCF8574...");
+
 }
 
-bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574)
+bool read2State(uint8_t pin, bool printOn, PCF8574 PCF8574)
 {
-  uint8_t val = pcf8574.digitalRead(pin);
+  uint8_t val = PCF8574.digitalRead(pin);
   bool state;
   if(val == 0)
     state = true;
@@ -174,10 +184,10 @@ bool read2State(uint8_t pin, bool printOn, PCF8574 pcf8574)
  return state;
 }
 
-uint8_t read3State(uint8_t firstPin, bool printOn, PCF8574 pcf8574)
+uint8_t read3State(uint8_t firstPin, bool printOn, PCF8574 PCF8574)
 {
-  uint8_t val1 = pcf8574.digitalRead(firstPin);
-  uint8_t val2 = pcf8574.digitalRead(firstPin + 1);
+  uint8_t val1 = PCF8574.digitalRead(firstPin);
+  uint8_t val2 = PCF8574.digitalRead(firstPin + 1);
   uint8_t state;
   if(val1 == 1 && val2 == 1)
     state = 0;
@@ -203,6 +213,7 @@ void pwmInit(Adafruit_PWMServoDriver &pwm)
   //PWM
   pwm.begin();
   pwm.setPWMFreq(50);
+  delay(100);
 }
 
 void W5500Reset()
@@ -440,11 +451,13 @@ void Valve::writeCmd()
 
 }
 
-void Valve::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut)
+void Valve::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbAdrLoc)
 {
+  //Local feedback varibles
   bool fbOpn = false;
   bool fbCls = false;
   bool fbAut = false;
+  bool fbLoc = false;
   bool fbFail = false;
 
  
@@ -453,6 +466,8 @@ void Valve::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, ui
   fbCls = this->valveState == Closed;
   if(this->valveMode == Auto)
     fbAut = true;
+  else
+    fbLoc = true;
 
   bool valveFail = this->valveState == Failure || this->valveState == Failure2;
 
@@ -461,10 +476,12 @@ void Valve::writeMb(uint16_t mbAdrOpn, uint16_t mbAdrCls, uint16_t mbAdrFail, ui
     fbFail = (this->valveState == Failure) || (this->valveState == Failure2);
   }
 
+  //Writing feedbacks to Coils array
   arrayCoilsW[mbAdrOpn - coilsWrOffset] = fbOpn;
   arrayCoilsW[mbAdrCls - coilsWrOffset] = fbCls;
   arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
   arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
+  arrayCoilsW[mbAdrLoc - coilsWrOffset] = fbLoc;
 }
 
 
@@ -615,11 +632,13 @@ void Pump::writeCmd()
 
 }
 
-void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbPresAdr, bool vds)
+void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbAdrLoc, uint16_t mbPresAdr, bool vds)
 {
+  //Local feedback variables
   bool fbRun = false;
   bool fbStp = false;
   bool fbAut = false;
+  bool fbLoc = false;
   bool fbFail = false;
   uint16_t fbPressure = 0;
   uint16_t fbSpeed = 0;
@@ -629,6 +648,9 @@ void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uin
   fbStp = this->pumpState == Stopped;
   if(this->pumpMode == Auto)
     fbAut = true;
+  else
+    fbLoc = true;
+
 
   fbPressure = uint16_t(this->pressure * mbMultFactor);
   fbSpeed = uint16_t(this->speed * mbMultFactor);
@@ -644,6 +666,7 @@ void Pump::writeMb(uint16_t mbAdrRun, uint16_t mbAdrStp, uint16_t mbAdrFail, uin
   arrayCoilsW[mbAdrStp - coilsWrOffset] = fbStp;
   arrayCoilsW[mbAdrFail - coilsWrOffset] = fbFail;
   arrayCoilsW[mbAdrAut - coilsWrOffset] = fbAut;
+  arrayCoilsW[mbAdrLoc - coilsWrOffset] = fbLoc;
 
   arrayHregsW[mbPresAdr - HregsWrOffset] = fbPressure;
   if(vds)

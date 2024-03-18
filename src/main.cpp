@@ -142,6 +142,13 @@ void setup()
 {
 
 	Serial.begin(9600);
+
+  /*
+  Wire.begin();
+  Wire.setClock(200000);
+  Wire.setTimeOut(250);
+  */
+
 	delay(1000);
 
   
@@ -152,6 +159,7 @@ void setup()
   pcfAllInInit(pcf5);
   pcfAllInInit(pcf6);
   pcfAllInInit(pcf7);
+  
   
   
   pwmInit(pwm1);
@@ -565,32 +573,32 @@ void loop()
 
   //---------- VMS -----------
   gValve1.writeCmd();
-  gValve1.writeMb(Vlv1Opened_ADR, Vlv1Closed_ADR, Vlv1Failure_ADR, Vlv1Auto_ADR);
+  gValve1.writeMb(Vlv1Opened_ADR, Vlv1Closed_ADR, Vlv1Failure_ADR, Vlv1Auto_ADR, Vlv1Local_ADR);
   gValve2.writeCmd();
-  gValve2.writeMb(Vlv2Opened_ADR, Vlv2Closed_ADR, Vlv2Failure_ADR, Vlv2Auto_ADR);
+  gValve2.writeMb(Vlv2Opened_ADR, Vlv2Closed_ADR, Vlv2Failure_ADR, Vlv2Auto_ADR, Vlv2Local_ADR);
   
   
   gPump1.writeCmd();
-  gPump1.writeMb(Pmp1Running_ADR, Pmp1Stopped_ADR, Pmp1Failure_ADR, Pmp1Auto_ADR, Pmp1Pressure_ADR, true);
+  gPump1.writeMb(Pmp1Running_ADR, Pmp1Stopped_ADR, Pmp1Failure_ADR, Pmp1Auto_ADR, Pmp1Local_ADR,Pmp1Pressure_ADR, true);
   gPump2.writeCmd();
-  gPump2.writeMb(Pmp2Running_ADR, Pmp2Stopped_ADR, Pmp2Failure_ADR, Pmp2Auto_ADR, Pmp2Pressure_ADR);
+  gPump2.writeMb(Pmp2Running_ADR, Pmp2Stopped_ADR, Pmp2Failure_ADR, Pmp2Auto_ADR, Pmp2Local_ADR,Pmp2Pressure_ADR);
 
   vmsMbWrite(gVmsSimVars);
   
 
   //---------- PEMS -----------
   gBreaker1.writeCmd();
-  gBreaker1.writeMb(Brkr1Closed_ADR, Brkr1Opened_ADR, Brkr1Failure_ADR, Brkr1Auto_ADR);
+  gBreaker1.writeMb(Brkr1Closed_ADR, Brkr1Opened_ADR, Brkr1Failure_ADR, Brkr1Auto_ADR, Brkr1Local_ADR);
   gBreaker2.writeCmd();
-  gBreaker2.writeMb(Brkr2Closed_ADR, Brkr2Opened_ADR, Brkr2Failure_ADR, Brkr2Auto_ADR);
+  gBreaker2.writeMb(Brkr2Closed_ADR, Brkr2Opened_ADR, Brkr2Failure_ADR, Brkr2Auto_ADR, Brkr2Local_ADR);
   gBreaker3.writeCmd();
-  gBreaker3.writeMb(Brkr3Closed_ADR, Brkr3Opened_ADR, Brkr3Failure_ADR, Brkr3Auto_ADR);
+  gBreaker3.writeMb(Brkr3Closed_ADR, Brkr3Opened_ADR, Brkr3Failure_ADR, Brkr3Auto_ADR, Brkr3Local_ADR);
   gBreaker4.writeCmd();
-  gBreaker4.writeMb(Brkr4Closed_ADR, Brkr4Opened_ADR, Brkr4Failure_ADR, Brkr4Auto_ADR);
+  gBreaker4.writeMb(Brkr4Closed_ADR, Brkr4Opened_ADR, Brkr4Failure_ADR, Brkr4Auto_ADR, Brkr4Local_ADR);
   gBreaker5.writeCmd();
-  gBreaker5.writeMb(Brkr5Closed_ADR, Brkr5Opened_ADR, Brkr5Failure_ADR, Brkr5Auto_ADR);
+  gBreaker5.writeMb(Brkr5Closed_ADR, Brkr5Opened_ADR, Brkr5Failure_ADR, Brkr5Auto_ADR, Brkr5Local_ADR);
   gBreaker6.writeCmd();
-  gBreaker6.writeMb(Brkr6Closed_ADR, Brkr6Opened_ADR, Brkr6Failure_ADR, Brkr6Auto_ADR);
+  gBreaker6.writeMb(Brkr6Closed_ADR, Brkr6Opened_ADR, Brkr6Failure_ADR, Brkr6Auto_ADR, Brkr6Local_ADR);
 
   gGenerator1.writeCmd(grcsVars, gGenerator2, Gen1Incr_ADR, Gen1Decr_ADR);
   gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR, Gen1Volt_ADR, Gen1Freq_ADR, Gen1Auto_ADR);
@@ -609,9 +617,9 @@ void loop()
   gDamper2.writeCmd();
   gDamper2.writeMb(Dmp2OpLim_ADR, Dmp2ClLim_ADR, Dmp2Fail_ADR, Dmp2Aut_ADR);
   gValve3.writeCmd();
-  gValve3.writeMb(Vlv3Opened_ADR, Vlv3Closed_ADR, Vlv3Failure_ADR, Vlv3Auto_ADR);
+  gValve3.writeMb(Vlv3Opened_ADR, Vlv3Closed_ADR, Vlv3Failure_ADR, Vlv3Auto_ADR, Vlv3Local_ADR);
   gFan1.writeCmd();
-  gFan1.writeMb(FanRunning_ADR, FanFailure_ADR, FanAuto_ADR);
+  gFan1.writeMb(FanRunning_ADR, FanFailure_ADR, FanAuto_ADR, FanLocal_ADR);
 
   //---------- RCS -----------
   rcsMbWrite(grcsVars);

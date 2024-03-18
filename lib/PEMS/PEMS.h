@@ -62,7 +62,7 @@ class Breaker
     void readMode();
     void readState(uint16_t cmdClsAdr, uint16_t cmdOpnAdr);
     void writeCmd();
-    void writeMb(uint16_t mbAdrCls, uint16_t mbAdrOpn, uint16_t mbAdrFail, uint16_t mbAdrAut);
+    void writeMb(uint16_t mbAdrCls, uint16_t mbAdrOpn, uint16_t mbAdrFail, uint16_t mbAdrAut, uint16_t mbAdrLoc);
     void savePrevState();
     void opening(uint32_t loadTime);
     void closing(uint32_t loadTime);
