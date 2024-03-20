@@ -1802,17 +1802,19 @@ void rcsMbRead(rcsVarsStruct &rcsVars)
   rcsVars.refRpmPortBT = float(arrayHregsR[BtrRefSpPORT_ADR]/mbMultFactor);
   rcsVars.refRpmStbdBT = float(arrayHregsR[BtrRefSpSTBD_ADR]/mbMultFactor);
 }
-void readPushBtn(pushBtn &btn, PCF8574 &pcf)
+uint8_t readPushBtn(pushBtn &btn, PCF8574 &pcf)
 {
   btn.actState = read2State(btn.pcfPin, false, pcf);
   if(btn.actState && !btn.prevState)
   {
     btn.actValue = !btn.actValue;
-    //Serial.println("Switched state");
+    btn.prevState = btn.actState;
+    Serial.println("Switched state");
+    return 1; 
   }
-    
-    
+
   btn.prevState = btn.actState;
+  return 0;
 }
 
 void writeTwoStateBtnMb(twoStateBtn &btn)
@@ -1841,5 +1843,53 @@ int joyReadData(uint8_t pin, bool verticalAxis)
     value = 0;
   return value;
 }
+
+void dispSimQuestion(Adafruit_SSD1306 &display)
+{
+  display.clearDisplay();
+  
+  String row1 = "Set simulation?";
+  String row2 = "YES: Hold BT   ";
+  String row3 = "Start and stop ";
+  String row4 = "NO: Hold";
+  String row5 = "Emergen. button";
+
+  uint8_t rowSpace = 13;
+
+  dispStringALigned(row1, display, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
+  dispStringALigned(row2, display, DejaVu_Sans_Mono_10, LeftTop, 0, rowSpace);
+  dispStringALigned(row3, display, DejaVu_Sans_Mono_10, LeftTop, 0, (2 * rowSpace) - 2);
+  dispStringALigned(row4, display, DejaVu_Sans_Mono_10, LeftTop, 0, 3 * rowSpace);
+  dispStringALigned(row5, display, DejaVu_Sans_Mono_10, LeftTop, 0, (4 * rowSpace) - 2);
+
+  display.display();
+}
+
+void dispSimResult(Adafruit_SSD1306 &display, bool answer)
+{
+  display.clearDisplay();
+  
+  String row1 = "Set simulation?";
+  String row2 = "               ";
+  String row3;
+  String row4 = "Wait for init  ";
+  String row5 = "               ";
+
+  if(answer)
+    row3 = "Simulation is ON";
+  else
+    row3 = "Simulation is OFF";
+
+  uint8_t rowSpace = 13;
+
+  dispStringALigned(row1, display, DejaVu_Sans_Mono_10, LeftTop, 0, 0);
+  dispStringALigned(row2, display, DejaVu_Sans_Mono_10, LeftTop, 0, rowSpace);
+  dispStringALigned(row3, display, DejaVu_Sans_Mono_10, LeftTop, 0, (2 * rowSpace) - 2);
+  dispStringALigned(row4, display, DejaVu_Sans_Mono_10, LeftTop, 0, 3 * rowSpace);
+  dispStringALigned(row5, display, DejaVu_Sans_Mono_10, LeftTop, 0, (4 * rowSpace) - 2);
+
+  display.display();
+}
+
 
 

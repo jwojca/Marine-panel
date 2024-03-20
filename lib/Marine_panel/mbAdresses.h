@@ -183,10 +183,6 @@ extern float mbMultFactor;
 #define DpActive_ADR 279
 
 
-
-
-
-
 void readBools(ModbusEthernet &mb);
 void writeBools(ModbusEthernet &mb);
 void readInts(ModbusEthernet &mb);

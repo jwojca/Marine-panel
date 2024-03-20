@@ -104,6 +104,10 @@ twoStateBtn gBtFireAl {.actValue = false, .pcfPin = P6, .mbAddres = FireAlarmAct
 busStruct gBus1, gBus2;
 
 bool gvWatchDog = false, gvWatchDogPrev = false;
+
+//Simulation vars
+bool simulationLoop = false;
+bool simActivate1 = false, simActivate2 = false;
  
 
 
@@ -305,7 +309,7 @@ void setup()
     Serial.println("Client connecting to Server");
     mb.connect(server, PORT);
     delay(1000);
-    
+  
     numOfTries = 0;
     while(1)
     {
@@ -334,6 +338,42 @@ void setup()
     
     //Null coils and Hregs
     initRegs();
+
+
+    //Start simulation mode
+    dispSimQuestion(display5);
+    dispSimQuestion(display6);
+    dispSimQuestion(display7);
+   
+   while(1)
+   {
+    //Break if user decline simulation mode
+    if(readPushBtn(gBtEmButt, pcf7))
+    {
+      dispSimResult(display5, false);
+      dispSimResult(display6, false);
+      dispSimResult(display7, false);
+      delay(3000);
+      break;
+    }
+      
+
+    //Break if user accepts simulation mode
+    if(readPushBtn(gBtStart, pcf7))
+      simActivate1 = true;
+    if(readPushBtn(gBtStop, pcf7))
+      simActivate2 = true;
+
+    if(simActivate1 && simActivate2)
+    {
+      simulationLoop = true;
+      dispSimResult(display5, true);
+      dispSimResult(display6, true);
+      dispSimResult(display7, true);
+      delay(3000);
+      break;
+    }
+   }
 
 
   }
@@ -384,7 +424,7 @@ uint32_t showLast = 0;
 int dispRefreshTime = 500;
 unsigned long timeNow = 0;
 
-bool simulationLoop = false;
+
 
 unsigned long simTimer = 0;
 enum simStateEnum{Init, fBreakersCloseCmd, fBreakersClosing, fGenStartCmd, fGenStarting, fGenRunning5s, cb5TripCmd, cb5Tripped, cb5Tripped5s, fGenRst, fGenRst5s,
@@ -430,21 +470,7 @@ void loop()
   5. SAVE PREV STATE
   */
 
-  /* 
-  if(gDpOn = read2State(P5, false, pcf7))
-    Serial.println("DP1"); */
-
-  bool simEnable = false;
-  //bool simEnable = gAzButtRpm.actState && gAzButtSteer.actState;
-
-  if(simEnable)
-    simulationLoop = false;
-  else if(simEnable && !simulationLoop)
-  {
-    simulationLoop = true;
-    simState = Init;
-  }
-  
+ 
   if(!simulationLoop)
   {
     // 1. READ
@@ -470,7 +496,6 @@ void loop()
 
     
     //---------- PEMS -----------
-    
     gBreaker1.readMode();
     gBreaker1.readState(Brkr1CmdClsAut_ADR, Brkr1CmdOpAut_ADR);
     gBreaker2.readMode();
@@ -562,7 +587,6 @@ void loop()
     gFan1.readState(FanCmdStartAut_ADR, FanPosRef_ADR);
 
     
-    
     //Buttons
 
     //Push buttons
@@ -580,8 +604,6 @@ void loop()
     
 
   // 2. SIMULATE
-  
-  //simulationLoop = false;
 
   //Simulation loop for demonstration
   if(simulationLoop)
@@ -674,8 +696,8 @@ void loop()
   if(millis() - timeNow > dispRefreshTime)
   {
     //---------- VMS -----------
-    vmsDispPump(display10, gPump1.speed, gPump1.pressure, gPump2.pressure);
-    vmsDispPressure(display11, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
+    vmsDispPump(display11, gPump1.speed, gPump1.pressure, gPump2.pressure);
+    vmsDispPressure(display10, gVmsSimVars.PressureRef, gVmsSimVars.PressureAct);
 
     //---------- HVAC -----------
     hvacVisualization(display12, gFan1, gHvacSimVars);

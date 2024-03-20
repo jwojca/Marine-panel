@@ -334,10 +334,12 @@ void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, float bus2Pow, bool feederC
 void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVarsStruct);
 void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVars);
 void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);
+void dispSimQuestion(Adafruit_SSD1306 &display);
+void dispSimResult(Adafruit_SSD1306 &display, bool answer);
 
 void rcsMbWrite(rcsVarsStruct &rcsVars);
 void rcsMbRead(rcsVarsStruct &rcsVars);
-void readPushBtn(pushBtn &btn, PCF8574 &pcf);
+uint8_t readPushBtn(pushBtn &btn, PCF8574 &pcf);
 void writeTwoStateBtnMb(twoStateBtn &btn);
 void writePushButMb(pushBtn &btn);
 
