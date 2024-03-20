@@ -14,6 +14,7 @@
 #include <ModbusTCPTemplate.h>
 
 
+
 //rtc
 RTC_DS1307 rtc;
 bool setTime = false;
@@ -86,20 +87,27 @@ Damper gDamper1(&rtc, &alarmDisps, hvacD1Alarm1, pwm3, RGB11, P0, P4, &pcf6, &pc
 ValveLinear gValve3(&rtc, &alarmDisps, hvacV3Alarm1, pwm3, RGB12, P4, &pcf6, P6, &pcf5);
 Fan gFan1(&rtc, &alarmDisps, pemsCB1Alarm1, pwm3, RGB13, P6, &pcf6, P7, &pcf5);
 
-
+//Push Buttons
 pushBtn gAzButtSteer { .actState = false, .prevState = false, .actValue = false, .pcfPin = P0 };
 pushBtn gAzButtRpm { .actState = false, .prevState = false, .actValue = false, .pcfPin = P1 };
 pushBtn gBtEmButt { .actState = false, .prevState = false, .actValue = false, .pcfPin = P2, .mbAddres = EsdActive_ADR};
 pushBtn gBtStart { .actState = false, .prevState = false, .actValue = false, .pcfPin = P3 };
 pushBtn gBtStop { .actState = false, .prevState = false, .actValue = false, .pcfPin = P4 };
 
+//2 state buttons
+//bool gBtDp = false;
+//bool gBtFireAl = false;
+
+twoStateBtn gBtDp {.actValue = false, .pcfPin = P5, .mbAddres = DpActive_ADR};
+twoStateBtn gBtFireAl {.actValue = false, .pcfPin = P6, .mbAddres = FireAlarmActive_ADR};
+
 busStruct gBus1, gBus2;
+
+bool gvWatchDog = false, gvWatchDogPrev = false;
  
 
-//pushBtn gBtDp { .actState = false, .prevState = false, .actValue = false, .pcfPin = P5 };
-//pushBtn gBtFireAl { .actState = false, .prevState = false, .actValue = false, .pcfPin = P6, .mbAddres = FireAlarmActive_ADR};
-bool gBtDp = false;
-bool gBtFireAl = false;
+
+
 
 
 #define LOGO_HEIGHT   16
@@ -140,31 +148,38 @@ void simulationFnc();
 
 void setup()
 {
-
-	Serial.begin(9600);
-
-  /*
   Wire.begin();
-  Wire.setClock(200000);
+  Wire.setClock(50000);
   Wire.setTimeOut(250);
-  */
 
-	delay(1000);
+  delay(100);
+	Serial.begin(9600);
+	delay(100);
 
   
-  pcfAllInInit(pcf1);
-  pcfAllInInit(pcf2);
-  pcfAllInInit(pcf3);
-  pcfAllInInit(pcf4);
-  pcfAllInInit(pcf5);
-  pcfAllInInit(pcf6);
-  pcfAllInInit(pcf7);
+  pcfAllInInit(pcf1, PCF1_ADRESS);
+  pcfAllInInit(pcf2, PCF2_ADRESS);
+  pcfAllInInit(pcf3, PCF3_ADRESS);
+  pcfAllInInit(pcf4, PCF4_ADRESS);
+  pcfAllInInit(pcf5, PCF5_ADRESS);
+  pcfAllInInit(pcf6, PCF6_ADRESS);
+  pcfAllInInit(pcf7, PCF7_ADRESS);
   
   
   
   pwmInit(pwm1);
+  Wire.beginTransmission(PWM1_ADRESS);
+  uint error = Wire.endTransmission();
+  Serial.println(error);
   pwmInit(pwm2);
+  Wire.beginTransmission(PWM2_ADRESS);
+  error = Wire.endTransmission();
+  Serial.println(error);
   pwmInit(pwm3);
+  Wire.beginTransmission(PWM3_ADRESS);
+  error = Wire.endTransmission();
+  Serial.println(error);
+  
   
 
 
@@ -383,6 +398,30 @@ simStateEnum simState = Init;
 void loop()
 {
 
+  //WatchDog
+  Wire.beginTransmission(PCF2_ADRESS);
+  uint error = Wire.endTransmission();
+  Serial.println(error);
+  if(error != 0)
+  {
+    delay(100);
+    pcfAllInInit(pcf1, PCF1_ADRESS);
+    pcfAllInInit(pcf2, PCF2_ADRESS);
+    pcfAllInInit(pcf3, PCF3_ADRESS);
+    pcfAllInInit(pcf4, PCF4_ADRESS);
+    pcfAllInInit(pcf5, PCF5_ADRESS);
+    pcfAllInInit(pcf6, PCF6_ADRESS);
+    pcfAllInInit(pcf7, PCF7_ADRESS);
+    
+    pwmInit(pwm1);
+    pwmInit(pwm2);
+    pwmInit(pwm3);
+    delay(100);
+  }
+
+
+  
+
   /*
   1. READ
   2. SIMULATE
@@ -415,8 +454,6 @@ void loop()
       readBools(mb);
       readInts(mb);
     }
-
-
 
     //---------- VMS -----------
     gValve1.readMode();
@@ -507,8 +544,6 @@ void loop()
     //grcsVars.actPowerBT = abs(gGenerator2.power/1000.0);   //MW
     
 
-
-    
     //RCS
     rcsAzipodReadData(grcsVars, task);
     rcsBowThrustersReadData(grcsVars, task);
@@ -538,14 +573,11 @@ void loop()
     readPushBtn(gBtStop, pcf7);
 
     //2state buttons
-    gBtDp = read2State(P5, false, pcf7);
-    gBtFireAl = read2State(P6, false, pcf7);
+    gBtDp.actValue = read2State(P5, false, pcf7);
+    gBtFireAl.actValue = read2State(P6, false, pcf7);
     
   }
     
- 
-
-  //Serial.println(gValve1.valveState);
 
   // 2. SIMULATE
   
@@ -611,7 +643,6 @@ void loop()
   //---------- HVAC -----------
   hvacWriteMb(gHvacSimVars);
 
-  
   gDamper1.writeCmd();
   gDamper1.writeMb(Dmp1OpLim_ADR, Dmp1ClLim_ADR, Dmp1Fail_ADR, Dmp1Aut_ADR);
   gDamper2.writeCmd();
@@ -626,8 +657,8 @@ void loop()
 
   //Write buttons
   writePushButMb(gBtEmButt);
-  writeButMb(gBtFireAl, FireAlarmActive_ADR);
-  writeButMb(gBtDp, DpAlrmActive_ADR);
+  writeTwoStateBtnMb(gBtFireAl);
+  writeTwoStateBtnMb(gBtDp);
 
 
   //Write feedbacks via modbus TCP
@@ -697,7 +728,6 @@ void loop()
     delay(100);
   }
     
-
 
 }
 

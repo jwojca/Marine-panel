@@ -2,14 +2,14 @@
 #define MARINE_PANEL_V2_H
 
 //PCF modules from different manufacturers may have different start up adresses!!! Needs to be verified by I2C scanner
-#define PCF1_ADRESS 0x38    
+#define PCF1_ADRESS 0x27 //0x38    
 #define PCF2_ADRESS 0x21
 #define PCF3_ADRESS 0x22
 #define PCF4_ADRESS 0x23
 #define PCF5_ADRESS 0x24
 #define PCF6_ADRESS 0x25
 #define PCF7_ADRESS 0x26
-#define PCF8_ADRESS 0x27
+//#define PCF8_ADRESS 0x27
 
 
 #define PWM1_ADRESS 0x40
@@ -169,6 +169,13 @@ struct pushBtn
   uint16_t mbAddres;
 };
 
+struct twoStateBtn
+{
+  bool actValue;
+  uint8_t pcfPin;
+  uint16_t mbAddres;
+};
+
 
 
 
@@ -296,7 +303,7 @@ void RGBLedTest(uint8_t numOfLeds, Adafruit_PWMServoDriver &pwm);
 void RGBLedBlink(Adafruit_PWMServoDriver &pwm, uint8_t firstPin, int durationOn, int durationOff, color aColor, unsigned long *timer);
 
 void pcfAllOutInit(PCF8574 &pcf);
-void pcfAllInInit(PCF8574 &pcf);
+void pcfAllInInit(PCF8574 &pcf, uint16_t adress);
 bool read2State(uint8_t pin, bool printOn, PCF8574 PCF8574);
 uint8_t read3State(uint8_t firstPin, bool printOn, PCF8574 PCF8574);
 
@@ -331,7 +338,7 @@ void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);
 void rcsMbWrite(rcsVarsStruct &rcsVars);
 void rcsMbRead(rcsVarsStruct &rcsVars);
 void readPushBtn(pushBtn &btn, PCF8574 &pcf);
-void writeButMb(bool buttVal, uint16_t adr);
+void writeTwoStateBtnMb(twoStateBtn &btn);
 void writePushButMb(pushBtn &btn);
 
 

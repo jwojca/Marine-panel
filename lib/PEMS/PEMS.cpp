@@ -470,7 +470,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
               this->power += powDiff * float(task)/1000.0 + powerDeadband/2;
             if((this->power + powerDeadband) >= this->reqPower)
              this->power -= powDiff * float(task)/1000.0 - + powerDeadband/2;
-            Serial.println("local mode");
+            //Serial.println("local mode");
           }
           //Remote mode - PEMS is sending incr/decr pulses
         else

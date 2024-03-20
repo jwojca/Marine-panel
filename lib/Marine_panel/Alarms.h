@@ -33,9 +33,9 @@ static mpAlarm pemsCB6Alarm1 {"26-10-2022 08:47", "PEMS Cbreaker 6", "Low priori
 
 //----------------------------------------- HVAC -----------------------------------------------------
 static mpAlarm hvacD1Alarm1 {"26-10-2022 08:47", "HVAC Damper 1", "Med priority", "General alarm"};
-static mpAlarm hvacD2Alarm1 {"26-10-2022 08:47", "HVAC Damper 1", "Med priority", "General alarm"};
+static mpAlarm hvacD2Alarm1 {"26-10-2022 08:47", "HVAC Damper 2", "Med priority", "General alarm"};
 static mpAlarm hvacV3Alarm1 {"26-10-2022 08:47", "HVAC Valve 3", "Med priority", "Feedback fail"};
-static mpAlarm hvacF1Alarm1 {"26-10-2022 08:47", "HVAC Fan 2", "Med priority", "Feedback fail"};
+static mpAlarm hvacF1Alarm1 {"26-10-2022 08:47", "HVAC Fan ", "Med priority", "Feedback fail"};
 
 //------------------------------------Fire alarm -----------------------------------------------------
 static mpAlarm fireAlarm {"26-10-2022 08:47", "Fire alarm", "High priority", ""};

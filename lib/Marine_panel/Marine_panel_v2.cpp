@@ -138,22 +138,9 @@ void pcfAllOutInit(PCF8574 &pcf)
 		Serial.println("KO");
 }
 
-void pcfAllInInit(PCF8574 &pcf)
+void pcfAllInInit(PCF8574 &pcf, uint16_t adress)
 {
-	if (pcf.begin())
-		Serial.println("OK");
-  else
-  {
-    for(uint16_t i = 0; i < 10; ++i)
-    {
-      delay(10);
-      pcf.begin();
-      Serial.println("Trying to connect PCF8574 again");
-    }
-  }
-
-
-  // Set pinMode to OUTPUT
+  // Set pinMode to input
   pcf.pinMode(P0, INPUT);
   pcf.pinMode(P1, INPUT);
   pcf.pinMode(P2, INPUT);
@@ -163,7 +150,24 @@ void pcfAllInInit(PCF8574 &pcf)
   pcf.pinMode(P6, INPUT);
   pcf.pinMode(P7, INPUT);
 
-	Serial.print("Init PCF8574...");
+  Serial.print("Init PCF8574...");
+
+  if (pcf.begin(adress))
+    Serial.println("OK");
+  else
+  {
+    Serial.println("KO");
+    /*
+    for(uint16_t i = 0; i < 10; ++i)
+    {
+      delay(10);
+      pcf.begin();
+      Serial.println("Trying to connect PCF8574 again");
+    }
+    */
+  }
+
+	
 
 }
 
@@ -1804,16 +1808,16 @@ void readPushBtn(pushBtn &btn, PCF8574 &pcf)
   if(btn.actState && !btn.prevState)
   {
     btn.actValue = !btn.actValue;
-    Serial.println("Switched state");
+    //Serial.println("Switched state");
   }
     
     
   btn.prevState = btn.actState;
 }
 
-void writeButMb(bool buttVal, uint16_t adr)
+void writeTwoStateBtnMb(twoStateBtn &btn)
 {
-  arrayCoilsW[adr - coilsWrOffset] = buttVal;
+  arrayCoilsW[btn.mbAddres - coilsWrOffset] = btn.actValue;
 }
 
 void writePushButMb(pushBtn &btn)
