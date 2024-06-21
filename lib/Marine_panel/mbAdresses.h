@@ -174,10 +174,10 @@ extern float mbMultFactor;
 #define BtActPow_ADR 56
 #define Bus1Freq_ADR 57
 #define Bus2Freq_ADR 58
-#define Gen1Incr_ADR 14
-#define Gen1Decr_ADR 15
-#define Gen2Incr_ADR 16
-#define Gen2Decr_ADR 17
+#define Gen1Incr_ADR 34
+#define Gen1Decr_ADR 35
+#define Gen2Incr_ADR 36
+#define Gen2Decr_ADR 37
 #define Gen1Unload_ADR 18
 #define Gen2Unload_ADR 19
 #define DpActive_ADR 279

@@ -480,7 +480,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
           if(incrPulse)
           {
             //this->power += 10.0;
-            this->offset += 0.1;
+            this->offset += 0.3;
             this->offset = constrain(this->offset, 0.0, this->nomSpeed * droop);
             //this->reqPower += 10.0;
             //aSecondGen.reqPower -= 10.0;
@@ -489,7 +489,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
           if(decrPulse)
           {
             //this->power -= 10.0;
-            this->offset -= 0.1;
+            this->offset -= 0.3;
             this->offset = constrain(this->offset, 0.0, this->nomSpeed * droop);
             //this->reqPower -= 10.0; 
             //aSecondGen.reqPower += 10.0;
@@ -497,11 +497,14 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
 
           this->power = (this->maxPower * this->offset)/(droop * this->nomSpeed);
 
+          //Serial.println("Power: " + String(this->power));
+          //Serial.println("Offset: " + String(this->offset));
+
         }
 
           //values oscilating
           //this->power = addNoise(this->refPower, -5.0, 5.0);
-          this->power = constrain(this->power, 0, this->maxPower);
+          this->power = constrain(this->power, 20.0, this->maxPower);
           this->speed = this->nomSpeed - this->power * ((this->nomSpeed * droop) / this->maxPower);
           this->frequency = this->nomFrequency - this->power * ((this->nomFrequency * droop) / this->maxPower);
 

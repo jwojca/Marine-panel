@@ -325,7 +325,7 @@ void setup()
         mb.connect(server, PORT);
         numOfTries++;
       }
-      if(numOfTries > 5)
+      if(numOfTries > 15)
       {
         mbOn = false;
         gFailConnect = true;
@@ -373,6 +373,8 @@ void setup()
       delay(3000);
       break;
     }
+
+
    }
 
 
@@ -441,7 +443,7 @@ void loop()
   //WatchDog
   Wire.beginTransmission(PCF2_ADRESS);
   uint error = Wire.endTransmission();
-  Serial.println(error);
+  //Serial.println(error);
   if(error != 0)
   {
     delay(100);
