@@ -2,10 +2,6 @@
 
 #include "../Marine_panel/Marine_panel_v2.h"
 
-struct busStruct
-{
-    float voltage, frequency, power; 
-};
 
 
 

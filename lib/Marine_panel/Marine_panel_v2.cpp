@@ -23,7 +23,6 @@ color None{0, 0, 0};
 uint16_t mbVmsPressRef = 0; //Bars
 
 
-
 void incrementAlarmCounter(alarmDispsStruct &alarmDisps)
 {
   
@@ -1281,7 +1280,7 @@ void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task)
 
 }
 
-void rcsAzipodSimulate(rcsVarsStruct &rcsVars, float bus1Pow, bool feederClosed)
+void rcsAzipodSimulate(rcsVarsStruct &rcsVars, busStruct bus, bool feederClosed)
 {
   float angleDif;
   if(rcsVars.refAnglePORT > 0.0)
@@ -1291,24 +1290,27 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars, float bus1Pow, bool feederClosed)
     
   float rmpDif = abs(rcsVars.refRPM - rcsVars.actRPM);
   float minPowRequiered = 0.4;
-  float powRequieredSteer = map(angleDif, 0, 360, 0, (rcsVars.maxPower/2.0) * 1000.0);
-  float powRequieredRpm = map(rmpDif, 0, abs(rcsVars.maxRPM - rcsVars.minRPM), 0, (rcsVars.maxPower/2.0) * 1000.0);
-
+  float rpmPowerConst = 1.0;
   float rpmPct = map(abs(rcsVars.actRPM), 0, rcsVars.maxRPM, 0, 100);
+  float powRequieredSteer = map(angleDif, 0, 360, 0, (rcsVars.maxPower/2.0) * 1000.0);
+  float powRequieredRpm = map(rmpDif, 0, abs(rcsVars.maxRPM - rcsVars.minRPM), 0, (rcsVars.maxPower) * 1000.0) + (rpmPowerConst * rpmPct) * 10.0;
+  powRequieredRpm = constrain(powRequieredRpm, 0.0, rcsVars.nomPower * 1000.0);
+
+  
 
   bool boatMoving = bool(rcsVars.actRPM || rcsVars.actAnglePORT || rcsVars.actAngleSTBD);
   //convert bus power to MW
-  bus1Pow /= 1000; 
+  bus.power /= 1000; 
 
-  if(feederClosed)
-    rcsVars.actPower = rcsVars.refPower; //min(bus1Pow, rcsVars.refPower);
+  if(feederClosed && bus.live)
+    rcsVars.actPower = rcsVars.refPower;//min(bus.power, rcsVars.refPower);
   else
     rcsVars.actPower = 0.0;
 
-  bool powerOk = feederClosed && ((bus1Pow >= rcsVars.refPower) or abs(bus1Pow - rcsVars.refPower) < 0.01);
+  bool powerOk = feederClosed && ((bus.power >= rcsVars.refPower) or abs(bus.power - rcsVars.refPower) < 0.01);
   
 
-  rcsVars.refPower = (powRequieredSteer + powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
+  rcsVars.refPower = ((powRequieredSteer + powRequieredRpm)/1000.0 + minPowRequiered) * float(boatMoving);
 
   if(powerOk)
   {

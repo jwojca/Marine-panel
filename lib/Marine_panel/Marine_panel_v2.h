@@ -117,12 +117,18 @@ struct vmsSimVarsStruct
     float Inflow, Outflow;                       //l/s
 };
 
+struct busStruct
+{
+    float voltage, frequency, power; 
+    bool live = false;
+};
+
 
 
 struct rcsVarsStruct
 {
   float actRPM = 0.0, refRPM = 0.0, minRPM = -180.0, maxRPM = 180.0;
-  float refPower = 0.0, actPower = 0.0, minPower = -2.0, maxPower = 4.0;
+  float refPower = 0.0, actPower = 0.0, minPower = -2.0, maxPower = 4.0, nomPower = 3.6; //MW
   float refAngle = 0, actAngle = 0; 
   float refAngleSTBD = 0.0, refAnglePORT = 0.0, actAngleSTBD = 0.0, actAnglePORT = 0.0; 
 
@@ -328,7 +334,7 @@ void drawCirclePems(int16_t x0, int16_t y0, int16_t radius, Adafruit_SSD1306 &di
 void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
 
 void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task);
-void rcsAzipodSimulate(rcsVarsStruct &rcsVars, float bus1Pow, bool feederClosed);
+void rcsAzipodSimulate(rcsVarsStruct &rcsVars, busStruct bus, bool feederClosed);
 void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task);
 void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, float bus2Pow, bool feederClosed);
 void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVarsStruct);

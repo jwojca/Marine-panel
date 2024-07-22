@@ -430,10 +430,11 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
 
           float powerDeadband = 5.0;
           float droop = 0.05;
+
+          //pulses from modbus
           bool incrPulse = arrayCoilsR[incrAdr];
           bool decrPulse = arrayCoilsR[decrAdr];
-          float stepLimit = 50; //power step of 50 kW
-
+     
           //Load calculation
           this->loadPct = this->govIncrement/this->govIncrementMax;
                
@@ -444,14 +445,16 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
             //both delivering
             if(aSecondGen.generatorState == eGeneratorState::Delivering)
             {
+              //total power
               this->totalReqPow = ((rcsVars.actPower * 1000) + (rcsVars.actPowerBT * 1000));
+
               //Generator running without load or load step is present
               if(this->govIncrement == 0.0 || abs(this->totalReqPow - this->totalReqPowPrev) > 100.0) 
                 this->reqPower = this->totalReqPow / numOfGens;
               else
                 this->reqPower = this->totalReqPow - aSecondGen.power;
 
-
+              //power incr/decr with governor pulses
               if(incrPulse)
               {
                 this->reqPower += 10.0;
@@ -469,7 +472,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
               this->reqPower = ((rcsVars.actPower * 1000) + (rcsVars.actPowerBT * 1000));
               
           }
-          //Bus 1 and Bus 2 separates
+          //Bus 1 and Bus 2 separated
           else
           {
             //Bus 1
@@ -481,8 +484,6 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
           }
           
           float powDiff = abs(this->reqPower - this->power);
-
-          //Increase power when required 
           //Local mode - governor handling power requests
           if(this->generatorMode == Local)
           {
@@ -490,13 +491,13 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
               this->power += powDiff * float(task)/1000.0 + powerDeadband/2;
             if((this->power + powerDeadband) >= this->reqPower)
              this->power -= powDiff * float(task)/1000.0 - + powerDeadband/2;
-            //Serial.println("local mode");
           }
-          //Remote mode - PEMS is sending incr/decr pulses
         else
         {
+          //power generation
           this->power = this->reqPower;
-       
+
+          //Automatic increments when freq not ok
           if(this->frequency < this->nomFrequency)
           {
             this->govIncrement += 1.0;
@@ -509,16 +510,13 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
             this->govIncrement = constrain(this->govIncrement, 0.0, this->nomSpeed * droop * 1.2);
           }
 
-          //values oscilating
+          //voltage oscilating
           this->voltage = addNoise(this->nomVoltage, -1, 1);
+
+          //speed and frequency calculation
           this->speed = (this->nomSpeed + this->govIncrement) - this->power * ((this->nomSpeed * droop) / this->maxPower);
           float poles = 8.0;
           this->frequency = (poles * this->speed)/120.0;
-
-
-          Serial.println("Power: " + String(this->power));
-          Serial.println("GovIncrement: " + String(this->govIncrement));
-
         }
           //Save prev requested power
           this->reqPowerPrev = this->reqPower;

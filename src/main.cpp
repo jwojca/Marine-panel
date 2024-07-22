@@ -523,10 +523,25 @@ void loop()
     gGenerator1.readBustieState(gBreaker3.breakerState);
     gGenerator2.readBustieState(gBreaker3.breakerState);
 
+    //Bus is live when DG is connected
+    if(gBreaker1.breakerState == eBreakerState::Closed)
+      gBus1.live = true;
+    else
+      gBus1.live = false;
+    
+    //Bus is live when DG is connected
+    if(gBreaker2.breakerState == eBreakerState::Closed)
+      gBus2.live = true;
+    else
+      gBus2.live = false;
+
+
+
+
     if(gBreaker3.breakerState == eBreakerState::Closed)
     {
       //only generator breaker 1 closed
-      if(gBreaker1.breakerState == eBreakerState::Closed && gBreaker2.breakerState == eBreakerState::Opened)
+      if(gBreaker1.breakerState == eBreakerState::Closed && gBreaker2.breakerState != eBreakerState::Closed)
       {
         gBus1.power = gGenerator1.power;
         gBus1.frequency = gGenerator1.frequency;
@@ -534,7 +549,7 @@ void loop()
         gBus2 = gBus1;
       }
       //only generator breaker 2 closed
-      else if (gBreaker1.breakerState == eBreakerState::Opened &&gBreaker2.breakerState == eBreakerState::Closed)
+      else if (gBreaker1.breakerState != eBreakerState::Closed && gBreaker2.breakerState == eBreakerState::Closed)
       {
         gBus2.power = gGenerator2.power;
         gBus2.frequency = gGenerator2.frequency;
@@ -565,7 +580,7 @@ void loop()
 
     }
 
-    
+    Serial.println(gBus1.live);
 
     //grcsVars.actPower = abs(gGenerator1.power/1000.0);   //MW
     //grcsVars.actPowerBT = abs(gGenerator2.power/1000.0);   //MW
@@ -620,7 +635,7 @@ void loop()
   hvacSimulation(gDamper1, gDamper2, gValve3, gFan1, gHvacSimVars);
 
   //---------- RCS ------------
-  rcsAzipodSimulate(grcsVars, gBus1.power, gBreaker5.breakerState == eBreakerState::Closed);
+  rcsAzipodSimulate(grcsVars, gBus1, gBreaker5.breakerState == eBreakerState::Closed);
   rcsBowThrustersSimulate(grcsVars, gBus2.power, gBreaker6.breakerState == eBreakerState::Closed);
   
 
