@@ -72,7 +72,7 @@ class Generator
 {
   public:
     float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 1910.0, reqPower = 0.0, reqPowerPrev = 0.0,
-                  reqPowerDroop = 0.0;
+                  reqPowerDroop = 0.0, totalReqPow = 0.0, totalReqPowPrev = 0.0;
     float speed = 0.0, nomSpeed = 900.0, maxSpeed = 1500.0, minSpeed = 0.0;
     float voltage = 0.0;
     float nomVoltage = 690.0;

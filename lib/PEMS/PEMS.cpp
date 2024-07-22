@@ -444,23 +444,24 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
             //both delivering
             if(aSecondGen.generatorState == eGeneratorState::Delivering)
             {
-              float totalReqPow = ((rcsVars.actPower * 1000) + (rcsVars.actPowerBT * 1000));
+              this->totalReqPow = ((rcsVars.actPower * 1000) + (rcsVars.actPowerBT * 1000));
               //Generator running without load or load step is present
-              if(this->govIncrement == 0.0) //|| (totalReqPow/numOfGens > stepLimit))
-                this->reqPower = totalReqPow / numOfGens;
+              if(this->govIncrement == 0.0 || abs(this->totalReqPow - this->totalReqPowPrev) > 100.0) 
+                this->reqPower = this->totalReqPow / numOfGens;
               else
-                this->reqPower = totalReqPow - aSecondGen.power;
+                this->reqPower = this->totalReqPow - aSecondGen.power;
 
 
               if(incrPulse)
               {
-                this->power += 10.0;
+                this->reqPower += 10.0;
               }
 
               if(decrPulse)
               {
-                this->power -= 10.0;
+                this->reqPower -= 10.0;
               }
+              this->totalReqPowPrev = this->totalReqPow;
             }
              
             //only one delivering
@@ -494,29 +495,11 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
           //Remote mode - PEMS is sending incr/decr pulses
         else
         {
-          
-          
-          //Checking if there is power step
-         
-
-          Serial.println("Req Power: " + String(this->reqPower));
-          if(abs(this->power - this->reqPowerPrev) > stepLimit)
-          {
-            this->power = this->reqPower;
-            Serial.println("Power step");
-          }
-          else
-          {
-
-
-
-          }
-
-          //float powerPct = govIncrement/(this->nomSpeed * droop);
-          //this->reqPowerDroop = powerPct * this->maxPower;
+          this->power = this->reqPower;
+       
           if(this->frequency < this->nomFrequency)
           {
-            this->govIncrement += 1.0;  //+= 20.0 * float(task/1000.0);
+            this->govIncrement += 1.0;
             this->govIncrement = constrain(this->govIncrement, 0.0, this->nomSpeed * droop * 1.2);
           }
 
@@ -525,10 +508,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
             this->govIncrement -= 1.0;
             this->govIncrement = constrain(this->govIncrement, 0.0, this->nomSpeed * droop * 1.2);
           }
-         
-      
 
-        
           //values oscilating
           this->voltage = addNoise(this->nomVoltage, -1, 1);
           this->speed = (this->nomSpeed + this->govIncrement) - this->power * ((this->nomSpeed * droop) / this->maxPower);
