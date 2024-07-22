@@ -574,7 +574,7 @@ void loop()
     //RCS
     rcsAzipodReadData(grcsVars, task);
     rcsBowThrustersReadData(grcsVars, task);
-    //rcsMbRead(grcsVars);
+    rcsMbRead(grcsVars);
  
     //HVAC
     hvacReadMb(gHvacSimVars);

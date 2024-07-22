@@ -845,7 +845,7 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
         Pump2.actInflow = Pump2.maxInflow * dp;
         Pump2.speed = 955;
         Pump2.speed += random(-10, 10);
-        Serial.println("Pump 2 is running");
+        //Serial.println("Pump 2 is running");
     }
     else if(Pump2.pumpState == Stopping || Pump2.pumpState == StoppingF)
         Pump2.stopping(pmpStrtDelay, dt, vmsSimVars);
@@ -1301,7 +1301,7 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars, float bus1Pow, bool feederClosed)
   bus1Pow /= 1000; 
 
   if(feederClosed)
-    rcsVars.actPower = min(bus1Pow, rcsVars.refPower);
+    rcsVars.actPower = rcsVars.refPower; //min(bus1Pow, rcsVars.refPower);
   else
     rcsVars.actPower = 0.0;
 
@@ -1405,7 +1405,8 @@ void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, float bus2Pow, bool feederC
   float powRequieredRpm = map(speedDif, 0, 100, 0, (rcsVars.maxPower/2.0) * 1000.0);
 
   bool boatMoving = bool(rcsVars.actRpmPortBT || rcsVars.actRpmStbdBT);
-  rcsVars.refPowerBT = (powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
+  rcsVars.refPowerBT = 0.0;
+  //rcsVars.refPowerBT = (powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
 
 
   //Speed change

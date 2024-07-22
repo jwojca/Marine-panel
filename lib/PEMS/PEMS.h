@@ -9,9 +9,6 @@ struct busStruct
 
 
 
-
-
-
 enum class eBreakerState{Opened, Closed, Opening, Closing, Failure, OpeningF};
 
 class Breaker
@@ -74,13 +71,15 @@ enum class eGeneratorState{Failure, Failure2, Stopped, Starting, Stopping, Stopp
 class Generator
 {
   public:
-    float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 1910.0, reqPower = 0.0;
-    float offset = 0.0;
+    float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 1910.0, reqPower = 0.0, reqPowerPrev = 0.0,
+                  reqPowerDroop = 0.0;
     float speed = 0.0, nomSpeed = 900.0, maxSpeed = 1500.0, minSpeed = 0.0;
     float voltage = 0.0;
     float nomVoltage = 690.0;
     float nomFrequency = 60.0;
     float frequency = 0.0;
+    float govIncrement = 0.0, govIncrementMax = 54.0;
+    float loadPct = 0.0;
     eGeneratorState generatorState = eGeneratorState::Stopped;
     eGeneratorState generatorPrevState = eGeneratorState::Stopped;
     mpMode generatorMode = Local;
