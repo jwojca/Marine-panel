@@ -384,7 +384,7 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t re
 
 }
 
-void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t incrAdr, uint16_t decrAdr)
+void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t incrAdr, uint16_t decrAdr, loadBankStruct loadBanks)
 {   
 
     uint32_t loadTime = 2000;
@@ -446,7 +446,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
             if(aSecondGen.generatorState == eGeneratorState::Delivering)
             {
               //total power
-              this->totalReqPow = ((rcsVars.actPower * 1000) + (rcsVars.actPowerBT * 1000));
+              this->totalReqPow = ((rcsVars.actPower * 1000) + (rcsVars.actPowerBT * 1000)) + loadBanks.actPower1 + loadBanks.actPower2;;
 
               //Generator running without load or load step is present
               if(this->govIncrement == 0.0 || abs(this->totalReqPow - this->totalReqPowPrev) > 100.0) 
@@ -469,7 +469,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
              
             //only one delivering
             else
-              this->reqPower = ((rcsVars.actPower * 1000) + (rcsVars.actPowerBT * 1000));
+              this->reqPower = ((rcsVars.actPower * 1000) + (rcsVars.actPowerBT * 1000)) + loadBanks.actPower1 + loadBanks.actPower2;
               
           }
           //Bus 1 and Bus 2 separated
@@ -477,10 +477,10 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
           {
             //Bus 1
             if(this->genId == 1)
-              this->reqPower = rcsVars.actPower * 1000;
+              this->reqPower = (rcsVars.actPower * 1000) + loadBanks.actPower1;
             //Bus 2
             if(this->genId == 2)
-             this->reqPower = rcsVars.actPowerBT * 1000;
+             this->reqPower = (rcsVars.actPowerBT * 1000) + loadBanks.actPower2;
           }
           
           float powDiff = abs(this->reqPower - this->power);
@@ -615,7 +615,7 @@ void Generator::unloading(uint32_t loadTime)
   }
 }
 
-void Generator::writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr, uint16_t fbAutAdr)
+void Generator::writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr, uint16_t fbAutAdr, uint16_t fbRun, uint16_t fbReady)
 {
   arrayHregsW[fbPowAdr - HregsWrOffset] = uint16_t(this->power * mbMultFactor);
   arrayHregsW[fbRpmAdr - HregsWrOffset] = uint16_t(this->speed * mbMultFactor);
@@ -623,6 +623,8 @@ void Generator::writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr
   arrayHregsW[fbFreqAdr - HregsWrOffset] = uint16_t(this->frequency * mbMultFactor);
 
   arrayCoilsW[fbAutAdr - coilsWrOffset] = this->generatorMode == Auto;
+  arrayCoilsW[fbRun - coilsWrOffset] = this->speed >= 100.0;
+  arrayCoilsW[fbReady - coilsWrOffset] = this->generatorMode == Auto;
 }
 
 //IMPORTANT - function only clears display and write state into buffer. Text is displayed in visualize function.
@@ -732,4 +734,18 @@ void writeBusMb(busStruct bus1, busStruct bus2)
   //Frequency
   arrayHregsW[Bus1Freq_ADR - HregsWrOffset] = uint16_t(bus1.frequency * mbMultFactor);
   arrayHregsW[Bus2Freq_ADR - HregsWrOffset] =  uint16_t(bus2.frequency * mbMultFactor);
+}
+
+
+void readLoadBanksMb(loadBankStruct &loadBanks, busStruct bus1, busStruct bus2)
+{
+  //Load bank command
+  loadBanks.refPower1 = float(arrayHregsR[LoadBankCmd1_ADR]/mbMultFactor);
+  loadBanks.refPower2 = float(arrayHregsR[LoadBankCmd2_ADR]/mbMultFactor);
+
+  //When bus live, loadbank consumes power
+  if(bus1.live)
+    loadBanks.actPower1 = loadBanks.refPower1;
+  if(bus2.live)
+    loadBanks.actPower2 = loadBanks.refPower2;
 }

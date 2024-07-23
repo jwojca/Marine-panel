@@ -102,6 +102,7 @@ twoStateBtn gBtDp {.actValue = false, .pcfPin = P5, .mbAddres = DpActive_ADR};
 twoStateBtn gBtFireAl {.actValue = false, .pcfPin = P6, .mbAddres = FireAlarmActive_ADR};
 
 busStruct gBus1, gBus2;
+loadBankStruct gLoadBanks;
 
 bool gvWatchDog = false, gvWatchDogPrev = false;
 
@@ -250,7 +251,7 @@ void setup()
   display7.clearDisplay();
   display8.clearDisplay();
   display9.clearDisplay();
-  display9.display();
+  //display9.display();
   display10.clearDisplay();
   display11.clearDisplay();
   display12.clearDisplay();
@@ -524,19 +525,19 @@ void loop()
     gGenerator2.readBustieState(gBreaker3.breakerState);
 
     //Bus is live when DG is connected
-    if(gBreaker1.breakerState == eBreakerState::Closed)
+    if(gBreaker1.breakerState == eBreakerState::Closed || ((gBreaker2.breakerState == eBreakerState::Closed) && gBreaker3.breakerState == eBreakerState::Closed))
       gBus1.live = true;
     else
       gBus1.live = false;
     
     //Bus is live when DG is connected
-    if(gBreaker2.breakerState == eBreakerState::Closed)
+    if(gBreaker2.breakerState == eBreakerState::Closed || ((gBreaker1.breakerState == eBreakerState::Closed) && gBreaker3.breakerState == eBreakerState::Closed))
       gBus2.live = true;
     else
       gBus2.live = false;
-
-
-
+    
+    //Load banks
+    readLoadBanksMb(gLoadBanks, gBus1, gBus2);
 
     if(gBreaker3.breakerState == eBreakerState::Closed)
     {
@@ -671,10 +672,10 @@ void loop()
   gBreaker6.writeCmd();
   gBreaker6.writeMb(Brkr6Closed_ADR, Brkr6Opened_ADR, Brkr6Failure_ADR, Brkr6Auto_ADR, Brkr6Local_ADR);
 
-  gGenerator1.writeCmd(grcsVars, gGenerator2, Gen1Incr_ADR, Gen1Decr_ADR);
-  gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR, Gen1Volt_ADR, Gen1Freq_ADR, Gen1Auto_ADR);
-  gGenerator2.writeCmd(grcsVars, gGenerator1, Gen2Incr_ADR, Gen2Decr_ADR);
-  gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR, Gen2Volt_ADR, Gen2Freq_ADR, Gen2Auto_ADR);
+  gGenerator1.writeCmd(grcsVars, gGenerator2, Gen1Incr_ADR, Gen1Decr_ADR, gLoadBanks);
+  gGenerator1.writeMb(Gen1ActPower_ADR, Gen1ActRPM_ADR, Gen1Volt_ADR, Gen1Freq_ADR, Gen1Auto_ADR, Gen1Running_ADR, Gen1Ready_ADR);
+  gGenerator2.writeCmd(grcsVars, gGenerator1, Gen2Incr_ADR, Gen2Decr_ADR, gLoadBanks);
+  gGenerator2.writeMb(Gen2ActPower_ADR, Gen2ActRPM_ADR, Gen2Volt_ADR, Gen2Freq_ADR, Gen2Auto_ADR, Gen2Running_ADR, Gen2Ready_ADR);
 
   writeBusMb(gBus1, gBus2);
 
@@ -724,7 +725,7 @@ void loop()
 
   //---------- PEMS -----------
   gGenerator1.visualize();
-  //gGenerator2.visualize();
+  gGenerator2.visualize();
 
   //---------- RCS -----------
   dispRCSAzipodVisualize(display5, display6, display7, grcsVars);
