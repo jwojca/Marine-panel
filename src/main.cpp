@@ -506,7 +506,7 @@ void loop()
     gBreaker3.readMode();
     gBreaker3.readState(Brkr3CmdClsAut_ADR,Brkr3CmdOpAut_ADR);
     gBreaker4.readMode();
-    gBreaker4.readState(Brkr4CmdClsAut_ADR, Brkr4CmdOpAut_ADR);
+    gBreaker4.readState(Brkr3CmdClsAut_ADR, Brkr3CmdOpAut_ADR); //CB 4 is slave so it is listening to CB3 commands
     gBreaker5.readMode();
     gBreaker5.readState(Brkr5CmdClsAut_ADR, Brkr5CmdOpAut_ADR);
     gBreaker6.readMode();
@@ -521,8 +521,8 @@ void loop()
     gGenerator2.readState(Gen2StartAuto_ADR, Gen2StopAuto_ADR, Gen2RefPower_ADR, Gen2Unload_ADR);
 
     //read bustie
-    gGenerator1.readBustieState(gBreaker3.breakerState);
-    gGenerator2.readBustieState(gBreaker3.breakerState);
+    gGenerator1.readBustieState(gBreaker3.breakerState, gBreaker4.breakerState);
+    gGenerator2.readBustieState(gBreaker3.breakerState, gBreaker4.breakerState);
 
     //Bus is live when DG is connected
     if(gBreaker1.breakerState == eBreakerState::Closed || ((gBreaker2.breakerState == eBreakerState::Closed) && gBreaker3.breakerState == eBreakerState::Closed))
@@ -539,7 +539,7 @@ void loop()
     //Load banks
     readLoadBanksMb(gLoadBanks, gBus1, gBus2);
 
-    if(gBreaker3.breakerState == eBreakerState::Closed)
+    if(gBreaker3.breakerState == eBreakerState::Closed && gBreaker4.breakerState == eBreakerState::Closed)
     {
       //only generator breaker 1 closed
       if(gBreaker1.breakerState == eBreakerState::Closed && gBreaker2.breakerState != eBreakerState::Closed)

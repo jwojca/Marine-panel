@@ -1291,10 +1291,11 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars, busStruct bus, bool feederClosed)
   float rmpDif = abs(rcsVars.refRPM - rcsVars.actRPM);
   float minPowRequiered = 0.4;
   float rpmPowerConst = 1.0;
+  float steerPowPct = 0.1, rpmPowPct = 0.9;
   float rpmPct = map(abs(rcsVars.actRPM), 0, rcsVars.maxRPM, 0, 100);
-  float powRequieredSteer = map(angleDif, 0, 360, 0, (rcsVars.maxPower/2.0) * 1000.0);
-  float powRequieredRpm = map(rmpDif, 0, abs(rcsVars.maxRPM - rcsVars.minRPM), 0, (rcsVars.maxPower) * 1000.0) + (rpmPowerConst * rpmPct) * 10.0;
-  powRequieredRpm = constrain(powRequieredRpm, 0.0, rcsVars.nomPower * 1000.0);
+  float powRequieredSteer = map(angleDif, 0, 180, 0, (rcsVars.maxPower/2.0) * 1000.0 * steerPowPct);
+  float powRequieredRpm = map(rmpDif, 0, rcsVars.maxRPM, 0, (rcsVars.maxPower) * 1000.0) + (rpmPowerConst * rpmPct) * 10.0;
+  powRequieredRpm = constrain(powRequieredRpm, 0.0, rcsVars.nomPower * 1000.0 * rpmPowPct);
 
   
 

@@ -71,11 +71,11 @@ enum class eGeneratorState{Failure, Failure2, Stopped, Starting, Stopping, Stopp
 class Generator
 {
   public:
-    float power = 0.0, nomPower = 2000.0 , minPower = 0.0, maxPower = 1910.0, reqPower = 0.0, reqPowerPrev = 0.0,
+    float power = 0.0, nomPower = 2500.0 , minPower = 0.0, maxPower = 3000.0, reqPower = 0.0, reqPowerPrev = 0.0,
                   reqPowerDroop = 0.0, totalReqPow = 0.0, totalReqPowPrev = 0.0;
     float speed = 0.0, nomSpeed = 900.0, maxSpeed = 1500.0, minSpeed = 0.0;
     float voltage = 0.0;
-    float nomVoltage = 690.0;
+    float nomVoltage = 6000.0;
     float nomFrequency = 60.0;
     float frequency = 0.0;
     float govIncrement = 0.0, govIncrementMax = 54.0;
@@ -138,7 +138,7 @@ class Generator
     void dispState(String text);
     void visualize();
     void readGenBrkState(bool state1);
-    void readBustieState(eBreakerState state);
+    void readBustieState(eBreakerState masterBr, eBreakerState slaveBr);
 
 };
 

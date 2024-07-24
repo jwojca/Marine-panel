@@ -495,10 +495,11 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
         else
         {
           //power generation
-          this->power = this->reqPower;
+          this->power = constrain(this->reqPower, this->minPower, this->maxPower);
 
           //Automatic increments when freq not ok
           if(this->frequency < this->nomFrequency)
+        
           {
             this->govIncrement += 1.0;
             this->govIncrement = constrain(this->govIncrement, 0.0, this->nomSpeed * droop * 1.2);
@@ -514,7 +515,7 @@ void Generator::writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t i
           this->voltage = addNoise(this->nomVoltage, -1, 1);
 
           //speed and frequency calculation
-          this->speed = (this->nomSpeed + this->govIncrement) - this->power * ((this->nomSpeed * droop) / this->maxPower);
+          this->speed = (this->nomSpeed + this->govIncrement) - this->power * ((this->nomSpeed * droop) / this->nomPower);
           float poles = 8.0;
           this->frequency = (poles * this->speed)/120.0;
         }
@@ -654,7 +655,7 @@ void Generator::visualize()
 
 
   uint8_t powerPct, speedPct;
-  powerPct = map(this->power, this->minPower, this->maxPower, 0, 100);
+  powerPct = map(this->power, this->minPower, this->maxPower, 0, 125);
   speedPct = map(this->speed, this->minSpeed, this->maxSpeed, 0, 100);
 
 
@@ -718,9 +719,9 @@ void Generator::readGenBrkState(bool state1)
   this->genBrkClosed = state1;
 }
 
-void Generator::readBustieState(eBreakerState state)
+void Generator::readBustieState(eBreakerState masterBr, eBreakerState slaveBr)
 {
-  this->bustieClosed = (state == eBreakerState::Closed);
+  this->bustieClosed = (masterBr == eBreakerState::Closed) && (slaveBr == eBreakerState::Closed);
 }
 
 
