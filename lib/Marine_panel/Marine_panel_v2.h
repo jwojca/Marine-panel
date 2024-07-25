@@ -336,7 +336,7 @@ void dispPemsVisualize(Adafruit_SSD1306 &display, uint8_t progress);
 void rcsAzipodReadData(rcsVarsStruct &rcsVars, uint16_t task);
 void rcsAzipodSimulate(rcsVarsStruct &rcsVars, busStruct bus, bool feederClosed);
 void rcsBowThrustersReadData(rcsVarsStruct &rcsVars, uint16_t task);
-void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, float bus2Pow, bool feederClosed);
+void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, busStruct bus, bool feederClosed);
 void dispRCSAzipodVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVarsStruct);
 void dispRCSBowThrustersVisualize(Adafruit_SSD1306 &display, Adafruit_SSD1306 &display2, Adafruit_SSD1306 &display3, rcsVarsStruct &rcsVars);
 void dispDrawThrustBitmap(Adafruit_SSD1306& display, uint16_t thrustAngle);

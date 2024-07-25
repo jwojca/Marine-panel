@@ -1290,28 +1290,31 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars, busStruct bus, bool feederClosed)
     
   float rmpDif = abs(rcsVars.refRPM - rcsVars.actRPM);
   float minPowRequiered = 0.4;
-  float rpmPowerConst = 1.0;
   float steerPowPct = 0.1, rpmPowPct = 0.9;
   float rpmPct = map(abs(rcsVars.actRPM), 0, rcsVars.maxRPM, 0, 100);
-  float powRequieredSteer = map(angleDif, 0, 180, 0, (rcsVars.maxPower/2.0) * 1000.0 * steerPowPct);
-  float powRequieredRpm = map(rmpDif, 0, rcsVars.maxRPM, 0, (rcsVars.maxPower) * 1000.0) + (rpmPowerConst * rpmPct) * 10.0;
-  powRequieredRpm = constrain(powRequieredRpm, 0.0, rcsVars.nomPower * 1000.0 * rpmPowPct);
-
-  
-
+  float powRequieredSteer = map(angleDif, 0, 180, 0, rcsVars.maxPower * 1000.0 * steerPowPct);
   bool boatMoving = bool(rcsVars.actRPM || rcsVars.actAnglePORT || rcsVars.actAngleSTBD);
+  float powRequieredRpm = map(abs(rcsVars.actRPM), 0, rcsVars.maxRPM, 0, rcsVars.maxPower * 1000.0 * rpmPowPct) + (minPowRequiered * 1000.0 * (rmpDif/rcsVars.maxRPM));
+ 
+  rcsVars.refPower = ((powRequieredSteer + powRequieredRpm)/1000.0) * boatMoving;
+
   //convert bus power to MW
   bus.power /= 1000; 
 
+  bool powerOk = feederClosed && ((bus.power >= rcsVars.refPower) or abs(bus.power - rcsVars.refPower) < 0.01);
+
   if(feederClosed && bus.live)
-    rcsVars.actPower = rcsVars.refPower;//min(bus.power, rcsVars.refPower);
+  {
+    rcsVars.actPower = rcsVars.refPower + addNoise(0.0, -0.002, 0.002);
+    rcsVars.actPower = constrain(rcsVars.actPower, 0.0, rcsVars.nomPower);
+  } 
   else
     rcsVars.actPower = 0.0;
 
-  bool powerOk = feederClosed && ((bus.power >= rcsVars.refPower) or abs(bus.power - rcsVars.refPower) < 0.01);
   
 
-  rcsVars.refPower = ((powRequieredSteer + powRequieredRpm)/1000.0 + minPowRequiered) * float(boatMoving);
+  
+  
 
   if(powerOk)
   {
@@ -1396,34 +1399,41 @@ void rcsAzipodSimulate(rcsVarsStruct &rcsVars, busStruct bus, bool feederClosed)
 
 }
 
-void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, float bus2Pow, bool feederClosed)
+void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, busStruct bus, bool feederClosed)
 {
-  float speedDif;
+  float speedDif = 0.0;
   if(rcsVars.refRpmPortBT > 0.0)
     speedDif = rcsVars.refRpmPortBT - rcsVars.actRpmPortBT;
   else if(rcsVars.refRpmStbdBT > 0.0)
     speedDif = rcsVars.refRpmStbdBT - rcsVars.actRpmStbdBT;
+
+  float absSpeed = max(rcsVars.actRpmPortBT, rcsVars.actRpmStbdBT);
     
-  float minPowRequiered = 0.4;
-  float powRequieredRpm = map(speedDif, 0, 100, 0, (rcsVars.maxPower/2.0) * 1000.0);
+  float minPowRequiered = 0.2;
+  float powRequieredRpm = map(absSpeed, 0, 100, 0, int(rcsVars.maxPowerBT * 1000.0)) + (speedDif * minPowRequiered * 1000.0)/100.0;
 
   bool boatMoving = bool(rcsVars.actRpmPortBT || rcsVars.actRpmStbdBT);
-  rcsVars.refPowerBT = 0.0;
-  //rcsVars.refPowerBT = (powRequieredRpm)/1000.0 + minPowRequiered * float(boatMoving);
+
+  rcsVars.refPowerBT = (powRequieredRpm/1000.0) * boatMoving;
+
 
 
   //Speed change
-  float spdIncr = 2.0;
+  float spdIncr = 4.0;
   //convert to MW
-  bus2Pow /= 1000;
+  bus.power /= 1000;
 
-  if(feederClosed)
-    rcsVars.actPowerBT = min(bus2Pow, rcsVars.refPowerBT);     //simulate actual BT power
+  bool powerOk = feederClosed && ((bus.power >= rcsVars.refPowerBT) or abs(bus.power - rcsVars.refPowerBT) < 0.01);
+  
+  if(feederClosed && bus.live)
+  {
+    rcsVars.actPowerBT = rcsVars.refPowerBT + addNoise(0.0, -0.01, 0.01);     //simulate actual BT power
+    rcsVars.actPowerBT = constrain(rcsVars.actPowerBT, 0.0, rcsVars.maxPowerBT);
+  }
   else
     rcsVars.actPowerBT = 0.0;
 
  
-  bool powerOk = feederClosed && ((bus2Pow >= rcsVars.refPowerBT) or abs(bus2Pow - rcsVars.refPowerBT) < 0.01);
   if(powerOk)
   {
     //Turn to port+

@@ -637,7 +637,7 @@ void loop()
 
   //---------- RCS ------------
   rcsAzipodSimulate(grcsVars, gBus1, gBreaker5.breakerState == eBreakerState::Closed);
-  rcsBowThrustersSimulate(grcsVars, gBus2.power, gBreaker6.breakerState == eBreakerState::Closed);
+  rcsBowThrustersSimulate(grcsVars, gBus2, gBreaker6.breakerState == eBreakerState::Closed);
   
 
 
