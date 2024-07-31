@@ -127,15 +127,19 @@ struct busStruct
 
 struct rcsVarsStruct
 {
+  //Azipod
   float actRPM = 0.0, refRPM = 0.0, minRPM = -180.0, maxRPM = 180.0;
   float refPower = 0.0, actPower = 0.0, minPower = -2.0, maxPower = 4.0, nomPower = 3.6; //MW
   float refAngle = 0, actAngle = 0; 
   float refAngleSTBD = 0.0, refAnglePORT = 0.0, actAngleSTBD = 0.0, actAnglePORT = 0.0; 
+  bool running = false;
 
+  //BowThruster
   float refRpmBt = 0.0, actRpmBT = 0.0, minRpmBT = 0.0, maxRpmBT = 100.0;
   float refRpmStbdBT = 0.0, refRpmPortBT = 0.0, actRpmStbdBT = 0.0, actRpmPortBT = 0.0;
   float refPowerBT = 0.0, actPowerBT = 0.0, minPowerBT = 0.0, maxPowerBT = 1.0;
   float totPow = 0;
+  bool runningBT = false, startReqBT = false, startGranBT = false;
 };
 
 

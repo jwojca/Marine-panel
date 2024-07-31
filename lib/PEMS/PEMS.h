@@ -63,6 +63,7 @@ class Breaker
     void savePrevState();
     void opening(uint32_t loadTime);
     void closing(uint32_t loadTime);
+    void init();
     
 };
 
@@ -128,7 +129,7 @@ class Generator
     
     
     void readMode();
-    void readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t refPowAdr, uint16_t unloadAdr);
+    void readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t refPowAdr);
     void writeCmd(rcsVarsStruct rcsVars, Generator aSecondGen, uint16_t incrAdr, uint16_t decrAdr, loadBankStruct loadBanks);
     void writeMb(uint16_t fbPowAdr, uint16_t fbRpmAdr, uint16_t fbVoltAdr, uint16_t fbFreqAdr, uint16_t fbAutAdr, uint16_t fbRun, uint16_t fbReady);
     void savePrevState();

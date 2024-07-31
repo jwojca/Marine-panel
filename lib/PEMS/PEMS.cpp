@@ -80,17 +80,18 @@ void Breaker::readState(uint16_t cmdClsAdr, uint16_t cmdOpnAdr)
     }
     else    //Auto - read from modbus
     {
-      if(arrayCoilsR[cmdClsAdr] && this->breakerState == eBreakerState::Opened)
+      if((arrayCoilsR[cmdClsAdr] && this->breakerState == eBreakerState::Opened))
       {
         this->openCmd = true;
         this->closeCmd = false;
       }
 
-      if(arrayCoilsR[cmdOpnAdr] && this->breakerState == eBreakerState::Closed)
+      if (arrayCoilsR[cmdOpnAdr] && this->breakerState == eBreakerState::Closed)
       {
         this->openCmd = false;
         this->closeCmd = true;
       }
+
         
     
     }
@@ -220,6 +221,12 @@ void Breaker::closing(uint32_t loadTime)
     this->breakerState = eBreakerState::Opened;
 }
 
+void Breaker::init()
+{
+  this->openCmd = true;
+  this->closeCmd = false;
+}
+
 // ---------------------------- GENERATOR CLASS FUNCTIONS -------------------------------------------------
 void Generator::readMode()
 {
@@ -231,7 +238,7 @@ void Generator::readMode()
     this->generatorMode = Auto;
 }
 
-void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t refPowAdr, uint16_t unloadAdr)
+void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t refPowAdr)
 {
   //For dynamic rows change
   if(alarmCounter == 0)
@@ -352,13 +359,11 @@ void Generator::readState(uint16_t startCmdAdr, uint16_t stopCmdAdr, uint16_t re
 
       if (this->generatorPrevState == eGeneratorState::Delivering)
       {
-        bool unloading = arrayCoilsR[unloadAdr];
         if(stop)
         {
           this->timer = millis(); //reset timer
           this->generatorState = eGeneratorState::Stopping;
         }
-        //else if(unloading)
         else if(!this->genBrkClosed)
         {
           this->generatorState = eGeneratorState::Running;
@@ -750,3 +755,4 @@ void readLoadBanksMb(loadBankStruct &loadBanks, busStruct bus1, busStruct bus2)
   if(bus2.live)
     loadBanks.actPower2 = loadBanks.refPower2;
 }
+

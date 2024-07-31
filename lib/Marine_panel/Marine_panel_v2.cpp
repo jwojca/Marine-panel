@@ -1412,22 +1412,24 @@ void rcsBowThrustersSimulate(rcsVarsStruct &rcsVars, busStruct bus, bool feederC
   float minPowRequiered = 0.2;
   float powRequieredRpm = map(absSpeed, 0, 100, 0, int(rcsVars.maxPowerBT * 1000.0)) + (speedDif * minPowRequiered * 1000.0)/100.0;
 
-  bool boatMoving = bool(rcsVars.actRpmPortBT || rcsVars.actRpmStbdBT);
+  //Running feedback
+  rcsVars.runningBT = bool(rcsVars.actRpmPortBT || rcsVars.actRpmStbdBT);
 
-  rcsVars.refPowerBT = (powRequieredRpm/1000.0) * boatMoving;
-
-
+  rcsVars.refPowerBT = (powRequieredRpm/1000.0) * rcsVars.runningBT;
+  
+  //Sending start request
+  rcsVars.startReqBT = (rcsVars.refRpmPortBT > 0.0) || (rcsVars.refRpmStbdBT > 0.0);
 
   //Speed change
   float spdIncr = 4.0;
   //convert to MW
   bus.power /= 1000;
 
-  bool powerOk = feederClosed && ((bus.power >= rcsVars.refPowerBT) or abs(bus.power - rcsVars.refPowerBT) < 0.01);
+  bool powerOk = feederClosed && ((bus.power >= rcsVars.refPowerBT) || abs(bus.power - rcsVars.refPowerBT) < 0.01) && (rcsVars.startGranBT || rcsVars.runningBT);
   
-  if(feederClosed && bus.live)
+  if(feederClosed && bus.live && (rcsVars.startGranBT || rcsVars.runningBT))
   {
-    rcsVars.actPowerBT = rcsVars.refPowerBT + addNoise(0.0, -0.01, 0.01);     //simulate actual BT power
+    rcsVars.actPowerBT = rcsVars.refPowerBT + (addNoise(0.0, -0.01, 0.01) * rcsVars.runningBT);     //simulate actual BT power
     rcsVars.actPowerBT = constrain(rcsVars.actPowerBT, 0.0, rcsVars.maxPowerBT);
   }
   else
@@ -1802,7 +1804,13 @@ void rcsMbWrite(rcsVarsStruct &rcsVars)
   //Bow thruster
   arrayHregsW[BtActPow_ADR - HregsWrOffset] = uint16_t(rcsVars.actPowerBT * 1000 * mbMultFactor);
   arrayHregsW[BtRefPow_ADR - HregsWrOffset] = uint16_t(rcsVars.refPowerBT * 1000 * mbMultFactor);
-  
+
+  arrayHregsW[BtaActSpPORT_ADR - HregsWrOffset] = uint16_t(rcsVars.actRpmPortBT  * mbMultFactor);
+  arrayHregsW[BtaActSpPORT_ADR - HregsWrOffset] = uint16_t(rcsVars.actRpmStbdBT * mbMultFactor);
+
+  arrayCoilsW[BtStartReq_ADR - coilsWrOffset] = rcsVars.startReqBT;
+  arrayCoilsW[BtRunning_ADR - coilsWrOffset] = rcsVars.runningBT;
+ 
 }
 
 void rcsMbRead(rcsVarsStruct &rcsVars)
@@ -1815,6 +1823,8 @@ void rcsMbRead(rcsVarsStruct &rcsVars)
   //Bow thruster
   rcsVars.refRpmPortBT = float(arrayHregsR[BtrRefSpPORT_ADR]/mbMultFactor);
   rcsVars.refRpmStbdBT = float(arrayHregsR[BtrRefSpSTBD_ADR]/mbMultFactor);
+
+  rcsVars.startGranBT = arrayCoilsR[BtStartGran_ADR];
 }
 uint8_t readPushBtn(pushBtn &btn, PCF8574 &pcf)
 {

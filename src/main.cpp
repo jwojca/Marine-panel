@@ -184,10 +184,14 @@ void setup()
   Wire.beginTransmission(PWM3_ADRESS);
   error = Wire.endTransmission();
   Serial.println(error);
-  
-  
 
-
+  //Setup breakers
+  gBreaker1.closing(0);
+  gBreaker2.closing(0);
+  gBreaker3.closing(0);
+  gBreaker4.closing(0);
+  gBreaker5.closing(0);
+  gBreaker6.closing(0);
   delay(1000);
 
   
@@ -251,7 +255,7 @@ void setup()
   display7.clearDisplay();
   display8.clearDisplay();
   display9.clearDisplay();
-  //display9.display();
+  display9.display();
   display10.clearDisplay();
   display11.clearDisplay();
   display12.clearDisplay();
@@ -408,7 +412,6 @@ void setup()
   display15.display();
 
 
-
 }
   
 
@@ -514,11 +517,11 @@ void loop()
 
     gGenerator1.readMode();
     gGenerator1.readGenBrkState(gBreaker1.breakerState == eBreakerState::Closed);
-    gGenerator1.readState(Gen1StartAuto_ADR, Gen1StopAuto_ADR, Gen1RefPower_ADR, Gen1Unload_ADR);
+    gGenerator1.readState(Gen1StartAuto_ADR, Gen1StopAuto_ADR, Gen1RefPower_ADR);
     
     gGenerator2.readMode();
     gGenerator2.readGenBrkState(gBreaker2.breakerState == eBreakerState::Closed);
-    gGenerator2.readState(Gen2StartAuto_ADR, Gen2StopAuto_ADR, Gen2RefPower_ADR, Gen2Unload_ADR);
+    gGenerator2.readState(Gen2StartAuto_ADR, Gen2StopAuto_ADR, Gen2RefPower_ADR);
 
     //read bustie
     gGenerator1.readBustieState(gBreaker3.breakerState, gBreaker4.breakerState);
@@ -581,7 +584,6 @@ void loop()
 
     }
 
-    Serial.println(gBus1.live);
 
     //grcsVars.actPower = abs(gGenerator1.power/1000.0);   //MW
     //grcsVars.actPowerBT = abs(gGenerator2.power/1000.0);   //MW
@@ -725,7 +727,7 @@ void loop()
 
   //---------- PEMS -----------
   gGenerator1.visualize();
-  gGenerator2.visualize();
+  //gGenerator2.visualize();
 
   //---------- RCS -----------
   dispRCSAzipodVisualize(display5, display6, display7, grcsVars);

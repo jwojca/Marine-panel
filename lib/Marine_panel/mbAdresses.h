@@ -162,10 +162,6 @@ extern float mbMultFactor;
 #define Gen1Freq_ADR 48
 #define Gen2Volt_ADR 49
 #define Gen2Freq_ADR 50
-#define Gen1Conn_ADR 10
-#define Gen1Disconn_ADR 11
-#define Gen2Conn_ADR 12
-#define Gen2Disconn_ADR 13
 #define AzpdRefPow_ADR 13
 #define AzpdActPow_ADR 52
 #define Bus1Volt_ADR 53
@@ -178,13 +174,15 @@ extern float mbMultFactor;
 #define Gen1Decr_ADR 35
 #define Gen2Incr_ADR 36
 #define Gen2Decr_ADR 37
-#define Gen1Unload_ADR 18
-#define Gen2Unload_ADR 19
 #define DpActive_ADR 279
 #define LoadBankCmd1_ADR 15
 #define LoadBankCmd2_ADR 16
 #define Gen1Ready_ADR 284
 #define Gen2Ready_ADR 285
+#define BtStartGran_ADR 30
+#define BtStartReq_ADR 286
+#define BtRunning_ADR 287
+
 
 
 void readBools(ModbusEthernet &mb);
