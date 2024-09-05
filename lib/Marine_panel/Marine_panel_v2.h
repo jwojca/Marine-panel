@@ -350,6 +350,7 @@ void dispSimResult(Adafruit_SSD1306 &display, bool answer);
 void rcsMbWrite(rcsVarsStruct &rcsVars);
 void rcsMbRead(rcsVarsStruct &rcsVars);
 uint8_t readPushBtn(pushBtn &btn, PCF8574 &pcf);
+void resetPushBtn(pushBtn &btn);
 void writeTwoStateBtnMb(twoStateBtn &btn);
 void writePushButMb(pushBtn &btn);
 

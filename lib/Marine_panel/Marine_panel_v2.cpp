@@ -877,6 +877,10 @@ void vmsSimluation(Pump &Pump1, Pump &Pump2, Valve &Valve1, Valve &Valve2, vmsSi
     //pressure equation
     vmsSimVars.PressureAct = (vmsSimVars.MaxPressure * 1000.0) / (vmsSimVars.TankMaxVol - vmsSimVars.TankWater);  //TODO revise equation
 
+    //pump speed limit
+    Pump1.speed = constrain(Pump1.speed, 0.0, Pump1.maxSpeed);
+    Pump2.speed = constrain(Pump2.speed, 0.0, Pump2.maxSpeed);
+
 }
 
 void vmsMbRead(vmsSimVarsStruct &aVmsSimVars)
@@ -1839,6 +1843,13 @@ uint8_t readPushBtn(pushBtn &btn, PCF8574 &pcf)
 
   btn.prevState = btn.actState;
   return 0;
+}
+
+void resetPushBtn(pushBtn &btn)
+{
+  btn.actState = false;
+  btn.actValue = false;
+  btn.prevState = false;
 }
 
 void writeTwoStateBtnMb(twoStateBtn &btn)

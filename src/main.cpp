@@ -379,8 +379,12 @@ void setup()
       break;
     }
 
-
    }
+
+    //reset states of push buttons
+    resetPushBtn(gBtEmButt);
+    resetPushBtn(gBtStart);
+    resetPushBtn(gBtStop);
 
 
   }
